@@ -1,0 +1,6 @@
+{
+  "name": "Learn with Legends",
+  "description": "A Progressive Web App featuring interactive legendary story realms, choice-driven chapters, speech feedback, and skill development.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

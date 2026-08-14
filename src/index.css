@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  h1, h2, h3, .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
+
+  .font-serif-display {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+/* Custom Gold & Glass Utilities */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #fce0a2 0%, #d4af37 50%, #996515 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-border {
+  border-image: linear-gradient(135deg, #f6d365, #fda085, #d4af37) 1;
+}
+
+.gold-card-frame {
+  background: linear-gradient(180deg, rgba(30, 38, 54, 0.85) 0%, rgba(15, 20, 28, 0.95) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(12px);
+}
+
+.gold-card-frame:hover {
+  border-color: rgba(212, 175, 55, 0.75);
+  box-shadow: 0 12px 40px 0 rgba(212, 175, 55, 0.15);
+}
+
+/* Shatter/Broken Item Animation for Weak/Harmful/Safe Choices */
+@keyframes shatterFall {
+  0% {
+    transform: scale(1) rotate(0deg) translateY(0);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  20% {
+    transform: scale(1.1) rotate(-5deg) translateY(-10px);
+    filter: brightness(1.5) hue-rotate(180deg);
+  }
+  40% {
+    transform: scale(0.95) rotate(10deg) translateY(10px);
+    clip-path: polygon(0 0, 50% 10%, 100% 0, 90% 50%, 100% 100%, 50% 85%, 0 100%, 10% 50%);
+  }
+  100% {
+    transform: scale(0.4) rotate(45deg) translateY(250px);
+    opacity: 0;
+    filter: grayscale(1);
+  }
+}
+
+.animate-shatter {
+  animation: shatterFall 1.8s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 20, 28, 0.8);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.6);
+}
+

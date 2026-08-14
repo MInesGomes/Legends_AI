@@ -1,0 +1,168 @@
+{
+  "atlantis-ch1": {
+    "id": "atlantis-ch1",
+    "taleId": "tale-5-crystals",
+    "chapterNumber": 1,
+    "title": "Chapter 1 — The City Beneath the Sea",
+    "subtitle": "The Heart of Atlantis: The Fivefold Choice",
+    "skill": "Win4All",
+    "bgMedia": {
+      "type": "image",
+      "url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&q=80"
+    },
+    "intro": {
+      "female": {
+        "characterName": "Alethea",
+        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+        "backgroundStory": "Alethea guarded the Lower Archives, studying the ancient principles of Atlantis: discipline of the heart, mind, and character. She believed a city did not collapse when its walls broke, but when its people stopped caring that the walls were weakening. Patient and observant, she noticed what others ignored. Yet she carried responsibility alone.",
+        "dialogue": [
+          { "speaker": "Alethea", "text": "Below the ocean domes, the Five Crystals keep our ocean realm alive. But a fissure is forming beneath the Heart Chamber." },
+          { "speaker": "Alethea", "text": "People began choosing convenience over honesty and profit over service. The Heart noticed, and its blue light began to flicker." },
+          { "speaker": "Alethea", "text": "We cannot wait for the walls to collapse. We must restore knowledge with compassion and strength with purpose." }
+        ]
+      },
+      "male": {
+        "characterName": "Elion",
+        "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+        "backgroundStory": "Elion was Atlantis's greatest warrior. Strong, celebrated, and undefeated, he had protected the city many times. But his victories had made him lonely. He believed needing others was weakness and pushed himself beyond his limits. His greatest fear was simple: if he stopped being the strongest, who would he be?",
+        "dialogue": [
+          { "speaker": "Elion", "text": "I woke tonight with a strange blue mark glowing on my palm. In my dreams, Atlantis was flooding while I stood helpless." },
+          { "speaker": "Elion", "text": "I have fought a hundred battles for this ocean city, but true strength isn't fought alone in darkness." },
+          { "speaker": "Elion", "text": "When every light in Atlantis went out, I knew the Heart had summoned us." }
+        ]
+      }
+    }
+  },
+  "atlantis-ch2": {
+    "id": "atlantis-ch2",
+    "taleId": "tale-5-crystals",
+    "chapterNumber": 2,
+    "title": "Chapter 2 — Win4All: The First Crystal",
+    "subtitle": "The Celebration and the Darkness",
+    "skill": "Win4All",
+    "bgMedia": {
+      "type": "image",
+      "url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=80"
+    },
+    "intro": {
+      "female": {
+        "characterName": "Alethea & Elion",
+        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+        "backgroundStory": "The Day of Founding was in full celebration when the Heart suddenly pulsed. The music stopped. The fountains froze. The city went dark. A section of the eastern dome began to buckle.",
+        "dialogue": [
+          { "speaker": "Alethea", "text": "The eastern dome is losing pressure! If we close the main gate, the southern districts lose oxygen." },
+          { "speaker": "Elion", "text": "And if we leave it open, the east floods! We need a third option!" },
+          { "speaker": "Alethea", "text": "The abandoned maintenance tunnels beneath the plaza — we can redirect pressure through them!" }
+        ]
+      },
+      "male": {
+        "characterName": "Elion & Alethea",
+        "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+        "backgroundStory": "The Day of Founding was in full celebration when the Heart suddenly pulsed. A section of the eastern dome began to buckle as alarm sirens wailed across Atlantis.",
+        "dialogue": [
+          { "speaker": "Elion", "text": "Move, Alethea! I can lift the emergency panel when it collapses!" },
+          { "speaker": "Alethea", "text": "I know the control systems better than anyone. We can redirect pressure through the maintenance tunnels." },
+          { "speaker": "Elion", "text": "Sounds dangerous. Good, I understand dangerous. Let's make our choice." }
+        ]
+      }
+    },
+    "choices": {
+      "Best": {
+        "title": "Protect Everyone Together (Win4All)",
+        "description": "Alethea organizes the evacuation while Elion coordinates citizens, builders, and medics.",
+        "dialogues": [
+          { "speaker": "Elion", "text": "Strong people carry equipment! Not people who can walk! Everybody moves together!" },
+          { "speaker": "Alethea", "text": "We saved every citizen. Even when doing the right thing has consequences, Win4All builds true resilience." }
+        ],
+        "feedbackReadBack": "True leadership creates a Win4All outcome where everyone contributes and no one is left behind."
+      },
+      "Safe": {
+        "title": "Seal the Eastern Dome",
+        "description": "Elion closes the eastern gate immediately, protecting the central city. The southern districts lose oxygen.",
+        "dialogues": [
+          { "speaker": "Elion", "text": "I chose the safer path..." },
+          { "speaker": "Alethea", "text": "Yes. But safety without cooperation can still leave people behind." }
+        ],
+        "feedbackReadBack": "Playing it safe alone protects the core but risks leaving vulnerable teammates isolated."
+      },
+      "Weak": {
+        "title": "Wait for the Council",
+        "description": "They hesitate, waiting for official instructions. The Council remains silent while water rises.",
+        "dialogues": [
+          { "speaker": "Elion", "text": "I could have stopped it if I didn't hesitate!" },
+          { "speaker": "Alethea", "text": "We both waited for someone else to become responsible." }
+        ],
+        "feedbackReadBack": "Delaying action out of fear of responsibility leads to avoidable loss for the entire community."
+      },
+      "Harmful": {
+        "title": "Fight for Control",
+        "description": "Elion tries to force the machinery open while Alethea overrides the system. Their argument breaks the mechanism.",
+        "dialogues": [
+          { "speaker": "Alethea", "text": "Strength without discipline is not protection!" },
+          { "speaker": "Elion", "text": "For once... I have no answer." }
+        ],
+        "feedbackReadBack": "Conflict and stubborn control destroy the very foundations we are trying to save."
+      }
+    }
+  },
+  "work-ch1": {
+    "id": "work-ch1",
+    "taleId": "tale-startup-winner",
+    "chapterNumber": 1,
+    "title": "Chapter 1 — The Boardroom Storm",
+    "subtitle": "Startup Winner: Leader & Plan Skills",
+    "skill": "Leader",
+    "bgMedia": {
+      "type": "image",
+      "url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=80"
+    },
+    "intro": {
+      "female": {
+        "characterName": "Elena",
+        "avatarUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200",
+        "backgroundStory": "Elena lead the product team during their most critical launch quarter. When communication broke down between marketing and dev, she stood up to unify the team.",
+        "dialogue": [
+          { "speaker": "Elena", "text": "I cannot stand how disorganized our project roadmap is right now!" },
+          { "speaker": "Teammate", "text": "It sounds like you're feeling overwhelmed, but we can structure a clear plan together." }
+        ]
+      },
+      "male": {
+        "characterName": "Marcus",
+        "avatarUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200",
+        "backgroundStory": "Marcus was appointed lead founder. With investor deadlines looming, he had to demonstrate composed leadership.",
+        "dialogue": [
+          { "speaker": "Marcus", "text": "We have 48 hours before the funding pitch. We need clear leadership now!" },
+          { "speaker": "Teammate", "text": "Let's align our strengths and present a unified vision." }
+        ]
+      }
+    },
+    "choices": {
+      "Best": {
+        "title": "Leader — Empower the Team",
+        "description": "Establish clear ownership, active listening, and structured deadlines.",
+        "dialogues": [
+          { "speaker": "Leader", "text": "Let's break it down into four actionable pillars where everyone takes clear ownership!" }
+        ],
+        "feedbackReadBack": "A great leader empowers others by creating clarity, trust, and shared accountability."
+      },
+      "Safe": {
+        "title": "Postpone the Meeting",
+        "description": "Delay decision-making to gather more data.",
+        "dialogues": [{ "speaker": "Leader", "text": "We avoid immediate conflict, but momentum is lost." }],
+        "feedbackReadBack": "Playing safe avoids risk but delays innovation."
+      },
+      "Weak": {
+        "title": "Micromanage Tasks",
+        "description": "Take over everyone's task directly.",
+        "dialogues": [{ "speaker": "Leader", "text": "I'll just do it all myself..." }],
+        "feedbackReadBack": "Micromanagement burns out the leader and demoralizes the team."
+      },
+      "Harmful": {
+        "title": "Blame Other Departments",
+        "description": "Accuse marketing of the delay.",
+        "dialogues": [{ "speaker": "Leader", "text": "It's entirely their fault we missed the target!" }],
+        "feedbackReadBack": "Blaming others destroys team psychological safety."
+      }
+    }
+  }
+}

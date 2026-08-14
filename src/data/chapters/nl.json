@@ -1,0 +1,90 @@
+{
+  "atlantis-ch1": {
+    "id": "atlantis-ch1",
+    "taleId": "tale-5-crystals",
+    "chapterNumber": 1,
+    "title": "Hoofdstuk 1 — De Stad Onder de Zee",
+    "subtitle": "Het Hart van Atlantis: De Vijfvoudige Keuze",
+    "skill": "Win4All",
+    "bgMedia": {
+      "type": "image",
+      "url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&q=80"
+    },
+    "intro": {
+      "female": {
+        "characterName": "Alethea",
+        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+        "backgroundStory": "Alethea bewaakte de Onderste Archieven van Atlantis.",
+        "dialogue": [
+          { "speaker": "Alethea", "text": "Onder de oceaankoepels houden de Vijf Kristallen ons rijk levend." }
+        ]
+      },
+      "male": {
+        "characterName": "Elion",
+        "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+        "backgroundStory": "Elion was Atlantis' grootste krijger.",
+        "dialogue": [
+          { "speaker": "Elion", "text": "Ik werd vanacht wakker met een blauw merkteken. Het Hart heeft ons geroepen." }
+        ]
+      }
+    }
+  },
+  "atlantis-ch2": {
+    "id": "atlantis-ch2",
+    "taleId": "tale-5-crystals",
+    "chapterNumber": 2,
+    "title": "Hoofdstuk 2 — Win4All: Het Eerste Kristal",
+    "subtitle": "Het Feest en de Duisternis",
+    "skill": "Win4All",
+    "bgMedia": {
+      "type": "image",
+      "url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=80"
+    },
+    "intro": {
+      "female": {
+        "characterName": "Alethea & Elion",
+        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+        "backgroundStory": "De oostelijke koepel verliest druk.",
+        "dialogue": [
+          { "speaker": "Alethea", "text": "We kunnen de druk omleiden via de onderhoudstunnels!" }
+        ]
+      },
+      "male": {
+        "characterName": "Elion & Alethea",
+        "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+        "backgroundStory": "Het alarm klinkt door heel Atlantis.",
+        "dialogue": [
+          { "speaker": "Elion", "text": "Alethea, ik til het noodpaneel op!" }
+        ]
+      }
+    },
+    "choices": {
+      "Best": {
+        "title": "Samen Iedereen Beschermen (Win4All)",
+        "description": "De gecoördineerde evacuatie redt alle burgers.",
+        "dialogues": [
+          { "speaker": "Elion", "text": "Samen kunnen we elke uitdaging aan!" }
+        ],
+        "feedbackReadBack": "Echt leiderschap creëert een Win4All resultaat waarin niemand achterblijft."
+      },
+      "Safe": {
+        "title": "Sluit de Oostelijke Koepel",
+        "description": "Veilige keuze maar isoleert het zuiden.",
+        "dialogues": [{ "speaker": "Elion", "text": "Ik koos het veiligste pad." }],
+        "feedbackReadBack": "Veilig spelen zonder samenwerking laat mensen in de steek."
+      },
+      "Weak": {
+        "title": "Wacht op de Raad",
+        "description": "Aarzeling leidt tot overstroming.",
+        "dialogues": [{ "speaker": "Alethea", "text": "We wachtten te lang tot iemand anders verantwoordelijk werd." }],
+        "feedbackReadBack": "Uitstellen uit angst voor verantwoordelijkheid veroorzaakt vermijdbaar verlies."
+      },
+      "Harmful": {
+        "title": "Vecht om Controle",
+        "description": "Ruzie beschadigt het mechanisme.",
+        "dialogues": [{ "speaker": "Alethea", "text": "Kracht zonder discipline is geen bescherming." }],
+        "feedbackReadBack": "Vernietigend conflict breekt af wat we willen beschermen."
+      }
+    }
+  }
+}
