@@ -1,0 +1,130 @@
+{
+  "title": "The Heart of Atlantis: The Five Crystals",
+  "taleId": "tale-5-crystals",
+  "realm": "Atlantis",
+  "skill": "Win4All",
+  "coverImage": "/src/assets/images/atlantis_heart_crystals_1786726147916.jpg",
+  "chapters": [
+    {
+      "id": "atlantis-ch1",
+      "chapterNumber": 1,
+      "title": "Chapter 1 — The City Beneath the Sea",
+      "subtitle": "The Heart of Atlantis & The Five Crystals",
+      "skill": "Win4All",
+      "bgImage": "/src/assets/images/atlantis_city_domes_1786726165244.jpg",
+      "story": {
+        "introduction": "Atlantis was not a ruined city. It was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. Its light traveled through canals, towers, gardens, temples, schools, and machines, giving warmth and energy to millions of people.",
+        "dimensions": [
+          { "dimension": "The physical dimension", "meaning": "strength, health, and purposeful action." },
+          { "dimension": "The social dimension", "meaning": "cooperation, trust, and service." },
+          { "dimension": "The emotional dimension", "meaning": "courage to feel and heal." },
+          { "dimension": "The intellectual dimension", "meaning": "learning guided by truth and ethics." },
+          { "dimension": "The spiritual dimension", "meaning": "meaning, humility, and connection." }
+        ],
+        "theChange": "Around the Heart stood five smaller crystals, each reflecting one of these dimensions. Together, they were called the Five Crystals. But the city had slowly changed. A merchant began charging desperate families extra for clean water. A council member ignored safety rules to save time. A builder used weak materials in an underwater passage. A scholar altered records to protect his reputation. A priest continued performing sacred ceremonies even after he had stopped believing in them. Each decision seemed small. Each excuse seemed reasonable. Yet the Heart noticed. Its blue light began to flicker.",
+        "theBeginning": "Alethea discovered the first fissure beneath the Heart Chamber. It was not caused by pressure from the ocean or damage from an enemy. It had formed from within the foundation. At the same moment, Elion woke from another nightmare with a strange blue mark burning across his palm. Neither understood the connection. Neither knew that the Heart had chosen them because they represented two things Atlantis had forgotten: knowledge with compassion, and strength with purpose.\n\nThe city still appeared prosperous. The gardens were blooming. The canals shone. The people were celebrating the annual Day of Founding. Then the Heart gave one bright, beautiful pulse. Every crystal in Atlantis awakened. And immediately afterward, every light in the city went out."
+      },
+      "characters": {
+        "female": {
+          "characterName": "Alethea",
+          "role": "Guardian of the Lower Archives",
+          "avatarUrl": "/src/assets/images/female_scholar_1786725027022.jpg",
+          "backgroundStory": "Alethea was a guardian of the Lower Archives, where the oldest records of Atlantis were stored. She was neither famous nor powerful. Most citizens did not know her name, and the Council rarely listened to her reports. She had spent her life studying the founding principles of Atlantis: discipline of the heart, discipline of the mind, and discipline of character. Alethea believed that a city did not collapse when its walls broke. It collapsed when its people stopped caring that the walls were weakening. Patient, observant, and stubbornly compassionate, she had a talent for noticing what others preferred to ignore. Her greatest weakness was that she often carried responsibility alone.",
+          "dialogue": [
+            { "speaker": "Alethea", "text": "A city does not collapse when its outer walls break. It collapses when its people stop caring that the foundation is weakening." },
+            { "speaker": "Alethea", "text": "The fissure under the Heart Chamber did not come from the deep ocean pressure. It formed from within our own neglect." },
+            { "speaker": "Alethea", "text": "When every light went out, I knew the Heart was testing whether we still remember who we are." }
+          ]
+        },
+        "male": {
+          "characterName": "Elion",
+          "role": "Atlantis's Most Celebrated Warrior",
+          "avatarUrl": "/src/assets/images/male_champion_1786725076356.jpg",
+          "backgroundStory": "Elion was Atlantis's most celebrated warrior. He had won every major tournament, defeated every champion, and protected the city during several dangerous incursions from the deep. His strength was legendary. His name was painted on training halls and carved into medals. But his victories had made him lonely. Elion believed that needing others was a form of weakness. He trained until his muscles trembled, used stimulants to extend his endurance, and refused help even when injured. Behind his confidence lived a fear he never admitted: that if he stopped being the strongest person in the room, no one would know who he was. His dreams showed Atlantis cracking beneath the sea while he stood powerful enough to fight—but unable to save anyone.",
+          "dialogue": [
+            { "speaker": "Elion", "text": "I woke from another nightmare with this strange blue mark burning across my palm." },
+            { "speaker": "Elion", "text": "I have won every tournament and defeated every beast from the deep, but in my dreams, I was standing in flooded streets powerless to save anyone alone." },
+            { "speaker": "Elion", "text": "Strength without a higher purpose is just a weapon waiting to break." }
+          ]
+        }
+      }
+    },
+    {
+      "id": "atlantis-ch2",
+      "chapterNumber": 2,
+      "title": "Chapter 2 — Win4All: The First Crystal",
+      "subtitle": "Scene: The Celebration and the Darkness",
+      "skill": "Win4All",
+      "bgImage": "/src/assets/images/atlantis_celebration_darkness_1786726183152.jpg",
+      "scene": {
+        "setting": "The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen. Alethea stood beneath the central tower, watching the blue light spread through the city. For one perfect moment, she believed the crisis was over.",
+        "climax": "Then the Heart pulsed. The music stopped. The fountains froze in midair. The city's lights vanished. A deep vibration rolled through the plaza. Glass cracked in the upper towers, and a section of the eastern dome began to buckle. Alethea ran toward the emergency controls. Elion reached them first."
+      },
+      "introDialogue": [
+        { "speaker": "Elion", "text": "Move. I know how to lift the panel when it collapses." },
+        { "speaker": "Alethea", "text": "I know the control system better than you do! And what happened to your hand?" },
+        { "speaker": "Elion", "text": "Ask me after we keep half the city from drowning." },
+        { "speaker": "Alethea", "text": "The eastern dome is losing pressure. If we close the main gate, the southern districts will lose oxygen." },
+        { "speaker": "Elion", "text": "If we leave it open, the east floods! Is there always a third option?" },
+        { "speaker": "Alethea", "text": "There has to be. We can redirect the force through the old maintenance tunnels. This is not a duel, Elion. If we win, everyone must survive—not just the people closest to us." }
+      ],
+      "options": [
+        {
+          "type": "Best",
+          "title": "Protect Everyone Together",
+          "subtitle": "Win4All Synergy & Unified Evacuation",
+          "image": "/src/assets/images/atlantis_choice_best_1786726199867.jpg",
+          "description": "Alethea orders the emergency teams to rescue the eastern district while Elion organizes citizens into carrying lines. The plan is slower, but it protects the greatest number of people and prevents panic.",
+          "dialogues": [
+            { "speaker": "Alethea", "text": "Everyone who can walk, move toward the western shelters. Do not run. Hold hands with the person beside you." },
+            { "speaker": "Elion", "text": "Builders with tools, follow me! Medics, stay near the injured! Strong people carry equipment, not people who can walk on their own!" },
+            { "speaker": "Citizen", "text": "Why should we listen to you?" },
+            { "speaker": "Elion", "text": "Because if we waste time arguing, the ocean will make the decision for us." },
+            { "speaker": "Alethea", "text": "We saved the district. But doing the right thing does not control every consequence—the Physical Crystal has awakened." }
+          ],
+          "feedbackReadBack": "True Win4All leadership protects everyone through shared coordination, empathy, and collective courage.",
+          "crystalOutcome": "The First Crystal glows with radiant sapphire light, binding the people together in mutual trust."
+        },
+        {
+          "type": "Safe",
+          "title": "Seal the Eastern Dome",
+          "subtitle": "Immediate Lockdown & Partial Abandonment",
+          "image": "/src/assets/images/atlantis_choice_safe_1786726217276.jpg",
+          "description": "Elion closes the eastern gate immediately, protecting the central city from flooding. Alethea objects that the southern districts will lose oxygen, but the emergency shelters remain safe.",
+          "dialogues": [
+            { "speaker": "Elion", "text": "Close it! We will protect the majority. It is better than losing the entire city." },
+            { "speaker": "Alethea", "text": "That is not the same as protecting everyone. Safety without cooperation can still leave people behind." }
+          ],
+          "feedbackReadBack": "Safety without cooperation leaves vulnerable neighbors behind. Compromise is not a true Win4All.",
+          "crystalOutcome": "The First Crystal gives a faint, muted glow, but remains dormant."
+        },
+        {
+          "type": "Weak",
+          "title": "Wait for the Council",
+          "subtitle": "Hesitation & Diffusion of Responsibility",
+          "image": "/src/assets/images/atlantis_choice_weak_1786726238138.jpg",
+          "description": "Alethea and Elion delay action, hoping the Council will issue an official order. The Council's communication system remains silent while water floods the eastern sector.",
+          "dialogues": [
+            { "speaker": "Elion", "text": "What if we act without permission? We need authority." },
+            { "speaker": "Alethea", "text": "We need courage! We both waited for someone else to become responsible." }
+          ],
+          "feedbackReadBack": "Delaying action out of fear of responsibility causes irreversible damage to the entire community.",
+          "crystalOutcome": "The First Crystal flickers erratically and loses its vital warmth."
+        },
+        {
+          "type": "Harmful",
+          "title": "Fight for Control",
+          "subtitle": "Ego Conflict & Physical Struggle",
+          "image": "/src/assets/images/atlantis_choice_harmful_1786726254333.jpg",
+          "description": "Elion tries to force the machinery open while Alethea attempts to override the system. Their disagreement becomes a physical struggle that shatters the emergency mechanism.",
+          "dialogues": [
+            { "speaker": "Alethea", "text": "Release the lever! Strength without discipline is not protection!" },
+            { "speaker": "Elion", "text": "I am trying to save people... but I broke the mechanism. For once, I have no answer." }
+          ],
+          "feedbackReadBack": "Aggressive ego battles and stubborn power struggles destroy the very systems meant to protect us.",
+          "crystalOutcome": "The First Crystal turns completely pitch black."
+        }
+      ]
+    }
+  ]
+}

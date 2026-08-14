@@ -4,31 +4,44 @@
     "taleId": "tale-5-crystals",
     "chapterNumber": 1,
     "title": "Chapter 1 — The City Beneath the Sea",
-    "subtitle": "The Heart of Atlantis: The Fivefold Choice",
+    "subtitle": "The Heart of Atlantis: The Five Crystals",
     "skill": "Win4All",
     "bgMedia": {
       "type": "image",
-      "url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&q=80"
+      "url": "/src/assets/images/atlantis_city_domes_1786726165244.jpg"
+    },
+    "story": {
+      "paragraphs": [
+        "Atlantis was not a ruined city.",
+        "It was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. Its light traveled through canals, towers, gardens, temples, schools, and machines, giving warmth and energy to millions of people.",
+        "For centuries, the Heart had remained steady because the people guarded more than its chamber. They guarded the qualities it represented:\n• The physical dimension: strength, health, and purposeful action.\n• The social dimension: cooperation, trust, and service.\n• The emotional dimension: courage to feel and heal.\n• The intellectual dimension: learning guided by truth and ethics.\n• The spiritual dimension: meaning, humility, and connection.",
+        "Around the Heart stood five smaller crystals, each reflecting one of these dimensions. Together, they were called the Five Crystals.",
+        "But the city had slowly changed. A merchant began charging desperate families extra for clean water. A council member ignored safety rules to save time. A builder used weak materials in an underwater passage. A scholar altered records to protect his reputation. A priest continued performing sacred ceremonies even after he had stopped believing in them.",
+        "Each decision seemed small. Each excuse seemed reasonable. Yet the Heart noticed. Its blue light began to flicker.",
+        "The Beginning: Alethea discovered the first fissure beneath the Heart Chamber. It was not caused by pressure from the ocean or damage from an enemy. It had formed from within the foundation. At the same moment, Elion woke from another nightmare with a strange blue mark burning across his palm.",
+        "Neither understood the connection. Neither knew that the Heart had chosen them because they represented two things Atlantis had forgotten: knowledge with compassion, and strength with purpose.",
+        "The city still appeared prosperous. The gardens were blooming. The canals shone. The people were celebrating the annual Day of Founding. Then the Heart gave one bright, beautiful pulse. Every crystal in Atlantis awakened. And immediately afterward, every light in the city went out."
+      ]
     },
     "intro": {
       "female": {
         "characterName": "Alethea",
-        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
-        "backgroundStory": "Alethea guarded the Lower Archives, studying the ancient principles of Atlantis: discipline of the heart, mind, and character. She believed a city did not collapse when its walls broke, but when its people stopped caring that the walls were weakening. Patient and observant, she noticed what others ignored. Yet she carried responsibility alone.",
+        "avatarUrl": "/src/assets/images/female_scholar_1786725027022.jpg",
+        "backgroundStory": "Alethea was a guardian of the Lower Archives, where the oldest records of Atlantis were stored. She was neither famous nor powerful. Most citizens did not know her name, and the Council rarely listened to her reports. She had spent her life studying the founding principles of Atlantis: discipline of the heart, discipline of the mind, and discipline of character. Alethea believed that a city did not collapse when its walls broke. It collapsed when its people stopped caring that the walls were weakening. Patient, observant, and stubbornly compassionate, she had a talent for noticing what others preferred to ignore. Her greatest weakness was that she often carried responsibility alone.",
         "dialogue": [
-          { "speaker": "Alethea", "text": "Below the ocean domes, the Five Crystals keep our ocean realm alive. But a fissure is forming beneath the Heart Chamber." },
-          { "speaker": "Alethea", "text": "People began choosing convenience over honesty and profit over service. The Heart noticed, and its blue light began to flicker." },
-          { "speaker": "Alethea", "text": "We cannot wait for the walls to collapse. We must restore knowledge with compassion and strength with purpose." }
+          { "speaker": "Alethea", "text": "A city does not collapse when its outer walls break. It collapses when its people stop caring that the walls are weakening." },
+          { "speaker": "Alethea", "text": "The fissure beneath the Heart Chamber formed from within our foundation. Each small compromise has weakened the Heart's light." },
+          { "speaker": "Alethea", "text": "When every light went out, I knew the Heart had awakened our calling." }
         ]
       },
       "male": {
         "characterName": "Elion",
-        "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-        "backgroundStory": "Elion was Atlantis's greatest warrior. Strong, celebrated, and undefeated, he had protected the city many times. But his victories had made him lonely. He believed needing others was weakness and pushed himself beyond his limits. His greatest fear was simple: if he stopped being the strongest, who would he be?",
+        "avatarUrl": "/src/assets/images/male_champion_1786725076356.jpg",
+        "backgroundStory": "Elion was Atlantis's most celebrated warrior. He had won every major tournament, defeated every champion, and protected the city during several dangerous incursions from the deep. His strength was legendary. His name was painted on training halls and carved into medals. But his victories had made him lonely. Elion believed that needing others was a form of weakness. He trained until his muscles trembled, used stimulants to extend his endurance, and refused help even when injured. Behind his confidence lived a fear he never admitted: that if he stopped being the strongest person in the room, no one would know who he was. In his dreams, Atlantis cracked beneath the sea while he stood powerful enough to fight—but unable to save anyone alone.",
         "dialogue": [
-          { "speaker": "Elion", "text": "I woke tonight with a strange blue mark glowing on my palm. In my dreams, Atlantis was flooding while I stood helpless." },
-          { "speaker": "Elion", "text": "I have fought a hundred battles for this ocean city, but true strength isn't fought alone in darkness." },
-          { "speaker": "Elion", "text": "When every light in Atlantis went out, I knew the Heart had summoned us." }
+          { "speaker": "Elion", "text": "I woke from another nightmare with this burning blue mark across my palm." },
+          { "speaker": "Elion", "text": "I have won every battle in the arena, but in my dreams, I was standing in flooded streets powerless to save anyone alone." },
+          { "speaker": "Elion", "text": "Strength without purpose and compassion is just a weapon waiting to break." }
         ]
       }
     }
@@ -38,70 +51,92 @@
     "taleId": "tale-5-crystals",
     "chapterNumber": 2,
     "title": "Chapter 2 — Win4All: The First Crystal",
-    "subtitle": "The Celebration and the Darkness",
+    "subtitle": "Scene: The Celebration and the Darkness",
     "skill": "Win4All",
     "bgMedia": {
       "type": "image",
-      "url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=80"
+      "url": "/src/assets/images/atlantis_celebration_darkness_1786726183152.jpg"
     },
+    "sceneText": "The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen. Alethea stood beneath the central tower, watching the blue light spread through the city. For one perfect moment, she believed the crisis was over. Then the Heart pulsed. The music stopped. The fountains froze in midair. The city's lights vanished. A deep vibration rolled through the plaza. Glass cracked in the upper towers, and a section of the eastern dome began to buckle. Alethea ran toward the emergency controls. Elion reached them first.",
     "intro": {
       "female": {
         "characterName": "Alethea & Elion",
-        "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
-        "backgroundStory": "The Day of Founding was in full celebration when the Heart suddenly pulsed. The music stopped. The fountains froze. The city went dark. A section of the eastern dome began to buckle.",
+        "avatarUrl": "/src/assets/images/female_scholar_1786725027022.jpg",
+        "backgroundStory": "The Day of Founding was plunged into darkness as the eastern dome cracked. Alethea and Elion race to the emergency controls to prevent catastrophic flooding.",
         "dialogue": [
-          { "speaker": "Alethea", "text": "The eastern dome is losing pressure! If we close the main gate, the southern districts lose oxygen." },
-          { "speaker": "Elion", "text": "And if we leave it open, the east floods! We need a third option!" },
-          { "speaker": "Alethea", "text": "The abandoned maintenance tunnels beneath the plaza — we can redirect pressure through them!" }
+          { "speaker": "Elion", "text": "Move. I can lift the panel when it collapses." },
+          { "speaker": "Alethea", "text": "I know the system better than you do. What happened to your hand?" },
+          { "speaker": "Elion", "text": "Nothing... Ask me after we keep half the city from drowning." },
+          { "speaker": "Alethea", "text": "The eastern dome is losing pressure. If we close the main gate, the southern districts will lose oxygen." },
+          { "speaker": "Elion", "text": "If we leave it open, the east floods! Is there a third option?" },
+          { "speaker": "Alethea", "text": "There has to be. We can redirect the force through the old maintenance tunnels. If we win, everyone must survive—not just the people closest to us." }
         ]
       },
       "male": {
         "characterName": "Elion & Alethea",
-        "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-        "backgroundStory": "The Day of Founding was in full celebration when the Heart suddenly pulsed. A section of the eastern dome began to buckle as alarm sirens wailed across Atlantis.",
+        "avatarUrl": "/src/assets/images/male_champion_1786725076356.jpg",
+        "backgroundStory": "The Day of Founding was plunged into darkness as the eastern dome cracked. Elion and Alethea reach the emergency pressure controls together.",
         "dialogue": [
-          { "speaker": "Elion", "text": "Move, Alethea! I can lift the emergency panel when it collapses!" },
-          { "speaker": "Alethea", "text": "I know the control systems better than anyone. We can redirect pressure through the maintenance tunnels." },
-          { "speaker": "Elion", "text": "Sounds dangerous. Good, I understand dangerous. Let's make our choice." }
+          { "speaker": "Elion", "text": "Move. I can lift the panel when it collapses." },
+          { "speaker": "Alethea", "text": "I know the system better than you do. What happened to your hand?" },
+          { "speaker": "Elion", "text": "Ask me after we keep half the city from drowning." },
+          { "speaker": "Alethea", "text": "The eastern dome is losing pressure. If we close the main gate, the southern districts will lose oxygen." },
+          { "speaker": "Elion", "text": "If we leave it open, the east floods! There has to be a third option." },
+          { "speaker": "Alethea", "text": "We can redirect the force through the old tunnels. This is not a duel, Elion. If we win, everyone must survive!" }
         ]
       }
     },
     "choices": {
       "Best": {
-        "title": "Protect Everyone Together (Win4All)",
-        "description": "Alethea organizes the evacuation while Elion coordinates citizens, builders, and medics.",
+        "title": "Best — Protect Everyone Together",
+        "description": "Alethea orders the emergency teams to rescue the eastern district while Elion organizes citizens into carrying lines. The plan is slower, but it protects the greatest number of people and prevents panic.",
+        "choiceImage": "/src/assets/images/atlantis_choice_best_1786726199867.jpg",
         "dialogues": [
-          { "speaker": "Elion", "text": "Strong people carry equipment! Not people who can walk! Everybody moves together!" },
-          { "speaker": "Alethea", "text": "We saved every citizen. Even when doing the right thing has consequences, Win4All builds true resilience." }
+          { "speaker": "Alethea", "text": "Everyone who can walk, move toward the western shelters. Do not run. Hold hands with the person beside you." },
+          { "speaker": "Elion", "text": "Builders with tools, follow me! Medics, stay near the injured! Strong people carry equipment, not people who can walk on their own!" },
+          { "speaker": "Young Citizen", "text": "Why should we listen to you?" },
+          { "speaker": "Elion", "text": "Because if we waste time arguing, the ocean will make the decision for us." },
+          { "speaker": "Alethea", "text": "We saved the district." },
+          { "speaker": "Elion", "text": "Then why does it feel like we lost?" },
+          { "speaker": "Alethea", "text": "Because doing the right thing does not control every consequence." }
         ],
-        "feedbackReadBack": "True leadership creates a Win4All outcome where everyone contributes and no one is left behind."
+        "feedbackReadBack": "Because doing the right thing does not control every consequence. True Win4All leadership protects everyone together through shared courage."
       },
       "Safe": {
-        "title": "Seal the Eastern Dome",
-        "description": "Elion closes the eastern gate immediately, protecting the central city. The southern districts lose oxygen.",
+        "title": "Safe — Seal the Eastern Dome",
+        "description": "Elion closes the eastern gate immediately, protecting the central city from flooding. Alethea objects that the southern districts will lose oxygen, but the emergency shelters remain safe.",
+        "choiceImage": "/src/assets/images/atlantis_choice_safe_1786726217276.jpg",
         "dialogues": [
-          { "speaker": "Elion", "text": "I chose the safer path..." },
+          { "speaker": "Elion", "text": "Close it. We will protect the majority. It is better than losing the entire city." },
+          { "speaker": "Alethea", "text": "That is not the same as protecting everyone. Safety without cooperation can still leave people behind." },
+          { "speaker": "Elion", "text": "I chose the safer path." },
           { "speaker": "Alethea", "text": "Yes. But safety without cooperation can still leave people behind." }
         ],
-        "feedbackReadBack": "Playing it safe alone protects the core but risks leaving vulnerable teammates isolated."
+        "feedbackReadBack": "Safety without cooperation can still leave people behind."
       },
       "Weak": {
-        "title": "Wait for the Council",
-        "description": "They hesitate, waiting for official instructions. The Council remains silent while water rises.",
+        "title": "Weak — Wait for the Council",
+        "description": "Alethea and Elion delay action, hoping the Council will issue an official order. The Council's communication system remains silent.",
+        "choiceImage": "/src/assets/images/atlantis_choice_weak_1786726238138.jpg",
         "dialogues": [
-          { "speaker": "Elion", "text": "I could have stopped it if I didn't hesitate!" },
-          { "speaker": "Alethea", "text": "We both waited for someone else to become responsible." }
+          { "speaker": "Elion", "text": "What if we act without permission? Then we may make things worse. We need authority." },
+          { "speaker": "Alethea", "text": "Something is already getting worse. We need courage." },
+          { "speaker": "Elion", "text": "I could have stopped it." },
+          { "speaker": "Alethea", "text": "And I could have opened the tunnels. We both waited for someone else to become responsible." }
         ],
-        "feedbackReadBack": "Delaying action out of fear of responsibility leads to avoidable loss for the entire community."
+        "feedbackReadBack": "We both waited for someone else to become responsible. Hesitation in times of crisis diffuses accountability."
       },
       "Harmful": {
-        "title": "Fight for Control",
-        "description": "Elion tries to force the machinery open while Alethea overrides the system. Their argument breaks the mechanism.",
+        "title": "Harmful — Fight for Control",
+        "description": "Elion tries to force the machinery open while Alethea attempts to override the system. Their disagreement becomes a physical struggle.",
+        "choiceImage": "/src/assets/images/atlantis_choice_harmful_1786726254333.jpg",
         "dialogues": [
-          { "speaker": "Alethea", "text": "Strength without discipline is not protection!" },
-          { "speaker": "Elion", "text": "For once... I have no answer." }
+          { "speaker": "Alethea", "text": "Release the lever! You are going to tear the pressure system apart!" },
+          { "speaker": "Elion", "text": "You are too slow! I am trying to save people!" },
+          { "speaker": "Alethea", "text": "Strength without discipline is not protection." },
+          { "speaker": "Elion", "text": "For once... I had no answer." }
         ],
-        "feedbackReadBack": "Conflict and stubborn control destroy the very foundations we are trying to save."
+        "feedbackReadBack": "Strength without discipline is not protection. Ego battles destroy the very people we seek to protect."
       }
     }
   },

@@ -13,7 +13,7 @@ import pridePrejudiceImg from '../assets/images/tale_pride_prejudice_17866195224
 import oneHartImg from '../assets/images/tale_one_hart_1786619538922.jpg';
 import startupWinnerImg from '../assets/images/tale_startup_winner_1786619547804.jpg';
 import jobQuestImg from '../assets/images/tale_job_quest_1786619559433.jpg';
-import fiveCrystalsImg from '../assets/images/tale_five_crystals_1786619572005.jpg';
+import fiveCrystalsImg from '../assets/images/atlantis_heart_crystals_1786726147916.jpg';
 
 export const REALMS: Realm[] = [
   {

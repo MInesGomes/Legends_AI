@@ -55,9 +55,19 @@ export interface DialogueLine {
 
 export interface ChapterChoice {
   title: string;
+  subtitle?: string;
   description: string;
+  choiceImage?: string;
   dialogues: DialogueLine[];
   feedbackReadBack: string;
+  crystalOutcome?: string;
+}
+
+export interface ChapterStory {
+  paragraphs?: string[];
+  dimensions?: { dimension: string; meaning: string }[];
+  theChange?: string;
+  theBeginning?: string;
 }
 
 export interface ChapterContent {
@@ -71,6 +81,8 @@ export interface ChapterContent {
     type: 'image' | 'video';
     url: string;
   };
+  story?: ChapterStory;
+  sceneText?: string;
   intro: {
     female: {
       characterName: string;
