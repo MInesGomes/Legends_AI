@@ -298,7 +298,7 @@ export default function App() {
           darkMode={darkMode}
         />
       ) : currentPage === 'chapter' && activeTale ? (
-        activeTale.realmId === 'realm-work' || activeRealm?.key === 'work' || activeTale.title === 'Startup Winner' ? (
+        activeTale.id === 'tale-startup-winner' ? (
           <ChapterWork
             user={dbState.user_profile}
             currentLang={currentLang}

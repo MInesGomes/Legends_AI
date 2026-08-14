@@ -39,7 +39,17 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
   darkMode = false,
 }) => {
   const [currentChapterNum, setCurrentChapterNum] = useState<number>(1);
-  const chapterId = `atlantis-ch${currentChapterNum}`;
+  
+  // Resolve chapter ID based on tale
+  const chapterPrefix = tale.id === 'tale-job-quest' 
+    ? 'jobquest-ch' 
+    : tale.id === 'tale-startup-winner' 
+    ? 'work-ch' 
+    : 'atlantis-ch';
+  const chapterId = `${chapterPrefix}${currentChapterNum}`;
+
+  // Maximum chapters for this tale
+  const maxChapters = tale.id === 'tale-job-quest' ? 5 : 2;
 
   // Load chapter data dynamically from JSON for active language
   const chapterData: ChapterContent = (getChapterById(chapterId, currentLang) || {
@@ -68,6 +78,13 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
 
   // Active skill choice for this chapter (defaults to chapter skill)
   const [selectedSkill, setSelectedSkill] = useState<SkillType>(chapterData.skill || tale.skill);
+
+  // Sync selected skill when changing chapters
+  useEffect(() => {
+    if (chapterData.skill) {
+      setSelectedSkill(chapterData.skill);
+    }
+  }, [chapterData.skill, currentChapterNum]);
 
   // Sound / Audio Ambience state
   const [isMuted, setIsMuted] = useState(true);
@@ -326,26 +343,23 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
             {isMuted ? <VolOff className="w-4 h-4" /> : <VolOn className="w-4 h-4" />}
           </button>
 
-          {/* Chapter Navigation Toggle (Ch 1 vs Ch 2) */}
+          {/* Chapter Navigation Toggle */}
           <div className={`flex items-center rounded-lg border p-0.5 text-xs font-semibold ${
             darkMode ? 'bg-[#121824] border-[#d4af37]/30' : 'bg-slate-100 border-[#d4af37]'
           }`}>
-            <button
-              onClick={() => { setCurrentChapterNum(1); setSelectedChoice(null); }}
-              className={`px-2.5 py-1 rounded-md transition-all ${
-                currentChapterNum === 1 ? 'bg-[#d4af37] text-slate-900 font-bold shadow-sm' : (darkMode ? 'text-slate-400' : 'text-slate-600')
-              }`}
-            >
-              Ch 1
-            </button>
-            <button
-              onClick={() => { setCurrentChapterNum(2); setSelectedChoice(null); }}
-              className={`px-2.5 py-1 rounded-md transition-all ${
-                currentChapterNum === 2 ? 'bg-[#d4af37] text-slate-900 font-bold shadow-sm' : (darkMode ? 'text-slate-400' : 'text-slate-600')
-              }`}
-            >
-              Ch 2
-            </button>
+            {Array.from({ length: maxChapters }, (_, i) => i + 1).map((chNum) => (
+              <button
+                key={chNum}
+                onClick={() => { setCurrentChapterNum(chNum); setSelectedChoice(null); }}
+                className={`px-2.5 py-1 rounded-md transition-all ${
+                  currentChapterNum === chNum 
+                    ? 'bg-[#d4af37] text-slate-900 font-bold shadow-sm' 
+                    : (darkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900')
+                }`}
+              >
+                Ch {chNum}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -358,16 +372,16 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
         {currentChapterNum === 1 ? (
           <div className="space-y-6 animate-fadeIn">
             
-            {/* Story Overview & 5 Dimensions (if tale has story paragraphs or Atlantis tale) */}
+            {/* Story Overview & Dimensions */}
             {chapterData.story?.paragraphs && (
               <div className={`rounded-2xl p-6 space-y-4 border-2 shadow-xl ${
                 darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
               }`}>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🌊</span>
+                  <span className="text-xl">🌟</span>
                   <div>
                     <span className={`text-[10px] font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
-                      Ancient Realm Chronicle
+                      Realm Chronicle
                     </span>
                     <h3 className={`text-xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
                       {chapterData.title}
@@ -376,50 +390,11 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                 </div>
 
                 <div className="space-y-3 font-serif-display text-sm leading-relaxed">
-                  <p className={darkMode ? 'text-slate-200' : 'text-slate-800'}>
-                    {chapterData.story.paragraphs[0]}
-                  </p>
-                  <p className={darkMode ? 'text-slate-300' : 'text-slate-700'}>
-                    {chapterData.story.paragraphs[1]}
-                  </p>
-                </div>
-
-                {/* The 5 Dimensions Cards */}
-                <div className="pt-2">
-                  <h4 className={`text-xs font-bold uppercase tracking-wider font-cinzel mb-3 ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
-                    The Five Dimensions of The Heart:
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                    {[
-                      { icon: '💪', name: 'Physical', desc: 'Strength, health, and purposeful action.' },
-                      { icon: '🤝', name: 'Social', desc: 'Cooperation, trust, and service.' },
-                      { icon: '💖', name: 'Emotional', desc: 'Courage to feel and heal.' },
-                      { icon: '📜', name: 'Intellectual', desc: 'Learning guided by truth and ethics.' },
-                      { icon: '✨', name: 'Spiritual', desc: 'Meaning, humility, and connection.' }
-                    ].map((dim, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-3 rounded-xl border text-xs space-y-1 transition-transform hover:scale-[1.02] ${
-                          darkMode ? 'bg-[#182130]/90 border-[#d4af37]/30 text-slate-200' : 'bg-[#fbf8ee] border-[#d4af37]/50 text-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 font-bold font-cinzel text-[#d4af37]">
-                          <span>{dim.icon}</span>
-                          <span>{dim.name} Dimension</span>
-                        </div>
-                        <p className="text-[11px] opacity-90 leading-tight">{dim.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* The Change & Fissure */}
-                <div className={`p-4 rounded-xl border text-xs leading-relaxed space-y-2 ${
-                  darkMode ? 'bg-[#0f141f] border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
-                }`}>
-                  <p className="font-semibold text-[#d4af37] font-cinzel">⚠️ The Weakening of The Light:</p>
-                  <p>{chapterData.story.paragraphs[4] || "Small compromises weakened the foundation. The blue light began to flicker."}</p>
-                  <p className="italic text-[11px] opacity-80">{chapterData.story.paragraphs[7] || "Neither understood that the Heart had chosen them because they represented knowledge with compassion, and strength with purpose."}</p>
+                  {chapterData.story.paragraphs.map((para, pIdx) => (
+                    <p key={pIdx} className={darkMode ? 'text-slate-200' : 'text-slate-800'}>
+                      {para}
+                    </p>
+                  ))}
                 </div>
               </div>
             )}
@@ -429,14 +404,14 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
               darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
             }`}>
               <img
-                src={user?.avatar_url || introData.avatarUrl}
+                src={introData.avatarUrl}
                 alt={introData.characterName}
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#d4af37] shadow-xl shrink-0"
                 referrerPolicy="no-referrer"
               />
               <div className="space-y-1.5 text-center sm:text-left">
                 <span className={`text-[10px] font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
-                  Guardian Spotlight
+                  Adventurer Spotlight
                 </span>
                 <h3 className={`text-xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
                   {introData.characterName}
@@ -450,7 +425,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
             {/* Sequential Dialogue Bubbles */}
             <div className="space-y-4">
               <h4 className={`text-xs font-bold uppercase tracking-wider font-cinzel text-center ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
-                Awakening Dialogue
+                Opening Dialogue
               </h4>
               {introData.dialogue.map((line, idx) => (
                 <div
@@ -460,7 +435,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                   <div className={`w-10 h-10 rounded-full border-2 border-[#d4af37] overflow-hidden shrink-0 shadow-md ${
                     darkMode ? 'bg-[#121824]' : 'bg-white'
                   }`}>
-                    <img src={user?.avatar_url || introData.avatarUrl} alt={line.speaker} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={introData.avatarUrl} alt={line.speaker} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </div>
                   <div className={`max-w-md p-4 rounded-2xl border-2 shadow-md ${
                     darkMode ? 'bg-[#121824]/90 border-[#d4af37]/40 text-slate-200' : 'bg-white/95 border-[#d4af37] text-slate-800'
@@ -497,8 +472,49 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
           /* CHAPTER 2+ MODE: 4 Choice Options with Image Illustrations */
           <div className="space-y-6 animate-fadeIn">
             
-            {/* Cinematic Story Video Player based on Chapter 2 Dilemma */}
-            <CinematicStoryVideo darkMode={darkMode} />
+            {/* If Atlantis Chapter 2, display Cinematic Video; otherwise Scene Description card */}
+            {tale.id === 'tale-5-crystals' && currentChapterNum === 2 ? (
+              <CinematicStoryVideo darkMode={darkMode} />
+            ) : (
+              <div className={`rounded-2xl p-6 space-y-4 border-2 shadow-xl ${
+                darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+                      {chapterData.subtitle || 'Chapter Dilemma'}
+                    </span>
+                    <h3 className={`text-xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
+                      {chapterData.title}
+                    </h3>
+                  </div>
+                  <span className="text-xs px-3 py-1 rounded-full font-bold bg-[#d4af37]/20 border border-[#d4af37] text-[#d4af37]">
+                    Skill: {chapterData.skill}
+                  </span>
+                </div>
+
+                <p className={`text-xs sm:text-sm leading-relaxed font-serif-display ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                  {chapterData.sceneText || "Choose how to proceed."}
+                </p>
+
+                {introData.dialogue && introData.dialogue.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-slate-700/50">
+                    <p className={`text-[11px] font-bold uppercase tracking-wider font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+                      Key Dialogue:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {introData.dialogue.map((dlg, dIdx) => (
+                        <div key={dIdx} className={`p-2.5 rounded-lg border text-xs ${
+                          darkMode ? 'bg-slate-900/60 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
+                        }`}>
+                          <span className="font-bold text-[#d4af37]">{dlg.speaker}:</span> "{dlg.text}"
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 4 CHOICE BUTTONS (`Best` / `Safe` / `Weak` / `Harmful`) */}
             <div className="space-y-3">

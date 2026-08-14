@@ -1,0 +1,267 @@
+{
+  "title": "Job Quest: A Novel Game in the Work Realm",
+  "taleId": "tale-job-quest",
+  "realm": "Work",
+  "coverImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+  "description": "Navigate the modern job market amidst AI transformation, mastering leadership, planning, Win4All synergy, and resilience.",
+  "chapters": [
+    {
+      "id": "jobquest-ch1",
+      "chapterNumber": 1,
+      "title": "Chapter 1 — The Beginning of the Quest",
+      "subtitle": "The Work Realm & The Wave of AI",
+      "skill": "Leader",
+      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "story": {
+        "introduction": "The Work Realm was once a land of opportunity. People learned a profession, gained experience, and slowly built a career. Teachers taught, designers created, programmers developed software, translators translated, and writers wrote stories.",
+        "theTransformation": "Then, everything changed. Artificial intelligence arrived like a powerful tide. Tasks that once required entire teams could suddenly be completed in minutes. Companies reduced their workforces. Job descriptions changed faster than universities could update their courses. New skills became essential, but millions of people had never been trained to use them.",
+        "theCoreChallenge": "The greatest challenge was not technology itself. It was uncertainty. How could people compete against systems that never slept? How could they gain experience if nobody offered them an opportunity? How could they continue believing in themselves after hearing the word 'No' hundreds of times?\n\nIn this world, finding employment became an adventure known as the Job Quest. Some gave up. Some became angry. Some blamed themselves. Others learned a difficult lesson: 'We cannot control every event, but we can always control our response.'",
+        "firstVictoryAndFall": "One rainy afternoon, Elena received an offer from an innovation team, only for the position to be canceled two days later due to automation. Three weeks later, Daniel got a six-month developer contract, but his whole department was dissolved in week three. Sitting beside a fountain at midnight, Elena realized: 'We keep trying to control things we can't control.' Somewhere beyond the city walls, five ancient paths waited: The Path of the Leader, The Path of Planning, The Path of Win4All, The Path of Listening, and The Path of Recharging."
+      },
+      "characters": {
+        "female": {
+          "characterName": "Elena Moreau",
+          "age": 29,
+          "role": "Educational Content Designer",
+          "avatarUrl": "/src/assets/images/female_scholar_1786725027022.jpg",
+          "backgroundStory": "Elena loved helping people learn. She spent years creating training materials and educational programs, believing that knowledge could change lives. Then AI systems began producing courses automatically. Projects disappeared. Contracts ended. Her inbox became a museum of rejection letters. Despite her intelligence, Elena began questioning herself: 'Perhaps I'm not good enough anymore.' Yet beneath her doubts remained a powerful strength: she believed that every problem contained a hidden opportunity.",
+          "dialogue": [
+            { "speaker": "Elena", "text": "My inbox became a museum of rejection letters after courses began generating automatically." },
+            { "speaker": "Elena", "text": "Maybe we're fighting the wrong battle, Daniel. We keep trying to control things we can't control." },
+            { "speaker": "Elena", "text": "We cannot control every event, but we can always control our response." }
+          ]
+        },
+        "male": {
+          "characterName": "Daniel Carter",
+          "age": 31,
+          "role": "Software Developer",
+          "avatarUrl": "/src/assets/images/male_champion_1786725076356.jpg",
+          "backgroundStory": "Daniel had always loved technology. Ironically, the same technology he admired transformed his profession. Companies expected developers to master new AI tools overnight. Experience that once guaranteed employment suddenly seemed outdated. Daniel hid his fears behind humor, but every rejection damaged his confidence: 'Maybe I've already become obsolete.' Unlike Elena, Daniel preferred solving problems immediately with logic. Unfortunately, not every problem could be solved with code alone.",
+          "dialogue": [
+            { "speaker": "Daniel", "text": "Companies expect us to master new AI tools overnight while yesterday's experience becomes outdated." },
+            { "speaker": "Daniel", "text": "We're doing everything right. Then why does everything keep falling apart?" },
+            { "speaker": "Daniel", "text": "If something breaks, I want to fix it. But this uncertainty can't be debugged with logic alone." }
+          ]
+        }
+      }
+    },
+    {
+      "id": "jobquest-ch2",
+      "chapterNumber": 2,
+      "title": "Chapter 2 — The Path of the Leader",
+      "subtitle": "Taking Initiative in Times of Overwhelm",
+      "skill": "Leader",
+      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "scene": {
+        "setting": "Elena and Daniel discover a famous company called Nova Systems. Thousands of applicants compete for only ten positions with impossible requirements: AI certification, five years of experience, leadership, and knowledge of brand new tools. Feeling overwhelmed, Elena realizes they are focusing on what employers want instead of what they can proactively offer.",
+        "introDialogue": [
+          { "speaker": "Daniel", "text": "We're never going to compete against this. Look at the requirements!" },
+          { "speaker": "Elena", "text": "Stop. We're focusing on what they want instead of what we can offer." },
+          { "speaker": "Daniel", "text": "And what exactly do we offer?" },
+          { "speaker": "Elena", "text": "Leadership." },
+          { "speaker": "Daniel", "text": "We don't even have jobs." },
+          { "speaker": "Elena", "text": "Leadership isn't a title. It's a decision." }
+        ]
+      },
+      "options": [
+        {
+          "type": "Best",
+          "title": "Organize Free Community AI Workshops",
+          "subtitle": "Proactive Contribution & Value Creation",
+          "description": "They organize a free community workshop teaching unemployed people how to use AI tools. The workshop becomes surprisingly successful, building an authentic professional network and community leadership.",
+          "dialogues": [
+            { "speaker": "Participant", "text": "Thank you. Nobody has ever explained this so clearly." },
+            { "speaker": "Daniel", "text": "Maybe helping others is helping us too." },
+            { "speaker": "Elena", "text": "A local company noticed our initiative. Even when hiring freezes happen, our proactive reputation grows." }
+          ],
+          "feedbackReadBack": "Leadership isn't a title. It's a decision. We cannot control the labor market, but we can control how we contribute to it."
+        },
+        {
+          "type": "Weak",
+          "title": "Wait for Employers to Notice",
+          "subtitle": "Passive Applying Without Change",
+          "description": "They continue submitting resumes blindly without altering their strategy or providing unique value.",
+          "dialogues": [
+            { "speaker": "Daniel", "text": "Let's just keep applying." },
+            { "speaker": "Elena", "text": "Without changing anything?" },
+            { "speaker": "Daniel", "text": "Weeks pass... and nothing changes." }
+          ],
+          "feedbackReadBack": "Waiting passively for external validation leaves your trajectory to chance."
+        },
+        {
+          "type": "Harmful",
+          "title": "Become Bitter and Cynical",
+          "subtitle": "Resentment & Isolation",
+          "description": "They blame the world and isolate themselves from others in mutual frustration.",
+          "dialogues": [
+            { "speaker": "Daniel", "text": "Why should we help anyone?" },
+            { "speaker": "Elena", "text": "Everyone only cares about themselves." }
+          ],
+          "feedbackReadBack": "Bitterness and cynicism burn bridges and destroy inner resolve."
+        }
+      ]
+    },
+    {
+      "id": "jobquest-ch3",
+      "chapterNumber": 3,
+      "title": "Chapter 3 — The Path of Planning",
+      "subtitle": "Strategy Over Impulsive Panic",
+      "skill": "Plan",
+      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "scene": {
+        "setting": "Elena receives twenty rejection emails in one month. Daniel receives fifteen. Defeat threatens to overwhelm them, prompting a choice between panic applying and deliberate strategic action.",
+        "introDialogue": [
+          { "speaker": "Daniel", "text": "Maybe we should apply for every single job we can find." },
+          { "speaker": "Elena", "text": "No. We need a strategy." },
+          { "speaker": "Daniel", "text": "A strategy?" },
+          { "speaker": "Elena", "text": "New certifications, portfolio projects, networking goals, and weekly learning objectives. One small step every day." }
+        ]
+      },
+      "options": [
+        {
+          "type": "Best",
+          "title": "Build and Follow a Deliberate Plan",
+          "subtitle": "Incremental Mastery & Structured Milestones",
+          "description": "They set daily learning milestones, build new portfolio pieces, and track progress deliberately regardless of market volatility.",
+          "dialogues": [
+            { "speaker": "Elena", "text": "One small step every day." },
+            { "speaker": "Daniel", "text": "Even when we don't see immediate results." },
+            { "speaker": "Elena", "text": "Circumstances remain outside our control, but our real capabilities are steadily multiplying." }
+          ],
+          "feedbackReadBack": "One small step every day. When we move deliberately with a plan, skills compound even through market storms."
+        },
+        {
+          "type": "Weak",
+          "title": "Abandon Strategy After One Hard Week",
+          "subtitle": "Procrastination & Broken Commitments",
+          "description": "They write a plan but drop it as soon as fatigue or rejection strikes, postponing discipline to next month.",
+          "dialogues": [
+            { "speaker": "Daniel", "text": "We'll start again next month." },
+            { "speaker": "Elena", "text": "And the next month becomes the month after that..." }
+          ],
+          "feedbackReadBack": "A plan without daily consistency is merely a wish."
+        },
+        {
+          "type": "Harmful",
+          "title": "Apply Impulsively to Everything",
+          "subtitle": "Spam Applications & Burnout",
+          "description": "They shotgun hundreds of uncurated applications without reading descriptions, leading to rapid exhaustion.",
+          "dialogues": [
+            { "speaker": "Elena", "text": "Did you read the job description?" },
+            { "speaker": "Daniel", "text": "Not really. I just clicked apply fifty times. Now I'm totally exhausted." }
+          ],
+          "feedbackReadBack": "Impulsive frenetic effort without intention drains energy and yields zero meaningful traction."
+        }
+      ]
+    },
+    {
+      "id": "jobquest-ch4",
+      "chapterNumber": 4,
+      "title": "Chapter 4 — The Path of Win4All",
+      "subtitle": "Synergy Over Cutthroat Rivalry",
+      "skill": "Win4All",
+      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "scene": {
+        "setting": "A high-potential startup opens a single vacancy. Elena and Daniel both reach the final interview round as competitors for the lone opening.",
+        "introDialogue": [
+          { "speaker": "Daniel", "text": "Only one of us can win." },
+          { "speaker": "Elena", "text": "Or maybe both of us can." },
+          { "speaker": "Daniel", "text": "How? They only have one role." },
+          { "speaker": "Elena", "text": "We combine our educational design and engineering strengths into a unified, high-impact joint proposal." }
+        ]
+      },
+      "options": [
+        {
+          "type": "Best",
+          "title": "Present a Collaborative Joint Solution",
+          "subtitle": "Win4All Synergy & Shared Strength",
+          "description": "Instead of competing, they combine their portfolios and present a dual-discipline solution that wows stakeholders and catches the eye of a broader organization.",
+          "dialogues": [
+            { "speaker": "Company Director", "text": "We only planned to hire one person." },
+            { "speaker": "Daniel", "text": "Our proposal requires both of our skill sets to deliver 10x value." },
+            { "speaker": "Elena", "text": "Even when that startup lost funding, our joint synergy attracted a far bigger institution." }
+          ],
+          "feedbackReadBack": "True Win4All turns competition into collaborative synergy that creates opportunities nobody saw before."
+        },
+        {
+          "type": "Weak",
+          "title": "Grow Distant and Guard Secrets",
+          "subtitle": "Isolation & Emotional Distance",
+          "description": "They stop sharing ideas and keep secrets to protect their individual chances, weakening their bond.",
+          "dialogues": [
+            { "speaker": "Daniel", "text": "Let's just focus on ourselves for now." },
+            { "speaker": "Elena", "text": "Our friendship is growing cold." }
+          ],
+          "feedbackReadBack": "Treating allies as rivals shrinks the world into scarcity."
+        },
+        {
+          "type": "Harmful",
+          "title": "Sabotage Each Other's Materials",
+          "subtitle": "Betrayal & Zero-Sum Warfare",
+          "description": "Jealousy takes over and they tamper with each other's presentations, destroying mutual trust forever.",
+          "dialogues": [
+            { "speaker": "Elena", "text": "Did you remove my presentation slides?" },
+            { "speaker": "Daniel", "text": "What? How could you accuse me of that?" }
+          ],
+          "feedbackReadBack": "Sabotage guarantees everyone loses."
+        }
+      ]
+    },
+    {
+      "id": "jobquest-ch5",
+      "chapterNumber": 5,
+      "title": "Chapter 5 — The Path of Listening and Recharging",
+      "subtitle": "Self-Compassion, Purpose & Renewal",
+      "skill": "Listen",
+      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "scene": {
+        "setting": "Months pass and exhaustion replaces hope. Sitting beside the central fountain, Elena and Daniel meet a wise elder woman who challenges their harsh internal dialogue.",
+        "introDialogue": [
+          { "speaker": "Woman", "text": "How many times have you been rejected?" },
+          { "speaker": "Daniel", "text": "Too many." },
+          { "speaker": "Woman", "text": "And how many times have you listened to yourselves?" },
+          { "speaker": "Elena", "text": "I keep saying 'I'm not good enough.'" },
+          { "speaker": "Woman", "text": "Would you say that to a friend?" },
+          { "speaker": "Elena", "text": "No." },
+          { "speaker": "Woman", "text": "Then why do you say it to yourself?" }
+        ]
+      },
+      "options": [
+        {
+          "type": "Best",
+          "title": "Recharge Emotionally and Reconnect with Purpose",
+          "subtitle": "Listen Inward, Rest & Empower Others",
+          "description": "They stop punishing themselves, rest, walk the city, reconnect with family, and listen with empathy. Soon, permanent offers arrive for their community initiative, teaching hundreds of people.",
+          "dialogues": [
+            { "speaker": "Daniel", "text": "I'm not a failure." },
+            { "speaker": "Elena", "text": "Neither am I. We finally found our purpose." },
+            { "speaker": "Daniel", "text": "We helped other people find theirs. The future cannot always be controlled, but character can." }
+          ],
+          "feedbackReadBack": "The future cannot always be controlled, but character can. Listen to yourself with kindness and recharge your spirit."
+        },
+        {
+          "type": "Weak",
+          "title": "Ignore Fatigue and Push Till Collapse",
+          "subtitle": "Chronic Stress & Emotional Numbness",
+          "description": "They brush off the elder's advice and continue burning the candle at both ends in chronic exhaustion.",
+          "dialogues": [
+            { "speaker": "Daniel", "text": "We can't afford to rest even for an hour." },
+            { "speaker": "Elena", "text": "I can't think clearly anymore." }
+          ],
+          "feedbackReadBack": "Ignoring internal warning signs leads directly to physical and mental collapse."
+        },
+        {
+          "type": "Harmful",
+          "title": "Surrender and Accept Learned Helplessness",
+          "subtitle": "Despair & Self-Defeat",
+          "description": "They internalize the rejections as permanent identity flaws and give up entirely.",
+          "dialogues": [
+            { "speaker": "Elena", "text": "We are obsolete. It's hopeless." },
+            { "speaker": "Daniel", "text": "There's no point in trying anymore." }
+          ],
+          "feedbackReadBack": "Equating temporary setbacks with permanent identity halts all personal growth."
+        }
+      ]
+    }
+  ]
+}
