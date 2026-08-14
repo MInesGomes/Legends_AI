@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChapterContent, ChoiceOptionType, SkillType, UserProfile, ChapterComment, Language, Tale } from '../types';
 import { getChapterById } from '../lib/chapterLoader';
 import { CommentsDrawer } from './CommentsDrawer';
+import { CinematicStoryVideo } from './CinematicStoryVideo';
 import { X as CloseIcon, Volume2 as VolOn, VolumeX as VolOff, Heart as HeartIcon, Eye as EyeIcon, MessageSquare as MsgIcon, Mic as MicIcon, Play as PlayIcon, Pause as PauseIcon, Sparkles as SparkleIcon, CheckCircle2 as CheckIcon, AlertTriangle as AlertIcon, ArrowRight as ArrowRightIcon, RefreshCw as RefreshIcon, Trophy as TrophyIcon } from 'lucide-react';
 
 interface FullscreenChapterViewProps {
@@ -496,31 +497,8 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
           /* CHAPTER 2+ MODE: 4 Choice Options with Image Illustrations */
           <div className="space-y-6 animate-fadeIn">
             
-            {/* Situation Dialogue / Scene Setting */}
-            <div className={`rounded-2xl p-5 space-y-3 border-2 shadow-xl ${
-              darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
-            }`}>
-              <div className="flex items-center justify-between">
-                <p className={`text-xs font-bold uppercase tracking-widest font-cinzel ${
-                  darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
-                }`}>
-                  {chapterData.subtitle || 'Chapter 2 Dilemma'}
-                </p>
-                <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#d4af37]/20 border border-[#d4af37] text-[#d4af37]">
-                  Skill: {chapterData.skill}
-                </span>
-              </div>
-              <h3 className={`text-lg font-bold font-cinzel ${
-                darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'
-              }`}>
-                {chapterData.title}
-              </h3>
-              <p className={`text-xs sm:text-sm leading-relaxed font-serif-display ${
-                darkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                {chapterData.sceneText || "The Day of Founding is interrupted as the eastern dome begins to buckle. You must choose how to respond."}
-              </p>
-            </div>
+            {/* Cinematic Story Video Player based on Chapter 2 Dilemma */}
+            <CinematicStoryVideo darkMode={darkMode} />
 
             {/* 4 CHOICE BUTTONS (`Best` / `Safe` / `Weak` / `Harmful`) */}
             <div className="space-y-3">
