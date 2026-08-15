@@ -165,7 +165,7 @@
     "intro": {
       "female": {
         "characterName": "Elena Moreau",
-        "avatarUrl": "/src/assets/images/female_scholar_1786725027022.jpg",
+        "avatarUrl": "/src/assets/images/elena_character_intro_1786794191159.jpg",
         "backgroundStory": "Elena loved helping people learn. She spent years creating training materials and educational programs, believing that knowledge could change lives. Then AI systems began producing courses automatically. Projects disappeared and contracts ended. Despite her intelligence, Elena began questioning herself: 'Perhaps I'm not good enough anymore.' Yet beneath her doubts remained a powerful strength: she believed that every problem contained a hidden opportunity.",
         "dialogue": [
           { "speaker": "Elena", "text": "My inbox became a museum of rejection letters after courses began generating automatically." },
@@ -175,7 +175,7 @@
       },
       "male": {
         "characterName": "Daniel Carter",
-        "avatarUrl": "/src/assets/images/male_champion_1786725076356.jpg",
+        "avatarUrl": "/src/assets/images/daniel_character_intro_1786794200296.jpg",
         "backgroundStory": "Daniel had always loved technology. Ironically, the same technology he admired transformed his profession. Companies expected developers to master new AI tools overnight. Experience that once guaranteed employment suddenly seemed outdated. Daniel hid his fears behind humor, but every rejection damaged his confidence: 'Maybe I've already become obsolete.'",
         "dialogue": [
           { "speaker": "Daniel", "text": "Companies expect us to master new AI tools overnight while yesterday's experience becomes outdated." },

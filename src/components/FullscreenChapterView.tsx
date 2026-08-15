@@ -4,7 +4,8 @@ import { getChapterById } from '../lib/chapterLoader';
 import { CommentsDrawer } from './CommentsDrawer';
 import { CinematicStoryVideo } from './CinematicStoryVideo';
 import { ChapterTypewriterStory } from './ChapterTypewriterStory';
-import { X as CloseIcon, Volume2 as VolOn, VolumeX as VolOff, Heart as HeartIcon, Eye as EyeIcon, MessageSquare as MsgIcon, Mic as MicIcon, Play as PlayIcon, Pause as PauseIcon, Sparkles as SparkleIcon, CheckCircle2 as CheckIcon, AlertTriangle as AlertIcon, ArrowRight as ArrowRightIcon, RefreshCw as RefreshIcon, Trophy as TrophyIcon } from 'lucide-react';
+import { ChapterCharacterIntro } from './ChapterCharacterIntro';
+import { X as CloseIcon, Volume2 as VolOn, VolumeX as VolOff, Heart as HeartIcon, Eye as EyeIcon, MessageSquare as MsgIcon, Mic as MicIcon, Play as PlayIcon, Pause as PauseIcon, Sparkles as SparkleIcon, CheckCircle2 as CheckIcon, AlertTriangle as AlertIcon, ArrowRight as ArrowRightIcon, RefreshCw as RefreshIcon, Trophy as TrophyIcon, BookOpen, Users } from 'lucide-react';
 
 interface FullscreenChapterViewProps {
   tale: Tale;
@@ -92,6 +93,9 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
 
   // Selected option for Chapter 2+ ('Best' | 'Safe' | 'Weak' | 'Harmful')
   const [selectedChoice, setSelectedChoice] = useState<ChoiceOptionType | null>(null);
+
+  // Chapter 1 Sub-page tab ('chronicle' = Story typewriter, 'characters' = Female/Male Character Intros)
+  const [ch1Tab, setCh1Tab] = useState<'chronicle' | 'characters'>('chronicle');
 
   // Speech / Read it back state
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -314,86 +318,76 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
       {/* CHAPTER CONTENT BODY */}
       <main className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
         
-        {/* CHAPTER 1 MODE: Top Animated Image + Typewriter Story + Characters Intro */}
+        {/* CHAPTER 1 MODE: Story Chronicle & Adventurers Introduction Pages */}
         {currentChapterNum === 1 ? (
           <div className="space-y-6 animate-fadeIn">
             
-            {/* Top Animated Image Hero + Typewriter Effect Story Chronicle */}
-            <ChapterTypewriterStory
-              taleTitle={tale.title}
-              chapterTitle={chapterData.title}
-              realmName={tale.realmId === 'realm-work' ? 'Work Realm' : 'Realm'}
-              imageUrl={chapterData.bgMedia?.url || tale.coverImage}
-              darkMode={darkMode}
-            />
-
-            {/* Character Intro Card */}
-            <div className={`rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-center gap-6 shadow-xl border-2 ${
-              darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
+            {/* Top Navigation Pill Bar for Chapter 1 */}
+            <div className={`p-1 rounded-2xl border flex items-center justify-center gap-2 max-w-md mx-auto shadow-md ${
+              darkMode ? 'bg-[#101726]/90 border-[#d4af37]/40' : 'bg-white border-[#d4af37]'
             }`}>
-              <img
-                src={introData.avatarUrl}
-                alt={introData.characterName}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#d4af37] shadow-xl shrink-0"
-                referrerPolicy="no-referrer"
-              />
-              <div className="space-y-2 text-center sm:text-left">
-                <span className={`text-xs font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
-                  Adventurer Spotlight
-                </span>
-                <h3 className={`text-xl sm:text-2xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
-                  {introData.characterName}
-                </h3>
-                <p className={`text-sm sm:text-base md:text-lg leading-relaxed font-serif-display ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                  {introData.backgroundStory}
-                </p>
-              </div>
-            </div>
-
-            {/* Sequential Dialogue Bubbles */}
-            <div className="space-y-4">
-              <h4 className={`text-sm font-bold uppercase tracking-wider font-cinzel text-center ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
-                Opening Dialogue
-              </h4>
-              {introData.dialogue.map((line, idx) => (
-                <div
-                  key={idx}
-                  className={`flex items-start gap-3 ${idx % 2 === 1 ? 'flex-row-reverse' : ''}`}
-                >
-                  <div className={`w-11 h-11 rounded-full border-2 border-[#d4af37] overflow-hidden shrink-0 shadow-md ${
-                    darkMode ? 'bg-[#121824]' : 'bg-white'
-                  }`}>
-                    <img src={introData.avatarUrl} alt={line.speaker} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
-                  <div className={`max-w-xl p-4 sm:p-5 rounded-2xl border-2 shadow-md ${
-                    darkMode ? 'bg-[#121824]/90 border-[#d4af37]/40 text-slate-200' : 'bg-white/95 border-[#d4af37] text-slate-800'
-                  } ${
-                    idx % 2 === 1 ? 'rounded-tr-none' : 'rounded-tl-none'
-                  }`}>
-                    <p className={`text-xs font-bold uppercase tracking-widest mb-1.5 font-cinzel ${
-                      darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
-                    }`}>
-                      {line.speaker}
-                    </p>
-                    <p className={`text-sm sm:text-base md:text-lg leading-relaxed font-serif-display ${
-                      darkMode ? 'text-slate-100' : 'text-slate-800'
-                    }`}>
-                      "{line.text}"
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Go to Chapter 2 Choice Button */}
-            <div className="text-center pt-4">
               <button
-                onClick={() => setCurrentChapterNum(2)}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-slate-900 font-extrabold text-sm hover:brightness-110 active:scale-95 transition-all shadow-xl inline-flex items-center gap-2 border border-[#b8860b]"
+                onClick={() => setCh1Tab('chronicle')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  ch1Tab === 'chronicle'
+                    ? 'bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-slate-950 shadow-md scale-[1.02]'
+                    : darkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                Proceed to Chapter 2 Choices <ArrowRightIcon className="w-4 h-4" />
+                <BookOpen className="w-4 h-4" />
+                <span className="font-cinzel tracking-wider">1. Realm Chronicle</span>
+              </button>
+
+              <button
+                onClick={() => setCh1Tab('characters')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  ch1Tab === 'characters'
+                    ? 'bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-slate-950 shadow-md scale-[1.02]'
+                    : darkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span className="font-cinzel tracking-wider">2. Adventurers Intro</span>
               </button>
             </div>
+
+            {ch1Tab === 'chronicle' ? (
+              /* PAGE 1: CHRONICLE TYPEWRITER STORY */
+              <div className="space-y-6 animate-fadeIn">
+                <ChapterTypewriterStory
+                  taleTitle={tale.title}
+                  chapterTitle={chapterData.title}
+                  realmName={tale.realmId === 'realm-work' ? 'Work Realm' : 'Realm'}
+                  imageUrl={chapterData.bgMedia?.url || tale.coverImage}
+                  darkMode={darkMode}
+                />
+
+                {/* Buttons to proceed to Character Intro or Chapter 2 Choices */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+                  <button
+                    onClick={() => setCh1Tab('characters')}
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-slate-950 font-extrabold text-sm sm:text-base hover:brightness-110 active:scale-95 transition-all shadow-xl inline-flex items-center justify-center gap-2 border border-[#b8860b] cursor-pointer"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Meet the Adventurers (Elena &amp; Daniel)</span>
+                    <ArrowRightIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* PAGE 2: CHARACTER INTRODUCTIONS (Female & Male, ordered by Avatar gender) */
+              <ChapterCharacterIntro
+                userGender={user?.gender || 'female'}
+                taleTitle={tale.title}
+                chapterTitle={chapterData.title}
+                realmName={tale.realmId === 'realm-work' ? 'Work Realm' : 'Realm'}
+                femaleIntro={chapterData.intro?.female}
+                maleIntro={chapterData.intro?.male}
+                onProceedToChapter2={() => setCurrentChapterNum(2)}
+                onBackToStory={() => setCh1Tab('chronicle')}
+                darkMode={darkMode}
+              />
+            )}
 
           </div>
         ) : (
