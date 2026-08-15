@@ -3,6 +3,7 @@ import { ChapterContent, ChoiceOptionType, SkillType, UserProfile, ChapterCommen
 import { getChapterById } from '../lib/chapterLoader';
 import { CommentsDrawer } from './CommentsDrawer';
 import { CinematicStoryVideo } from './CinematicStoryVideo';
+import { ChapterTypewriterStory } from './ChapterTypewriterStory';
 import { X as CloseIcon, Volume2 as VolOn, VolumeX as VolOff, Heart as HeartIcon, Eye as EyeIcon, MessageSquare as MsgIcon, Mic as MicIcon, Play as PlayIcon, Pause as PauseIcon, Sparkles as SparkleIcon, CheckCircle2 as CheckIcon, AlertTriangle as AlertIcon, ArrowRight as ArrowRightIcon, RefreshCw as RefreshIcon, Trophy as TrophyIcon } from 'lucide-react';
 
 interface FullscreenChapterViewProps {
@@ -251,19 +252,19 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
     }`}>
       
       {/* Background Image/Media with Adaptive Overlay */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src={chapterData.bgMedia?.url || tale.coverImage}
           alt={chapterData.title}
-          className={`w-full h-full object-cover ${
-            darkMode ? 'filter brightness-[0.4] contrast-110' : 'filter brightness-[0.9] opacity-20'
-          }`}
+          className={`w-full h-full object-cover object-center ${
+            darkMode ? 'filter brightness-[0.5] contrast-110 scale-105' : 'filter brightness-[0.8] opacity-35 scale-105'
+          } transition-transform duration-700`}
           referrerPolicy="no-referrer"
         />
         <div className={`absolute inset-0 ${
           darkMode
-            ? 'bg-gradient-to-b from-[#0f141c]/90 via-[#0f141c]/60 to-[#0f141c]/95'
-            : 'bg-gradient-to-b from-[#fbf9f4]/80 via-[#fbf9f4]/50 to-[#fbf9f4]/95'
+            ? 'bg-gradient-to-b from-[#18202f]/85 via-[#101726]/60 to-[#18202f]/95'
+            : 'bg-gradient-to-b from-[#fcfbf9]/85 via-[#fcfbf9]/50 to-[#fcfbf9]/95'
         }`} />
       </div>
 
@@ -290,45 +291,9 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
             <p className={`text-xs uppercase font-bold tracking-widest font-cinzel ${
               darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
             }`}>
-              {tale.title} · CHAPTER {currentChapterNum}
+              {tale.title} · {chapterData.title}
             </p>
-            <h2 className={`text-sm sm:text-base font-bold font-cinzel ${
-              darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'
-            }`}>
-              {chapterData.title}
-            </h2>
           </div>
-
-          <button
-            onClick={() => setIsMuted(!isMuted)}
-            className={`sm:hidden p-2 rounded-full border ${
-              darkMode ? 'bg-slate-800/80 border-slate-700 text-[#d4af37]' : 'bg-amber-50 border-amber-300 text-[#8a5d12]'
-            }`}
-          >
-            {isMuted ? <VolOff className="w-4 h-4" /> : <VolOn className="w-4 h-4" />}
-          </button>
-        </div>
-
-        {/* Center: SKILL CHOOSE BAR */}
-        <div className={`flex items-center gap-1.5 p-1 rounded-full border shadow-inner ${
-          darkMode ? 'bg-[#0f141c]/90 border-[#d4af37]/40' : 'bg-white/90 border-[#d4af37]'
-        }`}>
-          {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((sk) => {
-            const isActive = selectedSkill === sk;
-            return (
-              <button
-                key={sk}
-                onClick={() => setSelectedSkill(sk)}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-[#d4af37] to-[#b38f2a] text-slate-900 shadow-md scale-105'
-                    : darkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {sk}
-              </button>
-            );
-          })}
         </div>
 
         {/* Right: Sound Toggle & Chapter Switcher */}
@@ -342,25 +307,6 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
           >
             {isMuted ? <VolOff className="w-4 h-4" /> : <VolOn className="w-4 h-4" />}
           </button>
-
-          {/* Chapter Navigation Toggle */}
-          <div className={`flex items-center rounded-lg border p-0.5 text-xs font-semibold ${
-            darkMode ? 'bg-[#121824] border-[#d4af37]/30' : 'bg-slate-100 border-[#d4af37]'
-          }`}>
-            {Array.from({ length: maxChapters }, (_, i) => i + 1).map((chNum) => (
-              <button
-                key={chNum}
-                onClick={() => { setCurrentChapterNum(chNum); setSelectedChoice(null); }}
-                className={`px-2.5 py-1 rounded-md transition-all ${
-                  currentChapterNum === chNum 
-                    ? 'bg-[#d4af37] text-slate-900 font-bold shadow-sm' 
-                    : (darkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900')
-                }`}
-              >
-                Ch {chNum}
-              </button>
-            ))}
-          </div>
         </div>
 
       </header>
@@ -368,36 +314,18 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
       {/* CHAPTER CONTENT BODY */}
       <main className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 max-w-4xl mx-auto w-full space-y-6">
         
-        {/* CHAPTER 1 MODE: Story Narrative + 5 Dimensions + Characters Intro */}
+        {/* CHAPTER 1 MODE: Top Animated Image + Typewriter Story + Characters Intro */}
         {currentChapterNum === 1 ? (
           <div className="space-y-6 animate-fadeIn">
             
-            {/* Story Overview & Dimensions */}
-            {chapterData.story?.paragraphs && (
-              <div className={`rounded-2xl p-6 sm:p-8 space-y-4 border-2 shadow-xl ${
-                darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
-              }`}>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🌟</span>
-                  <div>
-                    <span className={`text-xs font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
-                      Realm Chronicle
-                    </span>
-                    <h3 className={`text-xl sm:text-2xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
-                      {chapterData.title}
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="space-y-4 font-serif-display text-base sm:text-lg md:text-xl leading-relaxed">
-                  {chapterData.story.paragraphs.map((para, pIdx) => (
-                    <p key={pIdx} className={darkMode ? 'text-slate-200' : 'text-slate-800'}>
-                      {para}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Top Animated Image Hero + Typewriter Effect Story Chronicle */}
+            <ChapterTypewriterStory
+              taleTitle={tale.title}
+              chapterTitle={chapterData.title}
+              realmName={tale.realmId === 'realm-work' ? 'Work Realm' : 'Realm'}
+              imageUrl={chapterData.bgMedia?.url || tale.coverImage}
+              darkMode={darkMode}
+            />
 
             {/* Character Intro Card */}
             <div className={`rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-center gap-6 shadow-xl border-2 ${

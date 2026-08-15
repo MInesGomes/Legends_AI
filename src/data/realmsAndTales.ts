@@ -12,7 +12,7 @@ import teensTaleImg from '../assets/images/tale_teens_1786619511039.jpg';
 import pridePrejudiceImg from '../assets/images/tale_pride_prejudice_1786619522458.jpg';
 import oneHartImg from '../assets/images/tale_one_hart_1786619538922.jpg';
 import startupWinnerImg from '../assets/images/tale_startup_winner_1786619547804.jpg';
-import jobQuestImg from '../assets/images/tale_job_quest_1786619559433.jpg';
+import jobQuestImg from '../assets/images/job_quest_ch1_1786784386457.jpg';
 import fiveCrystalsImg from '../assets/images/atlantis_heart_crystals_1786726147916.jpg';
 
 export const REALMS: Realm[] = [

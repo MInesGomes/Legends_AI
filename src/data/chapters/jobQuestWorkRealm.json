@@ -2,7 +2,7 @@
   "title": "Job Quest: A Novel Game in the Work Realm",
   "taleId": "tale-job-quest",
   "realm": "Work",
-  "coverImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+  "coverImage": "/src/assets/images/job_quest_ch1_1786784386457.jpg",
   "description": "Navigate the modern job market amidst AI transformation, mastering leadership, planning, Win4All synergy, and resilience.",
   "chapters": [
     {
@@ -11,7 +11,7 @@
       "title": "Chapter 1 — The Beginning of the Quest",
       "subtitle": "The Work Realm & The Wave of AI",
       "skill": "Leader",
-      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "bgImage": "/src/assets/images/job_quest_ch1_1786784386457.jpg",
       "story": {
         "introduction": "The Work Realm was once a land of opportunity. People learned a profession, gained experience, and slowly built a career. Teachers taught, designers created, programmers developed software, translators translated, and writers wrote stories.",
         "theTransformation": "Then, everything changed. Artificial intelligence arrived like a powerful tide. Tasks that once required entire teams could suddenly be completed in minutes. Companies reduced their workforces. Job descriptions changed faster than universities could update their courses. New skills became essential, but millions of people had never been trained to use them.",
