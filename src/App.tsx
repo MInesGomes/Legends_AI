@@ -311,7 +311,7 @@ export default function App() {
   const todayTalesCount = todayTalesList.length;
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-[#0f141c] text-slate-100' : 'bg-slate-100 text-slate-900'} antialiased selection:bg-[#d4af37] selection:text-black font-sans`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-[#18202f] text-slate-100' : 'bg-[#fcfbf9] text-slate-900'} antialiased selection:bg-[#d4af37] selection:text-black font-sans`}>
       
       {/* Show Navigation Header when logged in */}
       {dbState.user_profile && currentPage !== 'chapter' && (

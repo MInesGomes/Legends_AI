@@ -263,8 +263,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className={`min-h-[calc(100vh-65px)] transition-colors duration-300 p-4 sm:p-6 md:p-8 relative ${
-      darkMode ? 'bg-[#0f141c] text-slate-100' : 'bg-[#fbf9f4] text-slate-900'
+    <div className={`min-h-[calc(100vh-65px)] transition-colors duration-300 pt-3 sm:pt-4 px-4 sm:px-6 md:px-8 pb-16 sm:pb-24 relative ${
+      darkMode ? 'bg-[#18202f] text-slate-100' : 'bg-[#fcfbf9] text-slate-900'
     }`}>
       
       {/* Background ambient lighting */}

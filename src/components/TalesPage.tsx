@@ -54,8 +54,8 @@ export const TalesPage: React.FC<TalesPageProps> = ({
   };
 
   return (
-    <div className={`min-h-[calc(100vh-65px)] transition-colors duration-300 p-4 sm:p-6 md:p-8 ${
-      darkMode ? 'bg-[#0f141c] text-slate-100' : 'bg-[#fbf9f4] text-slate-900'
+    <div className={`min-h-[calc(100vh-65px)] transition-colors duration-300 pt-3 sm:pt-4 px-4 sm:px-6 md:px-8 pb-16 sm:pb-24 ${
+      darkMode ? 'bg-[#18202f] text-slate-100' : 'bg-[#fcfbf9] text-slate-900'
     }`}>
       <div className="max-w-7xl mx-auto space-y-6">
         
@@ -65,7 +65,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
             <button
               onClick={onBack}
               className={`p-2 rounded-full border border-[#d4af37]/50 hover:bg-[#d4af37]/20 transition-all active:scale-95 shadow-md ${
-                darkMode ? 'bg-[#121824] text-[#fce0a2]' : 'bg-white text-[#8a5d12]'
+                darkMode ? 'bg-[#1e293b] text-[#fce0a2]' : 'bg-white text-[#8a5d12]'
               }`}
             >
               <ArrowLeft className="w-5 h-5" />
@@ -76,7 +76,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               }`}>
                 {realm.title} TALES
               </h2>
-              <p className={`text-sm sm:text-base ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              <p className={`text-sm sm:text-base ${darkMode ? 'text-slate-200' : 'text-slate-600'}`}>
                 Explore choice-driven chapter legends in {realm.title}
               </p>
             </div>
@@ -103,8 +103,8 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                 onClick={() => handleCardClick(tale)}
                 className="group relative cursor-pointer p-[3px] rounded-[18px] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99]"
               >
-                {/* Inner Card Box with Dark Ambient Background */}
-                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden bg-black text-left flex flex-col justify-between">
+                {/* Inner Card Box with Lighter Ambient Background */}
+                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden bg-slate-900 text-left flex flex-col justify-between">
                   
                   {/* Background Image */}
                   <img
@@ -136,23 +136,20 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     </svg>
                   </div>
 
-                  {/* Top Badges: Skill + Read Today Indicator */}
-                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-                    {alreadyReadToday && (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-950/80 backdrop-blur-md border border-emerald-500/60 text-[9px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
+                  {/* Top Read Today Indicator (Skill badge removed as requested) */}
+                  {alreadyReadToday && (
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-950/85 backdrop-blur-md border border-emerald-500/60 text-[10px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
                         Unlocked Today
                       </span>
-                    )}
-                    <div className="px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-[#d4af37]/60 text-[10px] font-bold text-[#fce0a2] tracking-wider uppercase shadow-md flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-[#d4af37]" /> {tale.skill}
                     </div>
-                  </div>
+                  )}
 
                   {/* Dark Vignette Gradient Overlay at Bottom */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
 
-                  {/* Bottom Gold Title Banner (Matching 2Dad&MomTales.png, 2MarriageTales.png, 2WorkTales.png exactly) */}
-                  <div className="relative z-10 p-4 pt-8 text-center flex flex-col items-center justify-end">
+                  {/* Bottom Gold Title Banner with reduced top padding and increased bottom padding */}
+                  <div className="relative z-10 px-4 pt-2 pb-5 sm:pb-6 text-center flex flex-col items-center justify-end">
                     <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-md">
                       {tale.title}
                     </h3>
@@ -189,11 +186,11 @@ export const TalesPage: React.FC<TalesPageProps> = ({
             className="p-[3px] rounded-[18px] bg-gradient-to-b from-[#f3e5ab]/60 via-[#d4af37]/40 to-[#8a5d12]/60 hover:from-[#f3e5ab] hover:to-[#8a5d12] shadow-xl transition-all duration-300 group cursor-pointer"
           >
             <div className={`relative h-72 sm:h-80 rounded-[15px] p-6 flex flex-col items-center justify-center text-center transition-colors ${
-              darkMode ? 'bg-[#0f141c]/90 text-slate-100' : 'bg-white/95 text-slate-900'
+              darkMode ? 'bg-[#202b3d]/95 text-slate-100' : 'bg-white/95 text-slate-900'
             }`}>
               <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 mb-3 group-hover:scale-110 transition-transform shadow-lg">
                 <div className={`w-full h-full rounded-full flex items-center justify-center text-[#d4af37] ${
-                  darkMode ? 'bg-[#0f141c]' : 'bg-white'
+                  darkMode ? 'bg-[#202b3d]' : 'bg-white'
                 }`}>
                   <Plus className="w-8 h-8" />
                 </div>
@@ -203,7 +200,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               }`}>
                 Add Custom Tale
               </h3>
-              <p className={`text-sm max-w-xs mt-2 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              <p className={`text-sm max-w-xs mt-2 ${darkMode ? 'text-slate-200' : 'text-slate-600'}`}>
                 Create a new choice-driven legend in realm {realm.title}.
               </p>
               <span className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 font-bold text-xs shadow-md group-hover:brightness-110 transition-all">
