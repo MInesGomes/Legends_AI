@@ -14,6 +14,7 @@ export interface UserProfile {
   language: Language;
   avatar_url: string;
   created_at: string;
+  daily_tale_limit?: number; // Configurable daily limit (max 10 for 18+, max 5 for under 18)
 }
 
 export interface UserSkillsPoints {
@@ -110,6 +111,12 @@ export interface ChapterComment {
   created_at: string;
 }
 
+export interface DailyTaleLog {
+  tale_id: string;
+  date: string; // YYYY-MM-DD
+  timestamp: string;
+}
+
 export interface DatabaseState {
   user_profile: UserProfile | null;
   user_comments: ChapterComment[];
@@ -118,4 +125,5 @@ export interface DatabaseState {
   chapters_id_Views: string[];
   chapters_id_Comments: Record<string, ChapterComment[]>;
   user_tales: Tale[];
+  daily_tales_log?: DailyTaleLog[];
 }

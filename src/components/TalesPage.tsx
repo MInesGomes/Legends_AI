@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { Realm, Tale } from '../types';
+import { Realm, Tale, UserProfile, DailyTaleLog } from '../types';
 import { AddTaleModal } from './AddTaleModal';
-import { ArrowLeft, Plus, Eye, Heart, MessageSquare, Sparkles } from 'lucide-react';
+import { getEffectiveDailyLimit, getMaxAllowedDailyLimit, hasReachedDailyTaleLimit } from '../lib/supabase';
+import { ArrowLeft, Plus, Eye, Heart, MessageSquare, Sparkles, BookOpen, ShieldCheck, Settings, X } from 'lucide-react';
 
 interface TalesPageProps {
   realm: Realm;
   tales: Tale[];
+  user: UserProfile | null;
+  dailyLogs?: DailyTaleLog[];
+  todayTalesCount?: number;
+  todayTalesList?: string[];
+  onOpenProfile?: () => void;
   onBack: () => void;
   onSelectTale: (tale: Tale) => void;
   onSubmitNewTale: (newTale: Tale) => void;
@@ -15,17 +21,37 @@ interface TalesPageProps {
 export const TalesPage: React.FC<TalesPageProps> = ({
   realm,
   tales,
+  user,
+  dailyLogs = [],
+  todayTalesCount = 0,
+  todayTalesList = [],
+  onOpenProfile,
   onBack,
   onSelectTale,
   onSubmitNewTale,
   darkMode = true,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
+
+  const effectiveLimit = getEffectiveDailyLimit(user);
+  const maxAllowed = getMaxAllowedDailyLimit(user?.age);
+  const isUnder18 = (user?.age ?? 20) < 18;
 
   // Filter tales belonging to this realm or custom user tales
   const realmTales = tales.filter(
     (t) => t.realmId === realm.id || t.realmId === realm.key
   );
+
+  const handleCardClick = (tale: Tale) => {
+    // Check if the user is allowed to read this tale
+    const reached = hasReachedDailyTaleLimit(user, dailyLogs, tale.id);
+    if (reached) {
+      setLimitModalOpen(true);
+      return;
+    }
+    onSelectTale(tale);
+  };
 
   return (
     <div className={`min-h-[calc(100vh-65px)] transition-colors duration-300 p-4 sm:p-6 md:p-8 ${
@@ -34,7 +60,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-[#d4af37]/30 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#d4af37]/30 pb-4">
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
@@ -56,94 +82,126 @@ export const TalesPage: React.FC<TalesPageProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-black font-semibold text-xs hover:brightness-110 active:scale-95 transition-all shadow-lg"
-          >
-            <Plus className="w-4 h-4" /> Add Tale
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Daily Quota Counter Badge */}
+            <div
+              onClick={onOpenProfile}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs cursor-pointer transition-all shadow-sm ${
+                todayTalesCount >= effectiveLimit
+                  ? 'bg-rose-500/15 border-rose-500/50 text-rose-400'
+                  : darkMode
+                    ? 'bg-[#182130] border-[#d4af37]/40 text-[#fce0a2] hover:border-[#d4af37]'
+                    : 'bg-white border-[#d4af37]/50 text-[#8a5d12] hover:bg-amber-50'
+              }`}
+              title="Click to configure daily tale reading limit"
+            >
+              <BookOpen className="w-4 h-4 text-[#d4af37]" />
+              <div>
+                <span className="font-semibold">Today's Quota: </span>
+                <span className="font-mono font-bold">{todayTalesCount} / {effectiveLimit}</span>
+                {isUnder18 && <span className="ml-1 text-[10px] opacity-80">(Under 18 Max 5)</span>}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-black font-semibold text-xs hover:brightness-110 active:scale-95 transition-all shadow-lg cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Add Tale
+            </button>
+          </div>
         </div>
 
         {/* Tales Cards Grid (Matching reference screenshots 2AtlantisTales, 2Dad&MomTales, 2MarriageTales, 2WorkTales) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           
-          {realmTales.map((tale) => (
-            <div
-              key={tale.id}
-              onClick={() => onSelectTale(tale)}
-              className="group relative cursor-pointer p-[3px] rounded-[18px] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99]"
-            >
-              {/* Inner Card Box with Dark Ambient Background */}
-              <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden bg-black text-left flex flex-col justify-between">
-                
-                {/* Background Image */}
-                <img
-                  src={tale.coverImage}
-                  alt={tale.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter brightness-95 group-hover:brightness-100"
-                  referrerPolicy="no-referrer"
-                />
-
-                {/* Corner Filigree Flourish Accents (Matching exact reference borders) */}
-                <div className="absolute top-1.5 left-1.5 pointer-events-none text-[#fce0a2]/80">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M2 10V2h8M2 2l8 8" />
-                  </svg>
-                </div>
-                <div className="absolute top-1.5 right-1.5 pointer-events-none text-[#fce0a2]/80">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M22 10V2h-8M22 2l-8 8" />
-                  </svg>
-                </div>
-                <div className="absolute bottom-1.5 left-1.5 pointer-events-none text-[#fce0a2]/80 z-10">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M2 14v8h8M2 22l8-8" />
-                  </svg>
-                </div>
-                <div className="absolute bottom-1.5 right-1.5 pointer-events-none text-[#fce0a2]/80 z-10">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M22 14v8h-8M22 22l-8-8" />
-                  </svg>
-                </div>
-
-                {/* Top Skill Badge */}
-                <div className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-[#d4af37]/60 text-[10px] font-bold text-[#fce0a2] tracking-wider uppercase shadow-md flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-[#d4af37]" /> {tale.skill}
-                </div>
-
-                {/* Dark Vignette Gradient Overlay at Bottom */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
-
-                {/* Bottom Gold Title Banner (Matching 2Dad&MomTales.png, 2MarriageTales.png, 2WorkTales.png exactly) */}
-                <div className="relative z-10 p-4 pt-8 text-center flex flex-col items-center justify-end">
-                  <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-md">
-                    {tale.title}
-                  </h3>
+          {realmTales.map((tale) => {
+            const alreadyReadToday = todayTalesList.includes(tale.id);
+            return (
+              <div
+                key={tale.id}
+                onClick={() => handleCardClick(tale)}
+                className="group relative cursor-pointer p-[3px] rounded-[18px] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99]"
+              >
+                {/* Inner Card Box with Dark Ambient Background */}
+                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden bg-black text-left flex flex-col justify-between">
                   
-                  {/* Decorative Gold Filigree Divider with Diamond */}
-                  <div className="w-full max-w-[80%] flex items-center justify-center my-1.5 text-[#d4af37]">
-                    <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
-                    <span className="px-2 text-xs font-serif">❖</span>
-                    <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
+                  {/* Background Image */}
+                  <img
+                    src={tale.coverImage}
+                    alt={tale.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter brightness-95 group-hover:brightness-100"
+                    referrerPolicy="no-referrer"
+                  />
+
+                  {/* Corner Filigree Flourish Accents (Matching exact reference borders) */}
+                  <div className="absolute top-1.5 left-1.5 pointer-events-none text-[#fce0a2]/80">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M2 10V2h8M2 2l8 8" />
+                    </svg>
+                  </div>
+                  <div className="absolute top-1.5 right-1.5 pointer-events-none text-[#fce0a2]/80">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M22 10V2h-8M22 2l-8 8" />
+                    </svg>
+                  </div>
+                  <div className="absolute bottom-1.5 left-1.5 pointer-events-none text-[#fce0a2]/80 z-10">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M2 14v8h8M2 22l8-8" />
+                    </svg>
+                  </div>
+                  <div className="absolute bottom-1.5 right-1.5 pointer-events-none text-[#fce0a2]/80 z-10">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M22 14v8h-8M22 22l-8-8" />
+                    </svg>
                   </div>
 
-                  {tale.subtitle && (
-                    <p className="text-xs text-slate-300 font-serif-display italic line-clamp-1 mb-1">
-                      {tale.subtitle}
-                    </p>
-                  )}
-
-                  {/* Social Stats */}
-                  <div className="flex items-center justify-center gap-4 text-[11px] text-[#fce0a2] mt-1">
-                    <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
-                    <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
-                    <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.commentsCount}</span>
+                  {/* Top Badges: Skill + Read Today Indicator */}
+                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                    {alreadyReadToday && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-950/80 backdrop-blur-md border border-emerald-500/60 text-[9px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
+                        Unlocked Today
+                      </span>
+                    )}
+                    <div className="px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-[#d4af37]/60 text-[10px] font-bold text-[#fce0a2] tracking-wider uppercase shadow-md flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#d4af37]" /> {tale.skill}
+                    </div>
                   </div>
+
+                  {/* Dark Vignette Gradient Overlay at Bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
+
+                  {/* Bottom Gold Title Banner (Matching 2Dad&MomTales.png, 2MarriageTales.png, 2WorkTales.png exactly) */}
+                  <div className="relative z-10 p-4 pt-8 text-center flex flex-col items-center justify-end">
+                    <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-md">
+                      {tale.title}
+                    </h3>
+                    
+                    {/* Decorative Gold Filigree Divider with Diamond */}
+                    <div className="w-full max-w-[80%] flex items-center justify-center my-1.5 text-[#d4af37]">
+                      <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
+                      <span className="px-2 text-xs font-serif">❖</span>
+                      <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
+                    </div>
+
+                    {tale.subtitle && (
+                      <p className="text-xs text-slate-300 font-serif-display italic line-clamp-1 mb-1">
+                        {tale.subtitle}
+                      </p>
+                    )}
+
+                    {/* Social Stats */}
+                    <div className="flex items-center justify-center gap-4 text-[11px] text-[#fce0a2] mt-1">
+                      <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
+                      <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
+                      <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.commentsCount}</span>
+                    </div>
+                  </div>
+
                 </div>
-
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* ADD BUTTON CARD (Matching Dashboard & Tales style) */}
           <div
@@ -175,6 +233,84 @@ export const TalesPage: React.FC<TalesPageProps> = ({
           </div>
 
         </div>
+
+        {/* Daily Tale Limit Reached Warning Modal */}
+        {limitModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+            <div className={`w-full max-w-md p-6 rounded-2xl border border-[#d4af37]/60 shadow-2xl relative space-y-4 ${
+              darkMode ? 'bg-[#121824] text-slate-100' : 'bg-[#fbf9f4] text-slate-900'
+            }`}>
+              <button
+                onClick={() => setLimitModalOpen(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="text-center space-y-3">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-[#d4af37] p-0.5 mx-auto flex items-center justify-center shadow-lg">
+                  <div className="w-full h-full rounded-full bg-[#121824] flex items-center justify-center text-[#d4af37]">
+                    <BookOpen className="w-7 h-7" />
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-bold font-cinzel text-[#fce0a2]">
+                  Daily Limit Reached
+                </h3>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  You have reached your daily reading quota of <strong className="text-[#d4af37] font-bold">{effectiveLimit} tales</strong> for today ({todayTalesCount} explored).
+                </p>
+
+                {/* Progress / Status banner */}
+                <div className={`p-3 rounded-xl border text-xs text-left space-y-2 ${
+                  darkMode ? 'bg-[#182130] border-[#d4af37]/30' : 'bg-white border-[#d4af37]/40 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-slate-300">Daily Tales Goal:</span>
+                    <span className="font-mono font-bold text-[#d4af37]">{todayTalesCount} / {effectiveLimit}</span>
+                  </div>
+
+                  {isUnder18 ? (
+                    <div className="flex items-center gap-1.5 text-[11px] text-amber-400 font-medium">
+                      <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+                      <span>Youth Protection Rule: Under 18 accounts are limited to a maximum of 5 tales per day.</span>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-400">
+                      Adult accounts are capped at a maximum of 10 tales per day to encourage meaningful reflection between decisions.
+                    </p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  {effectiveLimit < maxAllowed && onOpenProfile && (
+                    <button
+                      onClick={() => {
+                        setLimitModalOpen(false);
+                        onOpenProfile();
+                      }}
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md hover:brightness-110 transition-all cursor-pointer"
+                    >
+                      <Settings className="w-3.5 h-3.5" /> Adjust Limit in Profile
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setLimitModalOpen(false)}
+                    className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                      darkMode
+                        ? 'border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
+                        : 'border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200'
+                    }`}
+                  >
+                    Return to Tales
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal for adding tale */}
         {showAddModal && (

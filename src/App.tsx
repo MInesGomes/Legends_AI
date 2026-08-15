@@ -12,6 +12,10 @@ import {
   syncUpdateCommentToSupabase,
   syncDeleteCommentToSupabase,
   syncTaleToSupabase,
+  getTodayDateString,
+  getTodayTalesRead,
+  getTodayTalesCount,
+  getEffectiveDailyLimit,
 } from './lib/supabase';
 import { REALMS, INITIAL_TALES } from './data/realmsAndTales';
 import { Header } from './components/Header';
@@ -103,10 +107,40 @@ export default function App() {
     setCurrentPage('tails');
   };
 
-  // Handle Tale Selection -> Fullscreen Chapter
+  // Handle Tale Selection -> Fullscreen Chapter and record to daily_tales_log
   const handleSelectTale = (tale: Tale) => {
+    setDbState((prev) => {
+      const today = getTodayDateString();
+      const existingLogs = prev.daily_tales_log || [];
+      const alreadyLogged = existingLogs.some(
+        (l) => l.tale_id === tale.id && (l.date === today || l.timestamp?.startsWith(today))
+      );
+      const updatedLogs = alreadyLogged
+        ? existingLogs
+        : [...existingLogs, { tale_id: tale.id, date: today, timestamp: new Date().toISOString() }];
+      return {
+        ...prev,
+        daily_tales_log: updatedLogs,
+      };
+    });
     setActiveTale(tale);
     setCurrentPage('chapter');
+  };
+
+  // Update Daily Tale Limit
+  const handleUpdateDailyLimit = (newLimit: number) => {
+    setDbState((prev) => {
+      if (!prev.user_profile) return prev;
+      const updatedProfile: UserProfile = {
+        ...prev.user_profile,
+        daily_tale_limit: newLimit,
+      };
+      syncUserProfileToSupabase(updatedProfile);
+      return {
+        ...prev,
+        user_profile: updatedProfile,
+      };
+    });
   };
 
   // Add Custom User Tale
@@ -257,6 +291,10 @@ export default function App() {
   // Combined tales list (Initial Tales + Custom User Tales)
   const allTales = [...INITIAL_TALES, ...dbState.user_tales];
 
+  // Daily tales calculation
+  const todayTalesList = getTodayTalesRead(dbState.daily_tales_log);
+  const todayTalesCount = todayTalesList.length;
+
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-[#0f141c] text-slate-100' : 'bg-slate-100 text-slate-900'} antialiased selection:bg-[#d4af37] selection:text-black font-sans`}>
       
@@ -265,6 +303,7 @@ export default function App() {
         <Header
           user={dbState.user_profile}
           currentLang={currentLang}
+          todayTalesCount={todayTalesCount}
           onLanguageChange={handleLanguageChange}
           darkMode={darkMode}
           onToggleDarkMode={() => setDarkMode(!darkMode)}
@@ -292,6 +331,11 @@ export default function App() {
         <TalesPage
           realm={activeRealm}
           tales={allTales}
+          user={dbState.user_profile}
+          dailyLogs={dbState.daily_tales_log}
+          todayTalesCount={todayTalesCount}
+          todayTalesList={todayTalesList}
+          onOpenProfile={() => setShowProfileDrawer(true)}
           onBack={() => setCurrentPage('dashboard')}
           onSelectTale={handleSelectTale}
           onSubmitNewTale={handleSubmitNewTale}
@@ -343,9 +387,11 @@ export default function App() {
           skillsPoints={dbState.user_skills_points}
           likedCount={dbState.chapters_id_Liked.length}
           viewedCount={dbState.chapters_id_Views.length}
+          todayTalesCount={todayTalesCount}
           currentLang={currentLang}
           onLanguageChange={handleLanguageChange}
           onUpdateAvatar={handleUpdateAvatar}
+          onUpdateDailyLimit={handleUpdateDailyLimit}
           onClose={() => setShowProfileDrawer(false)}
           onSignOut={handleSignOut}
           darkMode={darkMode}

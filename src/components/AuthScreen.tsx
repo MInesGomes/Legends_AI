@@ -9,7 +9,7 @@ import {
   DEFAULT_YOUTH_MALE_AVATAR,
   AvatarOption,
 } from '../data/avatars';
-import { Sparkles, Calendar, User, ArrowRight, Sun, Moon, Check, ShieldCheck, Sparkle } from 'lucide-react';
+import { Sparkles, Calendar, User, ArrowRight, Sun, Moon, Check, ShieldCheck, Sparkle, BookOpen } from 'lucide-react';
 
 interface AuthScreenProps {
   onLoginSuccess: (user: UserProfile) => void;
@@ -73,6 +73,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       age: calculatedAge,
       language: lang,
       avatar_url: selectedAvatar,
+      daily_tale_limit: calculatedAge < 18 ? 5 : 10,
       created_at: new Date().toISOString(),
     };
     onLoginSuccess(newUser);
@@ -90,6 +91,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       age: 30,
       language: currentLang,
       avatar_url: DEFAULT_FEMALE_AVATAR,
+      daily_tale_limit: 10,
       created_at: new Date().toISOString(),
     };
     onLoginSuccess(existingUser);
@@ -107,6 +109,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         age: 28,
         language: 'EN',
         avatar_url: FEMALE_AVATARS[0].url, // The Wayfinder
+        daily_tale_limit: 10,
         created_at: new Date().toISOString(),
       });
     } else if (preset === 'male') {
@@ -119,6 +122,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         age: 32,
         language: 'EN',
         avatar_url: MALE_AVATARS[1].url, // The Palace Champion
+        daily_tale_limit: 10,
         created_at: new Date().toISOString(),
       });
     } else {
@@ -131,6 +135,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         age: 14, // Under 18 years old!
         language: 'EN',
         avatar_url: DEFAULT_YOUTH_MALE_AVATAR, // The Torchbearer
+        daily_tale_limit: 5, // Under 18 max 5
         created_at: new Date().toISOString(),
       });
     }
@@ -473,6 +478,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       </div>
                     </div>
                   )}
+
+                  {/* Daily Tales Limit Notice */}
+                  <div className={`p-2.5 rounded-lg border flex items-center justify-between text-xs ${
+                    calculatedAge < 18
+                      ? darkMode
+                        ? 'bg-amber-950/40 border-amber-500/40 text-amber-300'
+                        : 'bg-amber-50 border-amber-300 text-amber-900'
+                      : darkMode
+                        ? 'bg-[#121824] border-[#d4af37]/30 text-slate-300'
+                        : 'bg-white border-[#d4af37]/40 text-slate-700'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-[#d4af37]" />
+                      <span>
+                        Daily Tale Limit:{' '}
+                        <strong>{calculatedAge < 18 ? 'Max 5 tales/day (Under 18 Shield)' : 'Max 10 tales/day'}</strong>
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Customizable in Profile</span>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-2">

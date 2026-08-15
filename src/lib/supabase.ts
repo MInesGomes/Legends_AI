@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { DatabaseState, UserProfile, ChapterComment, UserSkillsPoints, Tale } from '../types';
+import { DatabaseState, UserProfile, ChapterComment, UserSkillsPoints, Tale, DailyTaleLog } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://fygcrtlqrsjzjocckkhe.supabase.co';
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_SCec_Ofgz4bGHaZYjWgqsA_piUHfmfA';
@@ -52,7 +52,8 @@ const defaultState: DatabaseState = {
       }
     ]
   },
-  user_tales: []
+  user_tales: [],
+  daily_tales_log: []
 };
 
 export function getLocalDb(): DatabaseState {
@@ -86,10 +87,79 @@ export function calculateAge(dobString: string): number {
   return age;
 }
 
+// ========================================================
+// DAILY TALES LIMIT UTILITIES & GUARDRAILS
+// ========================================================
+
+/**
+ * Returns the maximum daily tales limit allowed based on age:
+ * - Adults (age >= 18): max 10 tales per day
+ * - Minors (age < 18): max 5 tales per day
+ */
+export function getMaxAllowedDailyLimit(age?: number): number {
+  if (age !== undefined && age < 18) {
+    return 5;
+  }
+  return 10;
+}
+
+/**
+ * Resolves the effective daily tale limit for a user:
+ * Takes into account the user's custom configuration while enforcing the age ceiling.
+ */
+export function getEffectiveDailyLimit(user?: UserProfile | null): number {
+  const maxLimit = getMaxAllowedDailyLimit(user?.age);
+  if (!user) return maxLimit;
+
+  if (typeof user.daily_tale_limit === 'number' && user.daily_tale_limit >= 1) {
+    return Math.min(Math.floor(user.daily_tale_limit), maxLimit);
+  }
+  return maxLimit;
+}
+
+export function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+/**
+ * Get distinct tale IDs read/opened today from the logs
+ */
+export function getTodayTalesRead(logs?: DailyTaleLog[]): string[] {
+  if (!logs || !Array.isArray(logs)) return [];
+  const todayStr = getTodayDateString();
+  const todayLogs = logs.filter((l) => l.date === todayStr || l.timestamp?.startsWith(todayStr));
+  const distinctIds = Array.from(new Set(todayLogs.map((l) => l.tale_id)));
+  return distinctIds;
+}
+
+/**
+ * Count how many distinct tales were opened today
+ */
+export function getTodayTalesCount(logs?: DailyTaleLog[]): number {
+  return getTodayTalesRead(logs).length;
+}
+
+/**
+ * Check if the user has reached their daily limit.
+ * If candidateTaleId is provided and was already opened today, user is allowed to re-read it.
+ */
+export function hasReachedDailyTaleLimit(
+  user: UserProfile | null,
+  logs?: DailyTaleLog[],
+  candidateTaleId?: string
+): boolean {
+  const readToday = getTodayTalesRead(logs);
+  if (candidateTaleId && readToday.includes(candidateTaleId)) {
+    return false; // Already unlocked/opened today
+  }
+  const effectiveLimit = getEffectiveDailyLimit(user);
+  return readToday.length >= effectiveLimit;
+}
+
 // Comments Daily Limit (Max 10 per day)
 export function getDailyCommentsCount(userId: string): number {
   const db = getLocalDb();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getTodayDateString();
   const count = db.user_comments.filter(
     (c) => c.user_id === userId && c.created_at.startsWith(todayStr)
   ).length;
@@ -114,6 +184,7 @@ export async function syncUserProfileToSupabase(profile: UserProfile): Promise<v
       age: profile.age,
       language: profile.language,
       avatar_url: profile.avatar_url,
+      daily_tale_limit: profile.daily_tale_limit,
       created_at: profile.created_at,
     });
     if (error) console.warn('Supabase user_profile sync warning:', error.message);
