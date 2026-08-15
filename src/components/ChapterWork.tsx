@@ -362,7 +362,7 @@ export const ChapterWork: React.FC<ChapterWorkProps> = ({
                 {startupWinnerData.title}
               </h2>
               <div className="w-24 h-[1.5px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent mx-auto my-3" />
-              <p className="text-sm sm:text-base text-slate-200 leading-relaxed max-w-xl mx-auto">
+              <p className="text-base sm:text-lg text-slate-200 leading-relaxed max-w-xl mx-auto">
                 {chapter1Data.introduction}
               </p>
             </div>
@@ -386,7 +386,7 @@ export const ChapterWork: React.FC<ChapterWorkProps> = ({
                         {char.role}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    <p className="text-sm text-slate-300 mt-1 leading-relaxed">
                       {char.description}
                     </p>
                   </div>

@@ -1,10 +1,13 @@
 import React from 'react';
 import { Realm, UserProfile } from '../types';
 import { REALMS } from '../data/realmsAndTales';
-import { ShieldAlert, Sparkles } from 'lucide-react';
+import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2 } from 'lucide-react';
+import { getEffectiveDailyLimit, getMaxAllowedDailyLimit } from '../lib/supabase';
 
 interface DashboardProps {
   user: UserProfile | null;
+  todayTalesCount?: number;
+  onOpenProfile?: () => void;
   onSelectRealm: (realm: Realm) => void;
   darkMode?: boolean;
 }
@@ -149,9 +152,19 @@ const CartouchePlaque: React.FC<{
   );
 };
 
-export const Dashboard: React.FC<DashboardProps> = ({ user, onSelectRealm, darkMode = false }) => {
+export const Dashboard: React.FC<DashboardProps> = ({
+  user,
+  todayTalesCount = 0,
+  onOpenProfile,
+  onSelectRealm,
+  darkMode = false,
+}) => {
   const userAge = user?.age ?? 20; // Default adult if missing
   const isUnder18 = userAge < 18;
+  const effectiveLimit = getEffectiveDailyLimit(user);
+  const maxAllowed = getMaxAllowedDailyLimit(user?.age);
+  const remainingTales = Math.max(0, effectiveLimit - todayTalesCount);
+  const progressPercent = Math.min(100, Math.round((todayTalesCount / effectiveLimit) * 100));
 
   // Filter realms if under 18: hide Work, Marriage, Dad & Mom!
   const visibleRealms = REALMS.filter((realm) => {
@@ -267,8 +280,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSelectRealm, darkM
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
               <div>
-                <p className="font-semibold">Youth Mode Active (Age {userAge} &lt; 18)</p>
-                <p className="text-[11px] opacity-80">Adult realms (Work, Marriage, Dad &amp; Mom) are filtered out for safety.</p>
+                <p className="text-sm sm:text-base font-semibold">Youth Mode Active (Age {userAge} &lt; 18)</p>
+                <p className="text-xs sm:text-sm opacity-90">Adult realms (Work, Marriage, Dad &amp; Mom) are filtered out for safety.</p>
               </div>
             </div>
             <span className="px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full text-[10px] font-bold uppercase tracking-wider">
@@ -310,10 +323,98 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onSelectRealm, darkM
           ))}
         </div>
 
+        {/* Daily Tales Quota & Reading Progress Card (Placed at the bottom of the Dashboard) */}
+        {user && (
+          <div className="p-[2.5px] rounded-2xl bg-gradient-to-r from-[#ffe59e]/70 via-[#d4af37] to-[#8c5804]/70 shadow-xl">
+            <div className={`rounded-[14px] p-5 sm:p-6 transition-all ${
+              darkMode ? 'bg-[#121824]/95 text-slate-100' : 'bg-white/95 text-slate-900 shadow-sm'
+            }`}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                
+                {/* Left: Quota Stats & Description */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center shadow-md">
+                      <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${
+                        darkMode ? 'bg-[#121824] text-[#fce0a2]' : 'bg-white text-[#8a5d12]'
+                      }`}>
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className={`text-lg sm:text-xl font-bold font-cinzel tracking-wide ${
+                        darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+                      }`}>
+                        Daily Tales Journey
+                      </h3>
+                      <p className={`text-xs sm:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        {remainingTales > 0 ? (
+                          <>
+                            <strong className="text-[#d4af37] font-semibold">{remainingTales} tale{remainingTales > 1 ? 's' : ''}</strong> left to explore today
+                          </>
+                        ) : (
+                          <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4 inline" /> Daily Reading Quota Completed!
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isUnder18 && (
+                    <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>Youth Protection Limit: Under 18 accounts are limited to a max of 5 tales/day.</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Center / Right: Progress Bar & Action */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 min-w-[260px] sm:min-w-[320px]">
+                  
+                  {/* Progress Meter Bar */}
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex justify-between text-xs font-mono font-bold">
+                      <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>Today's Tales Read</span>
+                      <span className="text-[#d4af37] text-sm font-extrabold">{todayTalesCount} / {effectiveLimit}</span>
+                    </div>
+                    <div className={`w-full h-3 rounded-full overflow-hidden border ${
+                      darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-200 border-slate-300'
+                    }`}>
+                      <div
+                        className="h-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] rounded-full transition-all duration-500 shadow-sm"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Configure Goal Button */}
+                  {onOpenProfile && (
+                    <button
+                      onClick={onOpenProfile}
+                      className={`px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap ${
+                        darkMode
+                          ? 'bg-[#1a2332] border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#222e42]'
+                          : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
+                      }`}
+                      title="Adjust daily tale reading limit"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Set Goal</span>
+                    </button>
+                  )}
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Footer Subtitle */}
         <div className="text-center pt-8 pb-4 border-t border-[#d4af37]/20 flex items-center justify-center gap-3">
           <span className="text-[#d4af37] text-xs font-serif">--✦--</span>
-          <p className={`text-sm sm:text-base font-cinzel tracking-wider font-semibold ${
+          <p className={`text-base sm:text-lg font-cinzel tracking-wider font-semibold ${
             darkMode ? 'text-[#fce0a2]/90' : 'text-[#8a5d12]'
           }`}>
             To be ready for the future with AI.

@@ -193,7 +193,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           }`}>
             Learn with Legends
           </h2>
-          <p className={`text-xs mt-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+          <p className={`text-sm sm:text-base mt-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
             {mode === 'create'
               ? step === 1
                 ? 'Create your account to start your journey'
@@ -472,7 +472,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         <div className={`font-semibold font-cinzel text-xs ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
                           {currentSelectedAvatarObj.title} ({currentSelectedAvatarObj.name})
                         </div>
-                        <p className="text-[11px] text-slate-400 line-clamp-1">
+                        <p className="text-xs text-slate-300 line-clamp-1">
                           {currentSelectedAvatarObj.description}
                         </p>
                       </div>

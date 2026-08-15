@@ -76,36 +76,16 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               }`}>
                 {realm.title} TALES
               </h2>
-              <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`text-sm sm:text-base ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 Explore choice-driven chapter legends in {realm.title}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            {/* Daily Quota Counter Badge */}
-            <div
-              onClick={onOpenProfile}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs cursor-pointer transition-all shadow-sm ${
-                todayTalesCount >= effectiveLimit
-                  ? 'bg-rose-500/15 border-rose-500/50 text-rose-400'
-                  : darkMode
-                    ? 'bg-[#182130] border-[#d4af37]/40 text-[#fce0a2] hover:border-[#d4af37]'
-                    : 'bg-white border-[#d4af37]/50 text-[#8a5d12] hover:bg-amber-50'
-              }`}
-              title="Click to configure daily tale reading limit"
-            >
-              <BookOpen className="w-4 h-4 text-[#d4af37]" />
-              <div>
-                <span className="font-semibold">Today's Quota: </span>
-                <span className="font-mono font-bold">{todayTalesCount} / {effectiveLimit}</span>
-                {isUnder18 && <span className="ml-1 text-[10px] opacity-80">(Under 18 Max 5)</span>}
-              </div>
-            </div>
-
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-black font-semibold text-xs hover:brightness-110 active:scale-95 transition-all shadow-lg cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-slate-950 font-bold text-xs hover:brightness-110 active:scale-95 transition-all shadow-lg cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Add Tale
             </button>
@@ -185,13 +165,13 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     </div>
 
                     {tale.subtitle && (
-                      <p className="text-xs text-slate-300 font-serif-display italic line-clamp-1 mb-1">
+                      <p className="text-sm text-slate-200 font-serif-display italic line-clamp-1 mb-1">
                         {tale.subtitle}
                       </p>
                     )}
 
                     {/* Social Stats */}
-                    <div className="flex items-center justify-center gap-4 text-[11px] text-[#fce0a2] mt-1">
+                    <div className="flex items-center justify-center gap-4 text-xs text-[#fce0a2] mt-1">
                       <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
                       <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
                       <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.commentsCount}</span>
@@ -223,7 +203,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               }`}>
                 Add Custom Tale
               </h3>
-              <p className={`text-xs max-w-xs mt-2 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`text-sm max-w-xs mt-2 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 Create a new choice-driven legend in realm {realm.title}.
               </p>
               <span className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 font-bold text-xs shadow-md group-hover:brightness-110 transition-all">
@@ -233,6 +213,96 @@ export const TalesPage: React.FC<TalesPageProps> = ({
           </div>
 
         </div>
+
+        {/* Daily Tales Quota & Reading Progress Card (At the bottom of TalesPage) */}
+        {user && (
+          <div className="p-[2.5px] rounded-2xl bg-gradient-to-r from-[#ffe59e]/70 via-[#d4af37] to-[#8c5804]/70 shadow-xl">
+            <div className={`rounded-[14px] p-5 sm:p-6 transition-all ${
+              darkMode ? 'bg-[#121824]/95 text-slate-100' : 'bg-white/95 text-slate-900 shadow-sm'
+            }`}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                
+                {/* Left: Quota Stats & Description */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center shadow-md">
+                      <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${
+                        darkMode ? 'bg-[#121824] text-[#fce0a2]' : 'bg-white text-[#8a5d12]'
+                      }`}>
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className={`text-lg sm:text-xl font-bold font-cinzel tracking-wide ${
+                        darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+                      }`}>
+                        Daily Tales Journey
+                      </h3>
+                      <p className={`text-xs sm:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        {Math.max(0, effectiveLimit - todayTalesCount) > 0 ? (
+                          <>
+                            <strong className="text-[#d4af37] font-semibold">
+                              {Math.max(0, effectiveLimit - todayTalesCount)} tale{Math.max(0, effectiveLimit - todayTalesCount) > 1 ? 's' : ''}
+                            </strong> left to explore today
+                          </>
+                        ) : (
+                          <span className="text-emerald-400 font-semibold">
+                            Daily Reading Quota Completed! ✨
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isUnder18 && (
+                    <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>Youth Protection Limit: Under 18 accounts are limited to a max of 5 tales/day.</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Center / Right: Progress Bar & Action */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 min-w-[260px] sm:min-w-[320px]">
+                  
+                  {/* Progress Meter Bar */}
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex justify-between text-xs font-mono font-bold">
+                      <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>Today's Tales Read</span>
+                      <span className="text-[#d4af37] text-sm font-extrabold">{todayTalesCount} / {effectiveLimit}</span>
+                    </div>
+                    <div className={`w-full h-3 rounded-full overflow-hidden border ${
+                      darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-200 border-slate-300'
+                    }`}>
+                      <div
+                        className="h-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] rounded-full transition-all duration-500 shadow-sm"
+                        style={{ width: `${Math.min(100, Math.round((todayTalesCount / effectiveLimit) * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Configure Goal Button */}
+                  {onOpenProfile && (
+                    <button
+                      onClick={onOpenProfile}
+                      className={`px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap ${
+                        darkMode
+                          ? 'bg-[#1a2332] border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#222e42]'
+                          : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
+                      }`}
+                      title="Adjust daily tale reading limit"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Set Goal</span>
+                    </button>
+                  )}
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Daily Tale Limit Reached Warning Modal */}
         {limitModalOpen && (
@@ -258,26 +328,26 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                   Daily Limit Reached
                 </h3>
 
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
                   You have reached your daily reading quota of <strong className="text-[#d4af37] font-bold">{effectiveLimit} tales</strong> for today ({todayTalesCount} explored).
                 </p>
 
                 {/* Progress / Status banner */}
-                <div className={`p-3 rounded-xl border text-xs text-left space-y-2 ${
+                <div className={`p-3.5 rounded-xl border text-xs text-left space-y-2 ${
                   darkMode ? 'bg-[#182130] border-[#d4af37]/30' : 'bg-white border-[#d4af37]/40 shadow-sm'
                 }`}>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="font-semibold text-slate-300">Daily Tales Goal:</span>
                     <span className="font-mono font-bold text-[#d4af37]">{todayTalesCount} / {effectiveLimit}</span>
                   </div>
 
                   {isUnder18 ? (
-                    <div className="flex items-center gap-1.5 text-[11px] text-amber-400 font-medium">
+                    <div className="flex items-center gap-1.5 text-xs text-amber-300 font-medium">
                       <ShieldCheck className="w-4 h-4 flex-shrink-0" />
                       <span>Youth Protection Rule: Under 18 accounts are limited to a maximum of 5 tales per day.</span>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-xs text-slate-300">
                       Adult accounts are capped at a maximum of 10 tales per day to encourage meaningful reflection between decisions.
                     </p>
                   )}

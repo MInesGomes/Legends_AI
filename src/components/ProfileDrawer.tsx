@@ -109,7 +109,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               }`}>
                 {user?.name || 'Traveler'}
               </h4>
-              <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`text-sm sm:text-base ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 {activeAvatarObj ? `${activeAvatarObj.title} • ${activeAvatarObj.role}` : user?.email}
               </p>
               
@@ -353,7 +353,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                   ))}
                 </div>
 
-                <p className="text-[10px] text-slate-400 italic leading-tight">
+                <p className="text-xs text-slate-300 italic leading-relaxed">
                   {isUnder18
                     ? '🛡️ Parental & youth protection limits daily tales to max 5. You can configure it to any lower number.'
                     : '⚙️ Max limit is 10 tales per day. You can customize it to fewer tales anytime.'}

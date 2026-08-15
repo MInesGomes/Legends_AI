@@ -81,7 +81,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
               }`}>
                 Comments
               </h3>
-              <p className={`text-[11px] line-clamp-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{chapterTitle}</p>
+              <p className={`text-xs line-clamp-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{chapterTitle}</p>
             </div>
           </div>
 
@@ -203,8 +203,8 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                       </div>
                     </div>
                   ) : (
-                    <p className={`text-xs leading-relaxed font-serif-display pl-8 ${
-                      darkMode ? 'text-slate-300' : 'text-slate-800'
+                    <p className={`text-sm sm:text-base leading-relaxed font-serif-display pl-8 ${
+                      darkMode ? 'text-slate-200' : 'text-slate-800'
                     }`}>
                       {comment.text}
                     </p>

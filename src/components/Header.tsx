@@ -1,12 +1,10 @@
 import React from 'react';
-import { Sun, Moon, Download, User, BookOpen, ShieldCheck } from 'lucide-react';
+import { Sun, Moon, Download, User } from 'lucide-react';
 import { UserProfile, Language } from '../types';
-import { getEffectiveDailyLimit } from '../lib/supabase';
 
 interface HeaderProps {
   user: UserProfile | null;
   currentLang: Language;
-  todayTalesCount?: number;
   onLanguageChange: (lang: Language) => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
@@ -146,10 +144,10 @@ export const Header: React.FC<HeaderProps> = ({
           
           {user && (
             <div className="hidden sm:block">
-              <p className={`text-xs font-semibold font-cinzel leading-none ${
+              <p className={`text-sm font-semibold font-cinzel leading-none ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
               }`}>{user.name}</p>
-              <p className={`text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <p className={`text-xs mt-0.5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 {user.gender === 'female' ? 'Lady' : 'Gentlemen'} · Age {user.age}
               </p>
             </div>
@@ -172,32 +170,9 @@ export const Header: React.FC<HeaderProps> = ({
           </h1>
         </div>
 
-        {/* Right: Controls (Daily Tales Quota, Theme, Language, PWA Install) */}
+        {/* Right: Controls (Theme, Language, PWA Install) */}
         <div className="flex items-center gap-2 sm:gap-3">
           
-          {/* Daily Tales Quota Badge */}
-          {user && (
-            <button
-              onClick={onOpenProfile}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition-all shadow-sm ${
-                todayTalesCount >= getEffectiveDailyLimit(user)
-                  ? 'bg-rose-500/20 border-rose-500/50 text-rose-400 hover:bg-rose-500/30'
-                  : darkMode
-                    ? 'bg-[#182130] border-[#d4af37]/40 text-[#fce0a2] hover:border-[#d4af37]'
-                    : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
-              }`}
-              title={`Daily Tales: ${todayTalesCount} / ${getEffectiveDailyLimit(user)} read today. Click to configure.`}
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[#d4af37]" />
-              <span className="font-mono font-bold">
-                {todayTalesCount}/{getEffectiveDailyLimit(user)}
-              </span>
-              {(user.age < 18) && (
-                <ShieldCheck className="w-3 h-3 text-amber-400 hidden sm:inline" title="Youth Protection Limit Active (Max 5)" />
-              )}
-            </button>
-          )}
-
           {/* PWA Install Button */}
           {deferredPrompt && (
             <button

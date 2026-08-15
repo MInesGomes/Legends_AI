@@ -445,11 +445,11 @@ export const CinematicStoryVideo: React.FC<CinematicStoryVideoProps> = ({ darkMo
 
       {/* SUBTITLE / CAPTION DISPLAY (The exact requested story text) */}
       <div className="absolute bottom-14 sm:bottom-12 inset-x-4 sm:inset-x-8 z-20 text-center pointer-events-none">
-        <div className="inline-block max-w-2xl bg-black/80 backdrop-blur-md px-4 py-2.5 sm:py-3 rounded-2xl border border-[#d4af37]/40 shadow-2xl">
-          <p className="text-[11px] font-cinzel font-bold text-[#fce0a2] uppercase tracking-wider mb-0.5 opacity-90">
+        <div className="inline-block max-w-2xl bg-black/80 backdrop-blur-md px-5 py-3 sm:py-3.5 rounded-2xl border border-[#d4af37]/40 shadow-2xl">
+          <p className="text-xs sm:text-sm font-cinzel font-bold text-[#fce0a2] uppercase tracking-wider mb-0.5 opacity-90">
             {activeScene.title}
           </p>
-          <p className="text-xs sm:text-sm md:text-base font-serif-display text-white leading-relaxed tracking-wide drop-shadow-md">
+          <p className="text-sm sm:text-base md:text-lg font-serif-display text-white leading-relaxed tracking-wide drop-shadow-md">
             "{activeScene.caption}"
           </p>
         </div>

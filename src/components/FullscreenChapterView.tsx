@@ -287,7 +287,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
           </button>
           
           <div>
-            <p className={`text-[10px] uppercase font-bold tracking-widest font-cinzel ${
+            <p className={`text-xs uppercase font-bold tracking-widest font-cinzel ${
               darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
             }`}>
               {tale.title} · CHAPTER {currentChapterNum}
@@ -374,22 +374,22 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
             
             {/* Story Overview & Dimensions */}
             {chapterData.story?.paragraphs && (
-              <div className={`rounded-2xl p-6 space-y-4 border-2 shadow-xl ${
+              <div className={`rounded-2xl p-6 sm:p-8 space-y-4 border-2 shadow-xl ${
                 darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
               }`}>
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🌟</span>
+                  <span className="text-2xl">🌟</span>
                   <div>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+                    <span className={`text-xs font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
                       Realm Chronicle
                     </span>
-                    <h3 className={`text-xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
+                    <h3 className={`text-xl sm:text-2xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
                       {chapterData.title}
                     </h3>
                   </div>
                 </div>
 
-                <div className="space-y-3 font-serif-display text-sm leading-relaxed">
+                <div className="space-y-4 font-serif-display text-base sm:text-lg md:text-xl leading-relaxed">
                   {chapterData.story.paragraphs.map((para, pIdx) => (
                     <p key={pIdx} className={darkMode ? 'text-slate-200' : 'text-slate-800'}>
                       {para}
@@ -400,7 +400,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
             )}
 
             {/* Character Intro Card */}
-            <div className={`rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-5 shadow-xl border-2 ${
+            <div className={`rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-center gap-6 shadow-xl border-2 ${
               darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
             }`}>
               <img
@@ -409,14 +409,14 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-[#d4af37] shadow-xl shrink-0"
                 referrerPolicy="no-referrer"
               />
-              <div className="space-y-1.5 text-center sm:text-left">
-                <span className={`text-[10px] font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+              <div className="space-y-2 text-center sm:text-left">
+                <span className={`text-xs font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
                   Adventurer Spotlight
                 </span>
-                <h3 className={`text-xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
+                <h3 className={`text-xl sm:text-2xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
                   {introData.characterName}
                 </h3>
-                <p className={`text-xs sm:text-sm leading-relaxed font-serif-display ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                <p className={`text-sm sm:text-base md:text-lg leading-relaxed font-serif-display ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
                   {introData.backgroundStory}
                 </p>
               </div>
@@ -424,7 +424,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
 
             {/* Sequential Dialogue Bubbles */}
             <div className="space-y-4">
-              <h4 className={`text-xs font-bold uppercase tracking-wider font-cinzel text-center ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
+              <h4 className={`text-sm font-bold uppercase tracking-wider font-cinzel text-center ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
                 Opening Dialogue
               </h4>
               {introData.dialogue.map((line, idx) => (
@@ -432,23 +432,23 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                   key={idx}
                   className={`flex items-start gap-3 ${idx % 2 === 1 ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-10 h-10 rounded-full border-2 border-[#d4af37] overflow-hidden shrink-0 shadow-md ${
+                  <div className={`w-11 h-11 rounded-full border-2 border-[#d4af37] overflow-hidden shrink-0 shadow-md ${
                     darkMode ? 'bg-[#121824]' : 'bg-white'
                   }`}>
                     <img src={introData.avatarUrl} alt={line.speaker} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   </div>
-                  <div className={`max-w-md p-4 rounded-2xl border-2 shadow-md ${
+                  <div className={`max-w-xl p-4 sm:p-5 rounded-2xl border-2 shadow-md ${
                     darkMode ? 'bg-[#121824]/90 border-[#d4af37]/40 text-slate-200' : 'bg-white/95 border-[#d4af37] text-slate-800'
                   } ${
                     idx % 2 === 1 ? 'rounded-tr-none' : 'rounded-tl-none'
                   }`}>
-                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 font-cinzel ${
+                    <p className={`text-xs font-bold uppercase tracking-widest mb-1.5 font-cinzel ${
                       darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
                     }`}>
                       {line.speaker}
                     </p>
-                    <p className={`text-xs sm:text-sm leading-relaxed font-serif-display ${
-                      darkMode ? 'text-slate-200' : 'text-slate-800'
+                    <p className={`text-sm sm:text-base md:text-lg leading-relaxed font-serif-display ${
+                      darkMode ? 'text-slate-100' : 'text-slate-800'
                     }`}>
                       "{line.text}"
                     </p>
@@ -476,36 +476,36 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
             {tale.id === 'tale-5-crystals' && currentChapterNum === 2 ? (
               <CinematicStoryVideo darkMode={darkMode} />
             ) : (
-              <div className={`rounded-2xl p-6 space-y-4 border-2 shadow-xl ${
+              <div className={`rounded-2xl p-6 sm:p-7 space-y-4 border-2 shadow-xl ${
                 darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
               }`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+                    <span className={`text-xs font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
                       {chapterData.subtitle || 'Chapter Dilemma'}
                     </span>
-                    <h3 className={`text-xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
+                    <h3 className={`text-xl sm:text-2xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
                       {chapterData.title}
                     </h3>
                   </div>
-                  <span className="text-xs px-3 py-1 rounded-full font-bold bg-[#d4af37]/20 border border-[#d4af37] text-[#d4af37]">
+                  <span className="text-xs sm:text-sm px-3 py-1 rounded-full font-bold bg-[#d4af37]/20 border border-[#d4af37] text-[#d4af37]">
                     Skill: {chapterData.skill}
                   </span>
                 </div>
 
-                <p className={`text-xs sm:text-sm leading-relaxed font-serif-display ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                <p className={`text-sm sm:text-base md:text-lg leading-relaxed font-serif-display ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
                   {chapterData.sceneText || "Choose how to proceed."}
                 </p>
 
                 {introData.dialogue && introData.dialogue.length > 0 && (
                   <div className="space-y-2 pt-2 border-t border-slate-700/50">
-                    <p className={`text-[11px] font-bold uppercase tracking-wider font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+                    <p className={`text-xs font-bold uppercase tracking-wider font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
                       Key Dialogue:
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {introData.dialogue.map((dlg, dIdx) => (
-                        <div key={dIdx} className={`p-2.5 rounded-lg border text-xs ${
-                          darkMode ? 'bg-slate-900/60 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
+                        <div key={dIdx} className={`p-3 rounded-xl border text-sm ${
+                          darkMode ? 'bg-slate-900/60 border-slate-800 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'
                         }`}>
                           <span className="font-bold text-[#d4af37]">{dlg.speaker}:</span> "{dlg.text}"
                         </div>
@@ -518,7 +518,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
 
             {/* 4 CHOICE BUTTONS (`Best` / `Safe` / `Weak` / `Harmful`) */}
             <div className="space-y-3">
-              <p className={`text-xs font-semibold font-cinzel uppercase tracking-wider ${
+              <p className={`text-sm font-semibold font-cinzel uppercase tracking-wider ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
               }`}>
                 Select Your Action Choice:
@@ -557,7 +557,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                     <button
                       key={opt.key}
                       onClick={() => handleSelectChoice(opt.key as ChoiceOptionType)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${
+                      className={`p-4 sm:p-5 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${
                         isChosen
                           ? 'bg-[#fffdf7] border-[#d4af37] text-slate-900 ring-2 ring-[#d4af37] shadow-xl'
                           : darkMode
@@ -565,9 +565,9 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                           : 'bg-white/95 border-slate-200 text-slate-800 hover:border-[#d4af37] shadow-sm'
                       }`}
                     >
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs sm:text-sm font-bold font-cinzel">{choiceText}</span>
+                          <span className="text-sm sm:text-base font-bold font-cinzel">{choiceText}</span>
                           {isChosen && (
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${opt.badgeColor}`}>
                               {opt.key} Choice
@@ -575,7 +575,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                           )}
                         </div>
                         {choiceData?.description && (
-                          <p className={`text-[11px] line-clamp-2 leading-relaxed opacity-80 ${isChosen ? 'text-slate-800' : ''}`}>
+                          <p className={`text-xs sm:text-sm line-clamp-2 leading-relaxed opacity-90 ${isChosen ? 'text-slate-800' : ''}`}>
                             {choiceData.description}
                           </p>
                         )}
@@ -601,10 +601,10 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex items-end p-4">
                       <div>
-                        <span className="text-[10px] uppercase tracking-widest font-cinzel text-[#d4af37] font-bold">
+                        <span className="text-xs uppercase tracking-widest font-cinzel text-[#d4af37] font-bold">
                           Outcome Illustrated
                         </span>
-                        <h4 className="text-white font-bold font-cinzel text-sm sm:text-base">
+                        <h4 className="text-white font-bold font-cinzel text-base sm:text-lg">
                           {chapterData.choices[selectedChoice].title}
                         </h4>
                       </div>
@@ -614,22 +614,22 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
 
                 {/* FUNNY SHATTER ANIMATION FOR WEAK / HARMFUL / SAFE CHOICES */}
                 {selectedChoice !== 'Best' && (
-                  <div className={`text-center p-5 rounded-2xl relative overflow-hidden border-2 space-y-2 ${
+                  <div className={`text-center p-6 rounded-2xl relative overflow-hidden border-2 space-y-3 ${
                     darkMode ? 'bg-rose-950/40 border-rose-500/40 text-rose-300' : 'bg-rose-50 border-rose-300 text-rose-900'
                   }`}>
                     <div className="inline-block text-5xl my-1 animate-shatter">
                       {selectedChoice === 'Harmful' ? '💥' : selectedChoice === 'Weak' ? '💔' : '🛡️'}
                     </div>
-                    <p className="text-xs font-bold uppercase tracking-wider font-cinzel">
+                    <p className="text-sm font-bold uppercase tracking-wider font-cinzel">
                       {selectedChoice === 'Harmful' ? 'Harmful Consequence: Mechanism Broken!' : selectedChoice === 'Weak' ? 'Weak Decision: Hesitation Caused Flooding!' : 'Safe Compromise: Southern District Isolated!'}
                     </p>
-                    <p className={`text-xs leading-relaxed max-w-xl mx-auto ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <p className={`text-sm sm:text-base leading-relaxed max-w-xl mx-auto ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
                       {chapterData.choices[selectedChoice].description}
                     </p>
                     {chapterData.choices[selectedChoice].dialogues && (
                       <div className="space-y-2 pt-2 text-left max-w-lg mx-auto">
                         {chapterData.choices[selectedChoice].dialogues.map((dl, i) => (
-                          <div key={i} className={`p-2.5 rounded-lg border text-xs ${
+                          <div key={i} className={`p-3 rounded-lg border text-sm ${
                             darkMode ? 'bg-[#121824]/90 border-slate-700 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
                           }`}>
                             <strong className="text-[#d4af37] font-cinzel mr-1.5">{dl.speaker}:</strong> "{dl.text}"
@@ -637,7 +637,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                         ))}
                       </div>
                     )}
-                    <p className="text-[11px] font-mono italic opacity-90 pt-1">
+                    <p className="text-xs sm:text-sm font-mono italic opacity-90 pt-1">
                       {chapterData.choices[selectedChoice].feedbackReadBack}
                     </p>
                   </div>
@@ -645,17 +645,17 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
 
                 {/* BEST CHOICE "READ IT BACK" & SPEECH RECOGNITION ENGINE */}
                 {selectedChoice === 'Best' && (
-                  <div className={`rounded-2xl p-5 space-y-4 border-2 border-emerald-500 shadow-xl ${
+                  <div className={`rounded-2xl p-6 space-y-4 border-2 border-emerald-500 shadow-xl ${
                     darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 text-slate-900'
                   }`}>
-                    <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold uppercase tracking-wider font-cinzel">
+                    <div className="flex items-center gap-2 text-emerald-600 text-sm font-bold uppercase tracking-wider font-cinzel">
                       <CheckIcon className="w-4 h-4 text-emerald-600" /> Best Choice Selected! Win4All Mastery
                     </div>
 
                     {/* Outcome Dialogue */}
                     <div className="space-y-2">
                       {chapterData.choices.Best.dialogues.map((dl, i) => (
-                        <div key={i} className={`p-3 rounded-xl border text-xs ${
+                        <div key={i} className={`p-3.5 rounded-xl border text-sm ${
                           darkMode ? 'bg-[#121824]/90 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'
                         }`}>
                           <strong className={`font-cinzel mr-2 ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>{dl.speaker}:</strong> "{dl.text}"
@@ -664,22 +664,22 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                     </div>
 
                     {/* READ IT BACK SPEECH SECTION */}
-                    <div className={`p-4 rounded-xl border-2 space-y-3 ${
+                    <div className={`p-5 rounded-xl border-2 space-y-3.5 ${
                       darkMode ? 'bg-[#182130] border-[#d4af37]/40' : 'bg-[#fcfaf2] border-[#d4af37]/60'
                     }`}>
                       <div className="flex items-center justify-between">
-                        <span className={`text-xs font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
+                        <span className={`text-sm font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
                           🗣️ "Read It Back" Prompt
                         </span>
                         {hasAwardedPoint && (
-                          <span className="px-2 py-0.5 rounded bg-emerald-100 border border-emerald-500 text-[10px] font-bold text-emerald-800 flex items-center gap-1">
-                            <TrophyIcon className="w-3 h-3 text-emerald-600" /> +1 {selectedSkill} Point Awarded!
+                          <span className="px-2.5 py-1 rounded bg-emerald-100 border border-emerald-500 text-xs font-bold text-emerald-800 flex items-center gap-1">
+                            <TrophyIcon className="w-3.5 h-3.5 text-emerald-600" /> +1 {selectedSkill} Point Awarded!
                           </span>
                         )}
                       </div>
 
                       {/* Word-by-Word Highlight Text Display */}
-                      <p className={`text-sm font-serif-display leading-relaxed p-3 rounded-lg border ${
+                      <p className={`text-base sm:text-lg md:text-xl font-serif-display leading-relaxed p-4 rounded-xl border ${
                         darkMode ? 'bg-[#121824] border-slate-800' : 'bg-white border-slate-200'
                       }`}>
                         {chapterData.choices.Best.feedbackReadBack.split(' ').map((word, wIdx) => (
@@ -701,32 +701,32 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                         <button
                           onClick={handleReadItBack}
                           disabled={isSpeaking}
-                          className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 border ${
+                          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 border ${
                             darkMode
                               ? 'bg-[#d4af37]/20 border-[#d4af37] text-[#fce0a2] hover:bg-[#d4af37]/40'
                               : 'bg-[#f4e8c1] border-[#d4af37] text-[#8a5d12] hover:bg-[#e8d7a1]'
                           }`}
                         >
-                          {isSpeaking ? <PauseIcon className="w-3.5 h-3.5 animate-pulse text-amber-500" /> : <PlayIcon className="w-3.5 h-3.5 text-[#8a5d12]" />}
+                          {isSpeaking ? <PauseIcon className="w-4 h-4 animate-pulse text-amber-500" /> : <PlayIcon className="w-4 h-4 text-[#8a5d12]" />}
                           {isSpeaking ? 'Reading Aloud...' : 'Read Aloud'}
                         </button>
 
                         <button
                           onClick={handleMicListen}
                           disabled={isListeningMic}
-                          className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 shadow-md ${
+                          className={`px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md ${
                             isListeningMic
                               ? 'bg-rose-600 text-white animate-pulse'
                               : 'bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 hover:brightness-110'
                           }`}
                         >
-                          <MicIcon className="w-3.5 h-3.5" />
+                          <MicIcon className="w-4 h-4" />
                           {isListeningMic ? 'Listening...' : 'Repeat via Mic (+1 Point)'}
                         </button>
                       </div>
 
                       {speechRecognizedText && (
-                        <p className={`text-[11px] p-2 rounded border font-mono ${
+                        <p className={`text-xs sm:text-sm p-3 rounded-lg border font-mono ${
                           darkMode ? 'text-emerald-300 bg-emerald-950/60 border-emerald-500/30' : 'text-emerald-800 bg-emerald-50 border-emerald-300'
                         }`}>
                           Captured Speech: "{speechRecognizedText}"

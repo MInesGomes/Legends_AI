@@ -25,6 +25,7 @@ import { TalesPage } from './components/TalesPage';
 import { FullscreenChapterView } from './components/FullscreenChapterView';
 import { ChapterWork } from './components/ChapterWork';
 import { ProfileDrawer } from './components/ProfileDrawer';
+import { BottomHub, FontScale } from './components/BottomHub';
 
 export default function App() {
   const [dbState, setDbState] = useState<DatabaseState>(() => getLocalDb());
@@ -43,6 +44,20 @@ export default function App() {
   );
   const [darkMode, setDarkMode] = useState(false);
   const [showProfileDrawer, setShowProfileDrawer] = useState(false);
+
+  // Font Scaling (Persisted in localStorage)
+  const [fontScale, setFontScale] = useState<FontScale>(() => {
+    const saved = localStorage.getItem('legends_font_scale');
+    return (saved === 'large' || saved === 'xlarge' || saved === 'normal') ? saved : 'normal';
+  });
+
+  // Apply font scale to document element
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('font-scale-normal', 'font-scale-large', 'font-scale-xlarge');
+    root.classList.add(`font-scale-${fontScale}`);
+    localStorage.setItem('legends_font_scale', fontScale);
+  }, [fontScale]);
 
   // PWA Install Event
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -303,7 +318,6 @@ export default function App() {
         <Header
           user={dbState.user_profile}
           currentLang={currentLang}
-          todayTalesCount={todayTalesCount}
           onLanguageChange={handleLanguageChange}
           darkMode={darkMode}
           onToggleDarkMode={() => setDarkMode(!darkMode)}
@@ -313,72 +327,89 @@ export default function App() {
         />
       )}
 
-      {/* ROUTING CONTROLLER */}
-      {currentPage === 'auth' || !dbState.user_profile ? (
-        <AuthScreen
-          onLoginSuccess={handleLoginSuccess}
-          currentLang={currentLang}
-          darkMode={darkMode}
-          onToggleDarkMode={() => setDarkMode(!darkMode)}
-        />
-      ) : currentPage === 'dashboard' ? (
-        <Dashboard
-          user={dbState.user_profile}
-          onSelectRealm={handleSelectRealm}
-          darkMode={darkMode}
-        />
-      ) : currentPage === 'tails' && activeRealm ? (
-        <TalesPage
-          realm={activeRealm}
-          tales={allTales}
-          user={dbState.user_profile}
-          dailyLogs={dbState.daily_tales_log}
-          todayTalesCount={todayTalesCount}
-          todayTalesList={todayTalesList}
-          onOpenProfile={() => setShowProfileDrawer(true)}
-          onBack={() => setCurrentPage('dashboard')}
-          onSelectTale={handleSelectTale}
-          onSubmitNewTale={handleSubmitNewTale}
-          darkMode={darkMode}
-        />
-      ) : currentPage === 'chapter' && activeTale ? (
-        activeTale.id === 'tale-startup-winner' ? (
-          <ChapterWork
-            user={dbState.user_profile}
+      {/* Main Content Area with bottom padding for Bottom Hub */}
+      <main className={dbState.user_profile && currentPage !== 'chapter' ? 'pb-20' : ''}>
+        {/* ROUTING CONTROLLER */}
+        {currentPage === 'auth' || !dbState.user_profile ? (
+          <AuthScreen
+            onLoginSuccess={handleLoginSuccess}
             currentLang={currentLang}
-            onLanguageChange={handleLanguageChange}
-            onClose={() => setCurrentPage('tails')}
-            onEarnSkillPoint={handleEarnSkillPoint}
-            likedChapters={dbState.chapters_id_Liked}
-            viewedChapters={dbState.chapters_id_Views}
-            commentsMap={dbState.chapters_id_Comments}
-            onToggleLike={handleToggleLike}
-            onRecordView={handleRecordView}
-            onAddComment={handleAddComment}
-            onEditComment={handleEditComment}
-            onDeleteComment={handleDeleteComment}
             darkMode={darkMode}
             onToggleDarkMode={() => setDarkMode(!darkMode)}
           />
-        ) : (
-          <FullscreenChapterView
-            tale={activeTale}
+        ) : currentPage === 'dashboard' ? (
+          <Dashboard
             user={dbState.user_profile}
-            currentLang={currentLang}
-            likedChapters={dbState.chapters_id_Liked}
-            viewedChapters={dbState.chapters_id_Views}
-            commentsMap={dbState.chapters_id_Comments}
-            onClose={() => setCurrentPage('tails')}
-            onToggleLike={handleToggleLike}
-            onRecordView={handleRecordView}
-            onAddComment={handleAddComment}
-            onEditComment={handleEditComment}
-            onDeleteComment={handleDeleteComment}
-            onEarnSkillPoint={handleEarnSkillPoint}
+            todayTalesCount={todayTalesCount}
+            onOpenProfile={() => setShowProfileDrawer(true)}
+            onSelectRealm={handleSelectRealm}
             darkMode={darkMode}
           />
-        )
-      ) : null}
+        ) : currentPage === 'tails' && activeRealm ? (
+          <TalesPage
+            realm={activeRealm}
+            tales={allTales}
+            user={dbState.user_profile}
+            dailyLogs={dbState.daily_tales_log}
+            todayTalesCount={todayTalesCount}
+            todayTalesList={todayTalesList}
+            onOpenProfile={() => setShowProfileDrawer(true)}
+            onBack={() => setCurrentPage('dashboard')}
+            onSelectTale={handleSelectTale}
+            onSubmitNewTale={handleSubmitNewTale}
+            darkMode={darkMode}
+          />
+        ) : currentPage === 'chapter' && activeTale ? (
+          activeTale.id === 'tale-startup-winner' ? (
+            <ChapterWork
+              user={dbState.user_profile}
+              currentLang={currentLang}
+              onLanguageChange={handleLanguageChange}
+              onClose={() => setCurrentPage('tails')}
+              onEarnSkillPoint={handleEarnSkillPoint}
+              likedChapters={dbState.chapters_id_Liked}
+              viewedChapters={dbState.chapters_id_Views}
+              commentsMap={dbState.chapters_id_Comments}
+              onToggleLike={handleToggleLike}
+              onRecordView={handleRecordView}
+              onAddComment={handleAddComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
+              darkMode={darkMode}
+              onToggleDarkMode={() => setDarkMode(!darkMode)}
+            />
+          ) : (
+            <FullscreenChapterView
+              tale={activeTale}
+              user={dbState.user_profile}
+              currentLang={currentLang}
+              likedChapters={dbState.chapters_id_Liked}
+              viewedChapters={dbState.chapters_id_Views}
+              commentsMap={dbState.chapters_id_Comments}
+              onClose={() => setCurrentPage('tails')}
+              onToggleLike={handleToggleLike}
+              onRecordView={handleRecordView}
+              onAddComment={handleAddComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
+              onEarnSkillPoint={handleEarnSkillPoint}
+              darkMode={darkMode}
+            />
+          )
+        ) : null}
+      </main>
+
+      {/* Persistent Bottom Accessibility Hub with Font Size Controller */}
+      {dbState.user_profile && currentPage !== 'chapter' && (
+        <BottomHub
+          fontScale={fontScale}
+          onChangeFontScale={setFontScale}
+          user={dbState.user_profile}
+          todayTalesCount={todayTalesCount}
+          onOpenProfile={() => setShowProfileDrawer(true)}
+          darkMode={darkMode}
+        />
+      )}
 
       {/* Profile Drawer */}
       {showProfileDrawer && (
