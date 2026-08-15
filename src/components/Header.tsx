@@ -149,7 +149,9 @@ export const Header: React.FC<HeaderProps> = ({
               <p className={`text-xs font-semibold font-cinzel leading-none ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
               }`}>{user.name}</p>
-              <p className={`text-[10px] capitalize ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{user.gender} · Age {user.age}</p>
+              <p className={`text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                {user.gender === 'female' ? 'Lady' : 'Gentlemen'} · Age {user.age}
+              </p>
             </div>
           )}
         </div>

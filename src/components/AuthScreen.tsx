@@ -359,7 +359,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       <User className="w-3.5 h-3.5 text-[#d4af37]" /> Choose Traveler Avatar
                     </label>
                     <span className="text-[11px] font-medium text-slate-400">
-                      4 {gender === 'female' ? 'Female' : 'Male'} Archetypes
+                      4 {gender === 'female' ? 'Lady' : 'Gentlemen'} Archetypes
                     </span>
                   </div>
 
@@ -378,7 +378,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                             : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5" /> Female Avatars
+                      <Sparkles className="w-3.5 h-3.5" /> Lady Avatars
                     </button>
 
                     <button
@@ -392,7 +392,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                             : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5" /> Male Avatars
+                      <Sparkles className="w-3.5 h-3.5" /> Gentlemen Avatars
                     </button>
                   </div>
 
@@ -595,7 +595,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 : 'bg-[#fcfaf5] border-[#d4af37]/40 text-[#8a5d12] hover:bg-[#d4af37]/10'
             }`}
           >
-            <span>👩 Demo Female Adult (Age 28)</span>
+            <span>👩 Demo Lady Adult (Age 28)</span>
             <span className={`text-[10px] font-semibold ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
               All 6 Realms
             </span>
@@ -610,7 +610,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 : 'bg-[#fcfaf5] border-[#d4af37]/40 text-[#8a5d12] hover:bg-[#d4af37]/10'
             }`}
           >
-            <span>👨 Demo Male Adult (Age 32)</span>
+            <span>👨 Demo Gentlemen Adult (Age 32)</span>
             <span className={`text-[10px] font-semibold ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
               All 6 Realms
             </span>

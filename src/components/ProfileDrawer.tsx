@@ -114,12 +114,12 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               </p>
               
               <div className="flex items-center justify-center gap-2 mt-2">
-                <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-semibold capitalize ${
+                <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-semibold ${
                   darkMode
                     ? 'bg-[#d4af37]/20 border-[#d4af37]/40 text-[#fce0a2]'
                     : 'bg-[#d4af37]/15 border-[#d4af37]/50 text-[#8a5d12]'
                 }`}>
-                  {activeAvatarObj?.title || `${user?.gender} Avatar`}
+                  {activeAvatarObj?.title || `${user?.gender === 'female' ? 'Lady' : 'Gentlemen'} Avatar`}
                 </span>
                 <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-semibold ${
                   isUnder18
@@ -168,7 +168,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Female (4)
+                  Lady (4)
                 </button>
                 <button
                   type="button"
@@ -179,7 +179,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Male (4)
+                  Gentlemen (4)
                 </button>
               </div>
 
