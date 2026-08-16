@@ -3,7 +3,7 @@
   "taleId": "tale-5-crystals",
   "realm": "Atlantis",
   "skill": "Win4All",
-  "coverImage": "/src/assets/images/atlantis_heart_crystals_1786726147916.jpg",
+  "coverImage": "/src/assets/realms/atlantis/atlantis_heart_crystals_1786726147916.jpg",
   "chapters": [
     {
       "id": "atlantis-ch1",
@@ -11,7 +11,7 @@
       "title": "Chapter 1 — The City Beneath the Sea",
       "subtitle": "The Heart of Atlantis & The Five Crystals",
       "skill": "Win4All",
-      "bgImage": "/src/assets/images/atlantis_city_domes_1786726165244.jpg",
+      "bgImage": "/src/assets/realms/atlantis/atlantis_city_domes_1786726165244.jpg",
       "story": {
         "introduction": "Atlantis was not a ruined city. It was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. Its light traveled through canals, towers, gardens, temples, schools, and machines, giving warmth and energy to millions of people.",
         "dimensions": [
@@ -28,7 +28,7 @@
         "female": {
           "characterName": "Alethea",
           "role": "Guardian of the Lower Archives",
-          "avatarUrl": "/src/assets/images/female_scholar_1786725027022.jpg",
+          "avatarUrl": "/src/assets/avatars/female_scholar_1786725027022.jpg",
           "backgroundStory": "Alethea was a guardian of the Lower Archives, where the oldest records of Atlantis were stored. She was neither famous nor powerful. Most citizens did not know her name, and the Council rarely listened to her reports. She had spent her life studying the founding principles of Atlantis: discipline of the heart, discipline of the mind, and discipline of character. Alethea believed that a city did not collapse when its walls broke. It collapsed when its people stopped caring that the walls were weakening. Patient, observant, and stubbornly compassionate, she had a talent for noticing what others preferred to ignore. Her greatest weakness was that she often carried responsibility alone.",
           "dialogue": [
             { "speaker": "Alethea", "text": "A city does not collapse when its outer walls break. It collapses when its people stop caring that the foundation is weakening." },
@@ -39,7 +39,7 @@
         "male": {
           "characterName": "Elion",
           "role": "Atlantis's Most Celebrated Warrior",
-          "avatarUrl": "/src/assets/images/male_champion_1786725076356.jpg",
+          "avatarUrl": "/src/assets/avatars/male_champion_1786725076356.jpg",
           "backgroundStory": "Elion was Atlantis's most celebrated warrior. He had won every major tournament, defeated every champion, and protected the city during several dangerous incursions from the deep. His strength was legendary. His name was painted on training halls and carved into medals. But his victories had made him lonely. Elion believed that needing others was a form of weakness. He trained until his muscles trembled, used stimulants to extend his endurance, and refused help even when injured. Behind his confidence lived a fear he never admitted: that if he stopped being the strongest person in the room, no one would know who he was. His dreams showed Atlantis cracking beneath the sea while he stood powerful enough to fight—but unable to save anyone.",
           "dialogue": [
             { "speaker": "Elion", "text": "I woke from another nightmare with this strange blue mark burning across my palm." },
@@ -55,7 +55,7 @@
       "title": "Chapter 2 — Win4All: The First Crystal",
       "subtitle": "Scene: The Celebration and the Darkness",
       "skill": "Win4All",
-      "bgImage": "/src/assets/images/atlantis_celebration_darkness_1786726183152.jpg",
+      "bgImage": "/src/assets/realms/atlantis/atlantis_celebration_darkness_1786726183152.jpg",
       "scene": {
         "setting": "The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen. Alethea stood beneath the central tower, watching the blue light spread through the city. For one perfect moment, she believed the crisis was over.",
         "climax": "Then the Heart pulsed. The music stopped. The fountains froze in midair. The city's lights vanished. A deep vibration rolled through the plaza. Glass cracked in the upper towers, and a section of the eastern dome began to buckle. Alethea ran toward the emergency controls. Elion reached them first."
@@ -73,7 +73,7 @@
           "type": "Best",
           "title": "Protect Everyone Together",
           "subtitle": "Win4All Synergy & Unified Evacuation",
-          "image": "/src/assets/images/atlantis_choice_best_1786726199867.jpg",
+          "image": "/src/assets/realms/atlantis/atlantis_choice_best_1786726199867.jpg",
           "description": "Alethea orders the emergency teams to rescue the eastern district while Elion organizes citizens into carrying lines. The plan is slower, but it protects the greatest number of people and prevents panic.",
           "dialogues": [
             { "speaker": "Alethea", "text": "Everyone who can walk, move toward the western shelters. Do not run. Hold hands with the person beside you." },
@@ -89,7 +89,7 @@
           "type": "Safe",
           "title": "Seal the Eastern Dome",
           "subtitle": "Immediate Lockdown & Partial Abandonment",
-          "image": "/src/assets/images/atlantis_choice_safe_1786726217276.jpg",
+          "image": "/src/assets/realms/atlantis/atlantis_choice_safe_1786726217276.jpg",
           "description": "Elion closes the eastern gate immediately, protecting the central city from flooding. Alethea objects that the southern districts will lose oxygen, but the emergency shelters remain safe.",
           "dialogues": [
             { "speaker": "Elion", "text": "Close it! We will protect the majority. It is better than losing the entire city." },
@@ -102,7 +102,7 @@
           "type": "Weak",
           "title": "Wait for the Council",
           "subtitle": "Hesitation & Diffusion of Responsibility",
-          "image": "/src/assets/images/atlantis_choice_weak_1786726238138.jpg",
+          "image": "/src/assets/realms/atlantis/atlantis_choice_weak_1786726238138.jpg",
           "description": "Alethea and Elion delay action, hoping the Council will issue an official order. The Council's communication system remains silent while water floods the eastern sector.",
           "dialogues": [
             { "speaker": "Elion", "text": "What if we act without permission? We need authority." },
@@ -115,7 +115,7 @@
           "type": "Harmful",
           "title": "Fight for Control",
           "subtitle": "Ego Conflict & Physical Struggle",
-          "image": "/src/assets/images/atlantis_choice_harmful_1786726254333.jpg",
+          "image": "/src/assets/realms/atlantis/atlantis_choice_harmful_1786726254333.jpg",
           "description": "Elion tries to force the machinery open while Alethea attempts to override the system. Their disagreement becomes a physical struggle that shatters the emergency mechanism.",
           "dialogues": [
             { "speaker": "Alethea", "text": "Release the lever! Strength without discipline is not protection!" },

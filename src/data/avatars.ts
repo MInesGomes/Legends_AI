@@ -1,12 +1,12 @@
-import femaleWayfinder from '../assets/images/female_wayfinder_1786725010669.jpg';
-import femaleScholar from '../assets/images/female_scholar_1786725027022.jpg';
-import femaleMystic from '../assets/images/female_mystic_1786725039652.jpg';
-import femaleExplorer from '../assets/images/female_explorer_1786725050427.jpg';
+import femaleWayfinder from '../assets/avatars/female_wayfinder_1786725010669.jpg';
+import femaleScholar from '../assets/avatars/female_scholar_1786725027022.jpg';
+import femaleMystic from '../assets/avatars/female_mystic_1786725039652.jpg';
+import femaleExplorer from '../assets/avatars/female_explorer_1786725050427.jpg';
 
-import maleWanderer from '../assets/images/male_wanderer_1786725060485.jpg';
-import maleChampion from '../assets/images/male_champion_1786725076356.jpg';
-import maleScholar from '../assets/images/male_scholar_1786725087685.jpg';
-import maleExplorer from '../assets/images/male_explorer_1786725100677.jpg';
+import maleWanderer from '../assets/avatars/male_wanderer_1786725060485.jpg';
+import maleChampion from '../assets/avatars/male_champion_1786725076356.jpg';
+import maleScholar from '../assets/avatars/male_scholar_1786725087685.jpg';
+import maleExplorer from '../assets/avatars/male_explorer_1786725100677.jpg';
 
 export interface AvatarOption {
   id: string;

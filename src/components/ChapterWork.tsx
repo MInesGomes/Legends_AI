@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, Language, SkillType, ChapterComment } from '../types';
 import startupWinnerData from '../data/startupWinner.json';
-import officeSceneImg from '../assets/images/office_startup_scene_1786656202157.jpg';
+import officeSceneImg from '../assets/realms/work/office_startup_scene_1786656202157.jpg';
 import { CommentsDrawer } from './CommentsDrawer';
 import { 
   Sun, 

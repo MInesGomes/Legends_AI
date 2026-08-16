@@ -147,9 +147,6 @@ export const Header: React.FC<HeaderProps> = ({
               <p className={`text-sm font-semibold font-cinzel leading-none ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
               }`}>{user.name}</p>
-              <p className={`text-xs mt-0.5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                {user.gender === 'female' ? 'Lady' : 'Gentlemen'} · Age {user.age}
-              </p>
             </div>
           )}
         </div>

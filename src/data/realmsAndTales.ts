@@ -1,19 +1,19 @@
 import { Realm, Tale } from '../types';
-import workBg from '../assets/images/work_realm_bg_1786616108471.jpg';
-import marriageBg from '../assets/images/marriage_realm_bg_1786616118989.jpg';
-import dadMomBg from '../assets/images/dad_mom_realm_bg_1786616128388.jpg';
-import atlantisBg from '../assets/images/atlantis_realm_bg_1786616141408.jpg';
-import eldoradoBg from '../assets/images/eldorado_realm_bg_1786616150490.jpg';
-import futureLandBg from '../assets/images/future_land_realm_bg_1786616159214.jpg';
+import workBg from '../assets/realms/work/work_realm_bg_1786616108471.jpg';
+import marriageBg from '../assets/realms/marriage/marriage.jpeg';
+import dadMomBg from '../assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg';
+import atlantisBg from '../assets/realms/atlantis/atlantis_realm_bg_1786616141408.jpg';
+import eldoradoBg from '../assets/realms/eldorado/eldorado_realm_bg_1786616150490.jpg';
+import futureLandBg from '../assets/realms/future_land/future_land_realm_bg_1786616159214.jpg';
 
-import babyTaleImg from '../assets/images/tale_baby_1786619486118.jpg';
-import childTaleImg from '../assets/images/tale_child_1786619497253.jpg';
-import teensTaleImg from '../assets/images/tale_teens_1786619511039.jpg';
-import pridePrejudiceImg from '../assets/images/tale_pride_prejudice_1786619522458.jpg';
-import oneHartImg from '../assets/images/tale_one_hart_1786619538922.jpg';
-import startupWinnerImg from '../assets/images/tale_startup_winner_1786619547804.jpg';
-import jobQuestImg from '../assets/images/job_quest_ch1_1786784386457.jpg';
-import fiveCrystalsImg from '../assets/images/atlantis_heart_crystals_1786726147916.jpg';
+import babyTaleImg from '../assets/realms/dad_mom/tale_baby_1786619486118.jpg';
+import childTaleImg from '../assets/realms/dad_mom/tale_child_1786619497253.jpg';
+import teensTaleImg from '../assets/realms/dad_mom/tale_teens_1786619511039.jpg';
+import pridePrejudiceImg from '../assets/realms/marriage/tale_pride_prejudice_1786619522458.jpg';
+import oneHartImg from '../assets/realms/marriage/tale_one_hart_1786619538922.jpg';
+import startupWinnerImg from '../assets/realms/work/tale_startup_winner_1786619547804.jpg';
+import jobQuestImg from '../assets/realms/work/job_quest_ch1_1786784386457.jpg';
+import fiveCrystalsImg from '../assets/realms/atlantis/atlantis_heart_crystals_1786726147916.jpg';
 
 export const REALMS: Realm[] = [
   {

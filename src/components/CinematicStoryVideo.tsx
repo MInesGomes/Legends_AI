@@ -32,7 +32,7 @@ const SCENES: VideoScene[] = [
     id: 1,
     title: 'Act I: The Day of Founding',
     duration: 6,
-    image: '/src/assets/images/atlantis_day_founding_celebration_1786727989016.jpg',
+    image: '/src/assets/realms/atlantis/atlantis_day_founding_celebration_1786727989016.jpg',
     panDirection: 'zoom-in',
     caption: 'The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd.',
     soundType: 'festival'
@@ -41,7 +41,7 @@ const SCENES: VideoScene[] = [
     id: 2,
     title: 'Act II: The Heart & Alethea',
     duration: 7,
-    image: '/src/assets/images/atlantis_alethea_heart_shining_1786728006230.jpg',
+    image: '/src/assets/realms/atlantis/atlantis_alethea_heart_shining_1786728006230.jpg',
     panDirection: 'pan-left',
     caption: 'For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen. Alethea stood beneath the central tower, watching the blue light spread through the city. For one perfect moment, she believed the crisis was over.',
     soundType: 'radiant'
@@ -50,7 +50,7 @@ const SCENES: VideoScene[] = [
     id: 3,
     title: 'Act III: The Pulse & Sudden Blackout',
     duration: 6,
-    image: '/src/assets/images/atlantis_blackout_freeze_pulse_1786728018506.jpg',
+    image: '/src/assets/realms/atlantis/atlantis_blackout_freeze_pulse_1786728018506.jpg',
     panDirection: 'pulse',
     caption: 'Then the Heart pulsed. The music stopped. The fountains froze in midair. The city’s lights vanished. A deep vibration rolled through the plaza.',
     soundType: 'pulse'
@@ -59,7 +59,7 @@ const SCENES: VideoScene[] = [
     id: 4,
     title: 'Act IV: The Dome Buckles',
     duration: 5,
-    image: '/src/assets/images/atlantis_dome_cracking_emergency_1786728030532.jpg',
+    image: '/src/assets/realms/atlantis/atlantis_dome_cracking_emergency_1786728030532.jpg',
     panDirection: 'pan-right',
     caption: 'Glass cracked in the upper towers, and a section of the eastern dome began to buckle.',
     soundType: 'alarm'
@@ -68,7 +68,7 @@ const SCENES: VideoScene[] = [
     id: 5,
     title: 'Act V: Race to the Controls',
     duration: 6,
-    image: '/src/assets/images/atlantis_elion_alethea_emergency_controls_1786728046167.jpg',
+    image: '/src/assets/realms/atlantis/atlantis_elion_alethea_emergency_controls_1786728046167.jpg',
     panDirection: 'zoom-out',
     caption: 'Alethea ran toward the emergency controls. Elion reached them first.',
     soundType: 'emergency'

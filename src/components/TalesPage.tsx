@@ -76,19 +76,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               }`}>
                 {realm.title} TALES
               </h2>
-              <p className={`text-sm sm:text-base ${darkMode ? 'text-slate-200' : 'text-slate-600'}`}>
-                Explore choice-driven chapter legends in {realm.title}
-              </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-slate-950 font-bold text-xs hover:brightness-110 active:scale-95 transition-all shadow-lg cursor-pointer"
-            >
-              <Plus className="w-4 h-4" /> Add Tale
-            </button>
           </div>
         </div>
 
@@ -198,13 +186,13 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               <h3 className={`text-xl font-bold font-cinzel ${
                 darkMode ? 'text-[#fce0a2] group-hover:text-white' : 'text-[#8a5d12]'
               }`}>
-                Add Custom Tale
+                Add Suggestion Tale
               </h3>
               <p className={`text-sm max-w-xs mt-2 ${darkMode ? 'text-slate-200' : 'text-slate-600'}`}>
-                Create a new choice-driven legend in realm {realm.title}.
+                Teel your story of success, or what are you struggling with, that could inpire a new tale in the realm {realm.title}.
               </p>
               <span className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 font-bold text-xs shadow-md group-hover:brightness-110 transition-all">
-                + Create Tale
+                + Suggest a Tale
               </span>
             </div>
           </div>

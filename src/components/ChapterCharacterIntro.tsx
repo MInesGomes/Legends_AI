@@ -43,7 +43,7 @@ const DEFAULT_FEMALE: CharacterDetail = {
   characterName: 'Elena Moreau',
   age: 29,
   role: 'Educational Content Designer',
-  avatarUrl: '/src/assets/images/elena_character_intro_1786794191159.jpg',
+  avatarUrl: '/src/assets/avatars/elena_character_intro_1786794191159.jpg',
   quote: 'We cannot control every event, but we can always control our response.',
   backgroundStory:
     'Elena loved helping people learn. She spent years creating training materials and educational programs, believing that knowledge could change lives. Then AI systems began producing courses automatically. Projects disappeared. Contracts ended. Her inbox became a museum of rejection letters. Despite her intelligence, Elena began questioning herself: "Perhaps I\'m not good enough anymore." Yet beneath her doubts remained a powerful strength: she believed that every problem contained a hidden opportunity.',
@@ -61,7 +61,7 @@ const DEFAULT_MALE: CharacterDetail = {
   characterName: 'Daniel Carter',
   age: 31,
   role: 'Software Developer',
-  avatarUrl: '/src/assets/images/daniel_character_intro_1786794200296.jpg',
+  avatarUrl: '/src/assets/avatars/daniel_character_intro_1786794200296.jpg',
   quote: "If something breaks, I want to fix it. But uncertainty can't be debugged with logic alone.",
   backgroundStory:
     "Daniel had always loved technology. Ironically, the same technology he admired transformed his profession. Companies expected developers to master new AI tools overnight. Experience that once guaranteed employment suddenly seemed outdated. Daniel hid his fears behind humor, but every rejection damaged his confidence: 'Maybe I\'ve already become obsolete.' Unlike Elena, Daniel preferred solving problems immediately with logic. Unfortunately, not every problem could be solved with code alone.",

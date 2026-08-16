@@ -2,7 +2,7 @@
   "title": "Job Quest: A Novel Game in the Work Realm",
   "taleId": "tale-job-quest",
   "realm": "Work",
-  "coverImage": "/src/assets/images/job_quest_ch1_1786784386457.jpg",
+  "coverImage": "/src/assets/realms/work/job_quest_ch1_1786784386457.jpg",
   "description": "Navigate the modern job market amidst AI transformation, mastering leadership, planning, Win4All synergy, and resilience.",
   "chapters": [
     {
@@ -11,7 +11,7 @@
       "title": "Chapter 1 — The Beginning of the Quest",
       "subtitle": "The Work Realm & The Wave of AI",
       "skill": "Leader",
-      "bgImage": "/src/assets/images/job_quest_ch1_1786784386457.jpg",
+      "bgImage": "/src/assets/realms/work/job_quest_ch1_1786784386457.jpg",
       "story": {
         "introduction": "The Work Realm was once a land of opportunity. People learned a profession, gained experience, and slowly built a career. Teachers taught, designers created, programmers developed software, translators translated, and writers wrote stories.",
         "theTransformation": "Then, everything changed. Artificial intelligence arrived like a powerful tide. Tasks that once required entire teams could suddenly be completed in minutes. Companies reduced their workforces. Job descriptions changed faster than universities could update their courses. New skills became essential, but millions of people had never been trained to use them.",
@@ -23,7 +23,7 @@
           "characterName": "Elena Moreau",
           "age": 29,
           "role": "Educational Content Designer",
-          "avatarUrl": "/src/assets/images/elena_character_intro_1786794191159.jpg",
+          "avatarUrl": "/src/assets/avatars/elena_character_intro_1786794191159.jpg",
           "backgroundStory": "Elena loved helping people learn. She spent years creating training materials and educational programs, believing that knowledge could change lives. Then AI systems began producing courses automatically. Projects disappeared. Contracts ended. Her inbox became a museum of rejection letters. Despite her intelligence, Elena began questioning herself: 'Perhaps I'm not good enough anymore.' Yet beneath her doubts remained a powerful strength: she believed that every problem contained a hidden opportunity.",
           "dialogue": [
             { "speaker": "Elena", "text": "My inbox became a museum of rejection letters after courses began generating automatically." },
@@ -35,7 +35,7 @@
           "characterName": "Daniel Carter",
           "age": 31,
           "role": "Software Developer",
-          "avatarUrl": "/src/assets/images/daniel_character_intro_1786794200296.jpg",
+          "avatarUrl": "/src/assets/avatars/daniel_character_intro_1786794200296.jpg",
           "backgroundStory": "Daniel had always loved technology. Ironically, the same technology he admired transformed his profession. Companies expected developers to master new AI tools overnight. Experience that once guaranteed employment suddenly seemed outdated. Daniel hid his fears behind humor, but every rejection damaged his confidence: 'Maybe I've already become obsolete.' Unlike Elena, Daniel preferred solving problems immediately with logic. Unfortunately, not every problem could be solved with code alone.",
           "dialogue": [
             { "speaker": "Daniel", "text": "Companies expect us to master new AI tools overnight while yesterday's experience becomes outdated." },
@@ -51,7 +51,7 @@
       "title": "Chapter 2 — The Path of the Leader",
       "subtitle": "Taking Initiative in Times of Overwhelm",
       "skill": "Leader",
-      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "bgImage": "/src/assets/realms/work/job_quest_cover_1786731085641.jpg",
       "scene": {
         "setting": "Elena and Daniel discover a famous company called Nova Systems. Thousands of applicants compete for only ten positions with impossible requirements: AI certification, five years of experience, leadership, and knowledge of brand new tools. Feeling overwhelmed, Elena realizes they are focusing on what employers want instead of what they can proactively offer.",
         "introDialogue": [
@@ -107,7 +107,7 @@
       "title": "Chapter 3 — The Path of Planning",
       "subtitle": "Strategy Over Impulsive Panic",
       "skill": "Plan",
-      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "bgImage": "/src/assets/realms/work/job_quest_cover_1786731085641.jpg",
       "scene": {
         "setting": "Elena receives twenty rejection emails in one month. Daniel receives fifteen. Defeat threatens to overwhelm them, prompting a choice between panic applying and deliberate strategic action.",
         "introDialogue": [
@@ -160,7 +160,7 @@
       "title": "Chapter 4 — The Path of Win4All",
       "subtitle": "Synergy Over Cutthroat Rivalry",
       "skill": "Win4All",
-      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "bgImage": "/src/assets/realms/work/job_quest_cover_1786731085641.jpg",
       "scene": {
         "setting": "A high-potential startup opens a single vacancy. Elena and Daniel both reach the final interview round as competitors for the lone opening.",
         "introDialogue": [
@@ -213,7 +213,7 @@
       "title": "Chapter 5 — The Path of Listening and Recharging",
       "subtitle": "Self-Compassion, Purpose & Renewal",
       "skill": "Listen",
-      "bgImage": "/src/assets/images/job_quest_cover_1786731085641.jpg",
+      "bgImage": "/src/assets/realms/work/job_quest_cover_1786731085641.jpg",
       "scene": {
         "setting": "Months pass and exhaustion replaces hope. Sitting beside the central fountain, Elena and Daniel meet a wise elder woman who challenges their harsh internal dialogue.",
         "introDialogue": [
