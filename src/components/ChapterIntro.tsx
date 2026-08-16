@@ -739,3 +739,6 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
     </div>
   );
 };
+
+export const ChapterIntro = FullscreenChapterView;
+export default FullscreenChapterView;

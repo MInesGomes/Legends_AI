@@ -22,7 +22,7 @@ import { Header } from './components/Header';
 import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
 import { TalesPage } from './components/TalesPage';
-import { FullscreenChapterView } from './components/FullscreenChapterView';
+import { FullscreenChapterView } from './components/ChapterIntro';
 import { ChapterWork } from './components/ChapterWork';
 import { ProfileDrawer } from './components/ProfileDrawer';
 import { BottomHub, FontScale } from './components/BottomHub';
