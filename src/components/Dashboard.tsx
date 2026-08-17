@@ -308,9 +308,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   referrerPolicy="no-referrer"
                 />
 
+
                 {/* Subtle Bottom Vignette Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
-
+                
                 {/* Ornamental Cartouche Plaque Banner (Matching DadMom.png reference exactly) */}
                 <div className="absolute bottom-3.5 sm:bottom-4 inset-x-0 flex items-center justify-center pointer-events-none">
                   <CartouchePlaque
