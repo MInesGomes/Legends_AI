@@ -8,7 +8,7 @@
     "skill": "Win4All",
     "bgMedia": {
       "type": "image",
-      "url": "/src/assets/realms/atlantis/atlantis_city_domes_1786726165244.jpg"
+      "url": "/src/assets/realms/atlantis/realm_atlantis_bg.png"
     },
     "story": {
       "paragraphs": [
@@ -55,7 +55,7 @@
     "skill": "Win4All",
     "bgMedia": {
       "type": "image",
-      "url": "/src/assets/realms/atlantis/atlantis_celebration_darkness_1786726183152.jpg"
+      "url": "/src/assets/realms/atlantis/realm_atlantis_bg.png"
     },
     "sceneText": "The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen. Alethea stood beneath the central tower, watching the blue light spread through the city. For one perfect moment, she believed the crisis was over. Then the Heart pulsed. The music stopped. The fountains froze in midair. The city's lights vanished. A deep vibration rolled through the plaza. Glass cracked in the upper towers, and a section of the eastern dome began to buckle. Alethea ran toward the emergency controls. Elion reached them first.",
     "intro": {
@@ -90,7 +90,7 @@
       "Best": {
         "title": "Best — Protect Everyone Together",
         "description": "Alethea orders the emergency teams to rescue the eastern district while Elion organizes citizens into carrying lines. The plan is slower, but it protects the greatest number of people and prevents panic.",
-        "choiceImage": "/src/assets/realms/atlantis/atlantis_choice_best_1786726199867.jpg",
+        "choiceImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
         "dialogues": [
           { "speaker": "Alethea", "text": "Everyone who can walk, move toward the western shelters. Do not run. Hold hands with the person beside you." },
           { "speaker": "Elion", "text": "Builders with tools, follow me! Medics, stay near the injured! Strong people carry equipment, not people who can walk on their own!" },
@@ -105,7 +105,7 @@
       "Safe": {
         "title": "Safe — Seal the Eastern Dome",
         "description": "Elion closes the eastern gate immediately, protecting the central city from flooding. Alethea objects that the southern districts will lose oxygen, but the emergency shelters remain safe.",
-        "choiceImage": "/src/assets/realms/atlantis/atlantis_choice_safe_1786726217276.jpg",
+        "choiceImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
         "dialogues": [
           { "speaker": "Elion", "text": "Close it. We will protect the majority. It is better than losing the entire city." },
           { "speaker": "Alethea", "text": "That is not the same as protecting everyone. Safety without cooperation can still leave people behind." },
@@ -117,7 +117,7 @@
       "Weak": {
         "title": "Weak — Wait for the Council",
         "description": "Alethea and Elion delay action, hoping the Council will issue an official order. The Council's communication system remains silent.",
-        "choiceImage": "/src/assets/realms/atlantis/atlantis_choice_weak_1786726238138.jpg",
+        "choiceImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
         "dialogues": [
           { "speaker": "Elion", "text": "What if we act without permission? Then we may make things worse. We need authority." },
           { "speaker": "Alethea", "text": "Something is already getting worse. We need courage." },
@@ -129,7 +129,7 @@
       "Harmful": {
         "title": "Harmful — Fight for Control",
         "description": "Elion tries to force the machinery open while Alethea attempts to override the system. Their disagreement becomes a physical struggle.",
-        "choiceImage": "/src/assets/realms/atlantis/atlantis_choice_harmful_1786726254333.jpg",
+        "choiceImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
         "dialogues": [
           { "speaker": "Alethea", "text": "Release the lever! You are going to tear the pressure system apart!" },
           { "speaker": "Elion", "text": "You are too slow! I am trying to save people!" },

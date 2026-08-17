@@ -2,8 +2,6 @@
   "title": "The Heart of Atlantis: The Five Crystals",
   "taleId": "tale-5-crystals",
   "realm": "Atlantis",
-  "skill": "Win4All",
-  "coverImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
   "chapters": [
     {
       "chapter": 1,
@@ -11,27 +9,27 @@
       "title": "Chapter 1 — The City Beneath the Sea",
       "subtitle": "The Heart of Atlantis & The Five Crystals",
       "skill": "Win4All",
-      "bgImage": "/src/assets/realms/atlantis/atlantis_cha1.jpg",
+      "mp4": "/src/assets/realms/atlantis/0AtlantisCh1.mp4",
       "act1": {
         "title": "Atlantis was not a ruined city",
-        "text": "Atlantis was not a ruined city. It was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. Its light traveled through canals, towers, gardens, temples, schools, and machines, giving warmth and energy to millions of people.\n\nFor centuries, the Heart had remained steady because the people guarded more than its chamber. They guarded the qualities it represented:\n* The physical dimension: strength, health, and purposeful action.\n* The social dimension: cooperation, trust, and service.\n* The emotional dimension: courage to feel and heal.\n* The intellectual dimension: learning guided by truth and ethics.\n* The spiritual dimension: meaning, humility, and connection.\n\nAround the Heart stood five smaller crystals, each reflecting one of these dimensions. Together, they were called the Five Crystals.\n\nBut the city had slowly changed.\nA merchant began charging desperate families extra for clean water. A council member ignored safety rules to save time. A builder used weak materials in an underwater passage. A scholar altered records to protect his reputation. A priest continued performing sacred ceremonies even after he had stopped believing in them.\n\nEach decision seemed small.\nEach excuse seemed reasonable.\nYet the Heart noticed.\nIts blue light began to flicker.\n        Around the Heart stood five smaller crystals, each reflecting one of these dimensions: \n        physical, social, emotional, intellectual, spiritual.\n        Together, they were called the Five Crystals.\n        But the city had slowly changed.\n        A merchant began charging desperate families extra for clean water.\n        A council member ignored safety rules to save time. \n        A builder used weak materials in an underwater passage. \n        A scholar altered records to protect his reputation. \n        A priest continued performing sacred ceremonies even after he had stopped believing in them. \n        Each decision seemed small. \n        Each excuse seemed reasonable.\n        Yet the Heart noticed. \n        Its blue light began to flicker."
+        "text": "Atlantis was not a ruined city.\nIt was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. \nAround the Heart stood five smaller crystals, each reflecting one of these dimensions:\nPhysical, Social, Emotional, Intellectual, Spiritual.\nThe Heart of Atlantis did not fail because of war.\nIt failed because the people stopped guarding it.\nAt first, the change was subtle….\n* A merchant began charging desperate families extra for clean water. \n* A council member ignored safety rules to save time. \n* A builder used weak materials in an underwater passage. \n* A scholar altered records to protect his reputation. \n* A priest continued performing sacred ceremonies even after he had stopped believing in them.\nEach decision seemed small.\nEach excuse seemed reasonable.\nYet the Heart noticed.\nThe crystal, once a steady pulse of blue, began to flicker. Not with violence, but with decay."
       },
       "female_act": {
         "characterName": "Alethea",
+        "mp4":"/src/assets/realms/atlantis/0Alethea.mp4",
         "role": "Guardian of the Lower Archives",
-        "avatarUrl": "/src/assets/avatars/female_scholar_1786725027022.jpg",
         "description": "Alethea was a guardian of the Lower Archives, where the oldest records of Atlantis were stored. She was neither famous nor powerful. Most citizens did not know her name, and the Council rarely listened to her reports.\n\nShe had spent her life studying the founding principles of Atlantis: discipline of the heart, discipline of the mind, and discipline of character.\n\nAlethea believed that a city did not collapse when its walls broke.\nIt collapsed when its people stopped caring that the walls were weakening.\n\nPatient, observant, and stubbornly compassionate, she had a talent for noticing what others preferred to ignore. She could recognize patterns in ancient maps, emotional changes in frightened citizens, and the difference between a mistake and an excuse.\n\nHer greatest weakness was that she often carried responsibility alone."
       },
       "male_act": {
         "characterName": "Elion",
+        "mp4":"/src/assets/realms/atlantis/0Elion.mp4",
         "role": "Atlantis's Most Celebrated Warrior",
-        "avatarUrl": "/src/assets/avatars/male_champion_1786725076356.jpg",
         "description": "Elion was Atlantis’s most celebrated warrior.\n\nHe had won every major tournament, defeated every champion, and protected the city during several dangerous incursions from the deep. His strength was legendary. His name was painted on training halls and carved into medals.\n\nBut his victories had made him lonely.\n\nElion believed that needing others was a form of weakness. He trained until his muscles trembled and refused help even when injured.\n\nBehind his confidence lived a fear he never admitted: that if he stopped being the strongest person in the room, no one would know who he was.\n\nHis dreams had recently begun to change.\nHe saw Atlantis cracking beneath the sea.\nHe saw crowds running through flooded streets.\nHe saw himself standing in the center of the disaster, powerful enough to fight—but unable to save anyone."
       },
       "act2": {
         "title": "The Beginning",
-        "text": "Alethea discovered the first fissure beneath the Heart Chamber. It was not caused by pressure from the ocean or damage from an enemy.\nIt had formed from within the foundation.\n\nAt the same moment, Elion woke from another nightmare with a strange blue mark burning across his palm.\n\nNeither understood the connection.\nNeither knew that the Heart had chosen them because they represented two things Atlantis had forgotten: knowledge with compassion, and strength with purpose.\n\nThe city still appeared prosperous.\nThe gardens were blooming. The canals shone. The people were celebrating the annual Day of Founding.\n\nThen the Heart gave one bright, beautiful pulse.\nEvery crystal in Atlantis awakened.\nAnd immediately afterward, every light in the city went out."
-      }
+        "text": "Atlantis was not a ruined city.\nIt was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. \nAround the Heart stood five smaller crystals, each reflecting one of these dimensions:\nPhysical, Social, Emotional, Intellectual, Spiritual.\nThe Heart of Atlantis did not fail because of war.\nIt failed because the people stopped guarding it.\nAt first, the change was subtle….\n* A merchant began charging desperate families extra for clean water. \n* A council member ignored safety rules to save time. \n* A builder used weak materials in an underwater passage. \n* A scholar altered records to protect his reputation. \n* A priest continued performing sacred ceremonies even after he had stopped believing in them.\nEach decision seemed small.\nEach excuse seemed reasonable.\nYet the Heart noticed.\nThe crystal, once a steady pulse of blue, began to flicker. Not with violence, but with decay."
+        }
     },
     {
       "chapter": 2,
@@ -39,26 +37,29 @@
       "title": "Chapter 2 — Win4All: The First Crystal",
       "subtitle": "The Celebration and the Darkness",
       "skill": "Win4All",
-      "bgImage": "/src/assets/realms/atlantis/atlantis_celebration_darkness_1786726183152.jpg",
+      "Female_Avatar": "/src/assets/avatars/0Alethea.jpg",
+      "Male_Avatar": "/src/assets/avatars/0Elion.jpg",
+      "mp4": "/src/assets/realms/atlantis/0AtlantisCh1.mp4",
       "act1": {
         "title": "The Celebration and the Darkness",
         "text": "The Day of Founding had begun with music.\nCitizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen.\n\nAlethea stood beneath the central tower, watching the blue light spread through the city.\nFor one perfect moment, she believed the crisis was over.\n\nThen the Heart pulsed.\nThe music stopped.\nThe fountains froze in midair.\nThe city’s lights vanished.\n\nA deep vibration rolled through the plaza. Glass cracked in the upper towers, and a section of the eastern dome began to buckle.\n\nAlethea ran toward the emergency controls. Elion reached them first."
       },
+
       "dialog": [
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“Move,” he ordered."
+          "text": "Move,"
         },
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“I know the system better than you do.”"
+          "text": "I know the system better than you do."
         },
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“And I can lift the panel when it collapses.”"
+          "text": "And I can lift the panel when it collapses."
         },
         {
           "voice": "Male",
@@ -68,22 +69,22 @@
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“What happened to your hand?”"
+          "text": "What happened to your hand?"
         },
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“Nothing.”"
+          "text": "Nothing."
         },
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“That is not nothing.”"
+          "text": "That is not nothing."
         },
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“Then ask me after we keep half the city from drowning.”"
+          "text": "Then ask me after we keep half the city from drowning."
         },
         {
           "voice": "Male",
@@ -93,17 +94,17 @@
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“The eastern dome is losing pressure. If we close the main gate, the southern districts will lose oxygen.”"
+          "text": "The eastern dome is losing pressure. If we close the main gate, the southern districts will lose oxygen."
         },
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“If we leave it open, the east floods.”"
+          "text": "If we leave it open, the east floods."
         },
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“We need a third option.”"
+          "text": "We need a third option."
         },
         {
           "voice": "Male",
@@ -113,12 +114,12 @@
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“There is always a third option?”"
+          "text": "There is always a third option?"
         },
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“There has to be.”"
+          "text": "There has to be."
         },
         {
           "voice": "Male",
@@ -128,22 +129,22 @@
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“We can redirect the force through the old tunnels.”"
+          "text": "We can redirect the force through the old tunnels."
         },
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“That sounds dangerous.”"
+          "text": "That sounds dangerous."
         },
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“It is.”"
+          "text": "It is."
         },
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“Good. I understand dangerous.”"
+          "text": "Good. I understand dangerous."
         },
         {
           "voice": "Male",
@@ -153,7 +154,7 @@
         {
           "voice": "Female",
           "speaker": "Alethea",
-          "text": "“This is not a duel, Elion. If we win, everyone must survive—not just the people closest to us.”"
+          "text": "This is not a duel, Elion. If we win, everyone must survive—not just the people closest to us."
         },
         {
           "voice": "Male",
@@ -163,7 +164,7 @@
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "“Fine. Tell me where to stand.”"
+          "text": "Fine. Tell me where to stand."
         },
         {
           "voice": "Male",
@@ -194,7 +195,7 @@
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“Everyone who can walk, move toward the western shelters. Do not run. Hold hands with the person beside you.”"
+              "text": "Everyone who can walk, move toward the western shelters. Do not run. Hold hands with the person beside you."
             },
             {
               "voice": "Male",
@@ -204,7 +205,7 @@
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“Builders with tools, follow me! Medics, stay near the injured! Strong people carry equipment, not people who can walk on their own!”"
+              "text": "Builders with tools, follow me! Medics, stay near the injured! Strong people carry equipment, not people who can walk on their own!"
             },
             {
               "voice": "Male",
@@ -214,7 +215,7 @@
             {
               "voice": "Male",
               "speaker": "Young Man",
-              "text": "“Why should we listen to you?”"
+              "text": "Why should we listen to you?"
             },
             {
               "voice": "Male",
@@ -224,7 +225,7 @@
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“Because if we waste time arguing, the ocean will make the decision for us.”"
+              "text": "Because if we waste time arguing, the ocean will make the decision for us."
             },
             {
               "voice": "Male",
@@ -249,7 +250,7 @@
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“We saved the district.”"
+              "text": "We saved the district."
             },
             {
               "voice": "Male",
@@ -259,45 +260,44 @@
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“Then why does it feel like we lost?”"
+              "text": "Then why does it feel like we lost?"
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“Because doing the right thing does not control every consequence.”"
+              "text": "Because doing the right thing does not control every consequence."
             }
           ]
         },
         {
           "type": "Safe",
           "title": "Seal the Eastern Dome",
-          "label": "Seal the Eastern Dome",
           "narrative": "Elion closes the eastern gate immediately, protecting the central city from flooding. Alethea objects that the southern districts will lose oxygen, but the emergency shelters remain safe.",
           "dialog": [
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“Close it,” Elion said."
+              "text": "Close it,” Elion said."
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“We will abandon the south.”"
+              "text": "We will abandon the south."
             },
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“We will protect the majority.”"
+              "text": "We will protect the majority."
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“That is not the same as protecting everyone.”"
+              "text": "That is not the same as protecting everyone."
             },
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“It is better than losing the entire city.”"
+              "text": "It is better than losing the entire city."
             },
             {
               "voice": "Male",
@@ -322,19 +322,18 @@
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“I chose the safer path.”"
+              "text": "I chose the safer path."
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“Yes,” Alethea said. “But safety without cooperation can still leave people behind.”"
+              "text": "Yes,” Alethea said. “But safety without cooperation can still leave people behind."
             }
           ]
         },
         {
           "type": "Weak",
           "title": "Wait for the Council",
-          "label": "Wait for the Council",
           "dialog": [
             {
               "voice": "Male",
@@ -349,27 +348,27 @@
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“Close it.”"
+              "text": "Close it."
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“We will abandon the south.”"
+              "text": "We will abandon the south."
             },
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“We will protect the majority.”"
+              "text": "We will protect the majority."
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“That is not the same as protecting everyone.”"
+              "text": "That is not the same as protecting everyone."
             },
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“It is better than losing the entire city.”"
+              "text": "It is better than losing the entire city."
             },
             {
               "voice": "Male",
@@ -399,19 +398,18 @@
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“I chose the safer path.”"
+              "text": "I chose the safer path."
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“Yes, but safety without cooperation can still leave people behind.”"
+              "text": "Yes, but safety without cooperation can still leave people behind."
             }
           ]
         },
         {
           "type": "Harmful",
           "title": "Fight for Control",
-          "label": "Fight for Control",
           "dialog": [
             {
               "voice": "Male",
@@ -426,7 +424,7 @@
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“Release the lever!”"
+              "text": "Release the lever!"
             },
             {
               "voice": "Male",
@@ -436,22 +434,22 @@
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“You are too slow!”"
+              "text": "You are too slow!"
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“You are going to tear the pressure system apart!”"
+              "text": "You are going to tear the pressure system apart!"
             },
             {
               "voice": "Male",
               "speaker": "Elion",
-              "text": "“I am trying to save people!”"
+              "text": "I am trying to save people!"
             },
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“So am I!”"
+              "text": "So am I!"
             },
             {
               "voice": "Male",
@@ -486,7 +484,7 @@
             {
               "voice": "Female",
               "speaker": "Alethea",
-              "text": "“Strength without discipline is not protection.”"
+              "text": "Strength without discipline is not protection."
             },
             {
               "voice": "Male",

@@ -24,6 +24,7 @@ import { Dashboard } from './components/Dashboard';
 import { TalesPage } from './components/TalesPage';
 import { FullscreenChapterView } from './components/ChapterIntro';
 import { ChapterWork } from './components/ChapterWork';
+import { ActPage } from './components/ActPage';
 import { ProfileDrawer } from './components/ProfileDrawer';
 import { BottomHub, FontScale } from './components/BottomHub';
 
@@ -360,7 +361,16 @@ export default function App() {
             darkMode={darkMode}
           />
         ) : currentPage === 'chapter' && activeTale ? (
-          activeTale.id === 'tale-startup-winner' ? (
+          activeTale.id === 'tale-5-crystals' ? (
+            <ActPage
+              user={dbState.user_profile}
+              currentLang={currentLang}
+              onLanguageChange={handleLanguageChange}
+              onClose={() => setCurrentPage('tails')}
+              onEarnSkillPoint={handleEarnSkillPoint}
+              darkMode={darkMode}
+            />
+          ) : activeTale.id === 'tale-startup-winner' ? (
             <ChapterWork
               user={dbState.user_profile}
               currentLang={currentLang}

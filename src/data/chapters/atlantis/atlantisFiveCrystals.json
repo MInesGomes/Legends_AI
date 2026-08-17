@@ -3,7 +3,7 @@
   "taleId": "tale-5-crystals",
   "realm": "Atlantis",
   "skill": "Win4All",
-  "coverImage": "/src/assets/realms/atlantis/atlantis_heart_crystals_1786726147916.jpg",
+  "coverImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
   "chapters": [
     {
       "chapter": 1,
@@ -11,7 +11,7 @@
       "title": "Chapter 1 — The City Beneath the Sea",
       "subtitle": "The Heart of Atlantis & The Five Crystals",
       "skill": "Win4All",
-      "bgImage": "/src/assets/realms/atlantis/atlantis_city_domes_1786726165244.jpg",
+      "bgImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
       "act1": {
         "title": "Atlantis was not a ruined city",
         "text": "Atlantis was not a ruined city. It was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. Its light traveled through canals, towers, gardens, temples, schools, and machines, giving warmth and energy to millions of people.\n\nFor centuries, the Heart had remained steady because the people guarded more than its chamber. They guarded the qualities it represented:\n* The physical dimension: strength, health, and purposeful action.\n* The social dimension: cooperation, trust, and service.\n* The emotional dimension: courage to feel and heal.\n* The intellectual dimension: learning guided by truth and ethics.\n* The spiritual dimension: meaning, humility, and connection.\n\nAround the Heart stood five smaller crystals, each reflecting one of these dimensions. Together, they were called the Five Crystals.\n\nBut the city had slowly changed.\nA merchant began charging desperate families extra for clean water. A council member ignored safety rules to save time. A builder used weak materials in an underwater passage. A scholar altered records to protect his reputation. A priest continued performing sacred ceremonies even after he had stopped believing in them.\n\nEach decision seemed small.\nEach excuse seemed reasonable.\nYet the Heart noticed.\nIts blue light began to flicker.",
@@ -61,7 +61,7 @@
       "title": "Chapter 2 — Win4All: The First Crystal",
       "subtitle": "The Celebration and the Darkness",
       "skill": "Win4All",
-      "bgImage": "/src/assets/realms/atlantis/atlantis_celebration_darkness_1786726183152.jpg",
+      "bgImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
       "act1": {
         "title": "The Celebration and the Darkness",
         "text": "The Day of Founding had begun with music.\nCitizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen.\n\nAlethea stood beneath the central tower, watching the blue light spread through the city.\nFor one perfect moment, she believed the crisis was over.\n\nThen the Heart pulsed.\nThe music stopped.\nThe fountains froze in midair.\nThe city’s lights vanished.\n\nA deep vibration rolled through the plaza. Glass cracked in the upper towers, and a section of the eastern dome began to buckle.\n\nAlethea ran toward the emergency controls. Elion reached them first."

@@ -1,0 +1,199 @@
+import enData from '../data/chapters/atlantis/enFiveCrystals.json';
+import atlantisData from '../data/chapters/atlantis/atlantisFiveCrystals.json';
+import { Language } from '../types';
+
+export interface ActItem {
+  id: string;
+  chapterNumber: number;
+  actKey: string; // e.g. 'ch1-act1', 'ch1-female', 'ch1-male', 'ch1-act2', 'ch2-act1', 'ch2-dialog', 'ch2-choice-best', etc.
+  type: 'narrative' | 'character' | 'dialogue' | 'choice';
+  chapterTitle: string;
+  subtitle: string;
+  actTitle: string;
+  mp4: string;
+  posterImage: string;
+  text?: string;
+  characterName?: string;
+  role?: string;
+  avatarUrl?: string;
+  gender?: 'female' | 'male';
+  sceneNarrative?: string;
+  dialogue?: Array<{
+    voice?: string;
+    speaker: string;
+    text: string;
+  }>;
+  choiceType?: 'Best' | 'Safe' | 'Weak' | 'Harmful';
+  choiceTitle?: string;
+  femaleAvatar?: string;
+  maleAvatar?: string;
+}
+
+const DEFAULT_BG = '/src/assets/realms/atlantis/realm_atlantis_bg.png';
+const FEMALE_AVATAR = '/src/assets/avatars/0Alethea.jpg';
+const MALE_AVATAR = '/src/assets/avatars/0Elion.jpg';
+
+export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' | 'male' | string = 'female'): ActItem[] {
+  const data = enData; // Primary source
+  const items: ActItem[] = [];
+
+  if (!data || !data.chapters) return items;
+
+  const isMaleUser = userGender === 'male' || (typeof userGender === 'string' && userGender.toLowerCase().includes('male') && !userGender.toLowerCase().includes('female'));
+
+  data.chapters.forEach((ch: any) => {
+    const chapterFemaleAvatar = ch.Female_Avatar || FEMALE_AVATAR;
+    const chapterMaleAvatar = ch.Male_Avatar || MALE_AVATAR;
+
+    // 1. Chapter 1
+    if (ch.chapter === 1) {
+      // Act 1 Narrative
+      if (ch.act1) {
+        items.push({
+          id: 'atlantis-ch1-act1',
+          chapterNumber: 1,
+          actKey: 'ch1-act1',
+          type: 'narrative',
+          chapterTitle: ch.title,
+          subtitle: ch.subtitle,
+          actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+          posterImage: DEFAULT_BG,
+          text: ch.act1.text,
+          femaleAvatar: chapterFemaleAvatar,
+          maleAvatar: chapterMaleAvatar
+        });
+      }
+
+      const femaleActItem: ActItem | null = ch.female_act ? {
+        id: 'atlantis-ch1-female',
+        chapterNumber: 1,
+        actKey: 'ch1-female',
+        type: 'character',
+        chapterTitle: ch.title,
+        subtitle: ch.subtitle,
+        actTitle: `Alethea — ${ch.female_act.role || 'Guardian of the Lower Archives'}`,
+        mp4: ch.female_act.mp4 || '/src/assets/realms/atlantis/0Alethea.mp4',
+        posterImage: DEFAULT_BG,
+        text: ch.female_act.description,
+        characterName: ch.female_act.characterName || 'Alethea',
+        role: ch.female_act.role || 'Guardian of the Lower Archives',
+        avatarUrl: chapterFemaleAvatar,
+        gender: 'female',
+        femaleAvatar: chapterFemaleAvatar,
+        maleAvatar: chapterMaleAvatar
+      } : null;
+
+      const maleActItem: ActItem | null = ch.male_act ? {
+        id: 'atlantis-ch1-male',
+        chapterNumber: 1,
+        actKey: 'ch1-male',
+        type: 'character',
+        chapterTitle: ch.title,
+        subtitle: ch.subtitle,
+        actTitle: `Elion — ${ch.male_act.role || "Atlantis's Most Celebrated Warrior"}`,
+        mp4: ch.male_act.mp4 || '/src/assets/realms/atlantis/0Elion.mp4',
+        posterImage: DEFAULT_BG,
+        text: ch.male_act.description,
+        characterName: ch.male_act.characterName || 'Elion',
+        role: ch.male_act.role || "Atlantis's Most Celebrated Warrior",
+        avatarUrl: chapterMaleAvatar,
+        gender: 'male',
+        femaleAvatar: chapterFemaleAvatar,
+        maleAvatar: chapterMaleAvatar
+      } : null;
+
+      // If user is male, show male_act first; if female, show female_act first
+      if (isMaleUser) {
+        if (maleActItem) items.push(maleActItem);
+        if (femaleActItem) items.push(femaleActItem);
+      } else {
+        if (femaleActItem) items.push(femaleActItem);
+        if (maleActItem) items.push(maleActItem);
+      }
+
+      // Act 2 Narrative (The Beginning)
+      if (ch.act2) {
+        items.push({
+          id: 'atlantis-ch1-act2',
+          chapterNumber: 1,
+          actKey: 'ch1-act2',
+          type: 'narrative',
+          chapterTitle: ch.title,
+          subtitle: ch.subtitle,
+          actTitle: ch.act2.title || 'The Beginning',
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+          posterImage: DEFAULT_BG,
+          text: ch.act2.text,
+          femaleAvatar: chapterFemaleAvatar,
+          maleAvatar: chapterMaleAvatar
+        });
+      }
+    }
+
+    // 2. Chapter 2
+    if (ch.chapter === 2) {
+      // Act 1 Narrative (The Celebration and the Darkness)
+      if (ch.act1) {
+        items.push({
+          id: 'atlantis-ch2-act1',
+          chapterNumber: 2,
+          actKey: 'ch2-act1',
+          type: 'narrative',
+          chapterTitle: ch.title,
+          subtitle: ch.subtitle,
+          actTitle: ch.act1.title || 'The Celebration and the Darkness',
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+          posterImage: DEFAULT_BG,
+          text: ch.act1.text,
+          femaleAvatar: chapterFemaleAvatar,
+          maleAvatar: chapterMaleAvatar
+        });
+      }
+
+      // Opening Dialogue (Elion & Alethea)
+      if (ch.dialog && ch.dialog.length > 0) {
+        items.push({
+          id: 'atlantis-ch2-dialog',
+          chapterNumber: 2,
+          actKey: 'ch2-dialog',
+          type: 'dialogue',
+          chapterTitle: ch.title,
+          subtitle: ch.subtitle,
+          actTitle: 'Opening Dialogue · Emergency Controls',
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+          posterImage: DEFAULT_BG,
+          sceneNarrative: ch.act1?.text || 'The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen.',
+          dialogue: ch.dialog,
+          femaleAvatar: chapterFemaleAvatar,
+          maleAvatar: chapterMaleAvatar
+        });
+      }
+
+      // Choices
+      if (ch.choices && Array.isArray(ch.choices)) {
+        ch.choices.forEach((choice: any, cIdx: number) => {
+          items.push({
+            id: `atlantis-ch2-choice-${choice.type?.toLowerCase() || cIdx}`,
+            chapterNumber: 2,
+            actKey: `ch2-choice-${choice.type?.toLowerCase() || cIdx}`,
+            type: 'choice',
+            chapterTitle: ch.title,
+            subtitle: ch.subtitle,
+            actTitle: choice.title || `Choice: ${choice.type}`,
+            mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+            posterImage: DEFAULT_BG,
+            choiceType: choice.type,
+            choiceTitle: choice.title,
+            sceneNarrative: choice.narrative || `Elion and Alethea face the emergency controls under pressure.`,
+            dialogue: choice.dialog,
+            femaleAvatar: chapterFemaleAvatar,
+            maleAvatar: chapterMaleAvatar
+          });
+        });
+      }
+    }
+  });
+
+  return items;
+}
