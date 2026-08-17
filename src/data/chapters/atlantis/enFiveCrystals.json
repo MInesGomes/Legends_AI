@@ -3,7 +3,7 @@
   "taleId": "tale-5-crystals",
   "realm": "Atlantis",
   "skill": "Win4All",
-  "coverImage": "/src/assets/realms/atlantis/atlantis_heart_crystals_1786726147916.jpg",
+  "coverImage": "/src/assets/realms/atlantis/realm_atlantis_bg.png",
   "chapters": [
     {
       "chapter": 1,
@@ -11,32 +11,10 @@
       "title": "Chapter 1 — The City Beneath the Sea",
       "subtitle": "The Heart of Atlantis & The Five Crystals",
       "skill": "Win4All",
-      "bgImage": "/src/assets/realms/atlantis/atlantis_city_domes_1786726165244.jpg",
+      "bgImage": "/src/assets/realms/atlantis/atlantis_cha1.jpg",
       "act1": {
         "title": "Atlantis was not a ruined city",
-        "text": "Atlantis was not a ruined city. It was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. Its light traveled through canals, towers, gardens, temples, schools, and machines, giving warmth and energy to millions of people.\n\nFor centuries, the Heart had remained steady because the people guarded more than its chamber. They guarded the qualities it represented:\n* The physical dimension: strength, health, and purposeful action.\n* The social dimension: cooperation, trust, and service.\n* The emotional dimension: courage to feel and heal.\n* The intellectual dimension: learning guided by truth and ethics.\n* The spiritual dimension: meaning, humility, and connection.\n\nAround the Heart stood five smaller crystals, each reflecting one of these dimensions. Together, they were called the Five Crystals.\n\nBut the city had slowly changed.\nA merchant began charging desperate families extra for clean water. A council member ignored safety rules to save time. A builder used weak materials in an underwater passage. A scholar altered records to protect his reputation. A priest continued performing sacred ceremonies even after he had stopped believing in them.\n\nEach decision seemed small.\nEach excuse seemed reasonable.\nYet the Heart noticed.\nIts blue light began to flicker.",
-        "dimensions": [
-          {
-            "dimension": "The physical dimension",
-            "meaning": "strength, health, and purposeful action."
-          },
-          {
-            "dimension": "The social dimension",
-            "meaning": "cooperation, trust, and service."
-          },
-          {
-            "dimension": "The emotional dimension",
-            "meaning": "courage to feel and heal."
-          },
-          {
-            "dimension": "The intellectual dimension",
-            "meaning": "learning guided by truth and ethics."
-          },
-          {
-            "dimension": "The spiritual dimension",
-            "meaning": "meaning, humility, and connection."
-          }
-        ]
+        "text": "Atlantis was not a ruined city. It was a living kingdom beneath the ocean, protected by enormous glass domes and powered by the Heart of Atlantis—a blue crystal older than the city itself. Its light traveled through canals, towers, gardens, temples, schools, and machines, giving warmth and energy to millions of people.\n\nFor centuries, the Heart had remained steady because the people guarded more than its chamber. They guarded the qualities it represented:\n* The physical dimension: strength, health, and purposeful action.\n* The social dimension: cooperation, trust, and service.\n* The emotional dimension: courage to feel and heal.\n* The intellectual dimension: learning guided by truth and ethics.\n* The spiritual dimension: meaning, humility, and connection.\n\nAround the Heart stood five smaller crystals, each reflecting one of these dimensions. Together, they were called the Five Crystals.\n\nBut the city had slowly changed.\nA merchant began charging desperate families extra for clean water. A council member ignored safety rules to save time. A builder used weak materials in an underwater passage. A scholar altered records to protect his reputation. A priest continued performing sacred ceremonies even after he had stopped believing in them.\n\nEach decision seemed small.\nEach excuse seemed reasonable.\nYet the Heart noticed.\nIts blue light began to flicker.\n        Around the Heart stood five smaller crystals, each reflecting one of these dimensions: \n        physical, social, emotional, intellectual, spiritual.\n        Together, they were called the Five Crystals.\n        But the city had slowly changed.\n        A merchant began charging desperate families extra for clean water.\n        A council member ignored safety rules to save time. \n        A builder used weak materials in an underwater passage. \n        A scholar altered records to protect his reputation. \n        A priest continued performing sacred ceremonies even after he had stopped believing in them. \n        Each decision seemed small. \n        Each excuse seemed reasonable.\n        Yet the Heart noticed. \n        Its blue light began to flicker."
       },
       "female_act": {
         "characterName": "Alethea",
@@ -83,7 +61,7 @@
           "text": "“And I can lift the panel when it collapses.”"
         },
         {
-          "voice": "Narrator",
+          "voice": "Male",
           "speaker": "Narrator",
           "text": "The panel dropped from the wall. Elion caught it with both hands. Alethea stared at the blue mark glowing on his palm."
         },
@@ -108,7 +86,7 @@
           "text": "“Then ask me after we keep half the city from drowning.”"
         },
         {
-          "voice": "Narrator",
+          "voice": "Male",
           "speaker": "Narrator",
           "text": "Together, they reached the emergency valves. Alethea read the ancient controls while Elion held the machinery in place."
         },
@@ -128,7 +106,7 @@
           "text": "“We need a third option.”"
         },
         {
-          "voice": "Narrator",
+          "voice": "Male",
           "speaker": "Narrator",
           "text": "Elion glanced toward the trapped crowd."
         },
@@ -143,7 +121,7 @@
           "text": "“There has to be.”"
         },
         {
-          "voice": "Narrator",
+          "voice": "Male",
           "speaker": "Narrator",
           "text": "Alethea noticed the old maintenance tunnels beneath the plaza. They had been abandoned decades earlier but were still connected to the pressure system."
         },
@@ -168,7 +146,7 @@
           "text": "“Good. I understand dangerous.”"
         },
         {
-          "voice": "Narrator",
+          "voice": "Male",
           "speaker": "Narrator",
           "text": "She looked at him sharply."
         },
@@ -178,7 +156,7 @@
           "text": "“This is not a duel, Elion. If we win, everyone must survive—not just the people closest to us.”"
         },
         {
-          "voice": "Narrator",
+          "voice": "Male",
           "speaker": "Narrator",
           "text": "Elion hesitated. The eastern dome groaned."
         },
@@ -188,7 +166,7 @@
           "text": "“Fine. Tell me where to stand.”"
         },
         {
-          "voice": "Narrator",
+          "voice": "Male",
           "speaker": "Narrator",
           "text": "They redirected the pressure. The dome stopped collapsing, and the crowd escaped safely into the lower shelters.\nFor a moment, people cheered.\nAlethea looked toward the Heart Chamber.\nThe First Crystal—the Physical Crystal—had begun to glow.\nThen the floor split beneath them."
         }
@@ -197,20 +175,19 @@
         {
           "type": "Best",
           "title": "Protect Everyone Together",
-          "label": "Protect Everyone Together",
           "dialog": [
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea orders the emergency teams to rescue the eastern district while Elion organizes citizens into carrying lines."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The plan is slower, but it protects the greatest number of people and prevents panic."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea raised her voice."
             },
@@ -220,7 +197,7 @@
               "text": "“Everyone who can walk, move toward the western shelters. Do not run. Hold hands with the person beside you.”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion climbed onto a broken platform."
             },
@@ -230,7 +207,7 @@
               "text": "“Builders with tools, follow me! Medics, stay near the injured! Strong people carry equipment, not people who can walk on their own!”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "A young man shouted from the crowd."
             },
@@ -240,7 +217,7 @@
               "text": "“Why should we listen to you?”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion pointed toward the shaking dome."
             },
@@ -250,22 +227,22 @@
               "text": "“Because if we waste time arguing, the ocean will make the decision for us.”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The people began working together."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The evacuation succeeded."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "But beneath the plaza, the ancient tunnels collapsed. The shock traveled into the Heart Chamber, cracking the Physical Crystal down its center."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea watched the light fade."
             },
@@ -275,7 +252,7 @@
               "text": "“We saved the district.”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "She whispered."
             },
@@ -323,22 +300,22 @@
               "text": "“It is better than losing the entire city.”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea pulled the lever."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The eastern dome sealed. The central districts stabilized, but the southern neighborhoods went dark. Several families became trapped in unventilated buildings before rescue boats reached them."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The First Crystal gave a faint glow, but it did not awaken."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion stared at the sealed gate."
             },
@@ -360,12 +337,12 @@
           "label": "Wait for the Council",
           "dialog": [
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion closes the eastern gate immediately, protecting the central city from flooding."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea objects that the southern districts will lose oxygen, but the emergency shelters remain safe."
             },
@@ -395,27 +372,27 @@
               "text": "“It is better than losing the entire city.”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea pulled the lever."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The eastern dome sealed. The central districts stabilized, but the southern neighborhoods went dark."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Several families became trapped in unventilated buildings before rescue boats reached them."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The First Crystal gave a faint glow, but it did not awaken."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion stared at the sealed gate."
             },
@@ -437,12 +414,12 @@
           "label": "Fight for Control",
           "dialog": [
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion tries to force the machinery open while Alethea attempts to override the system."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Their disagreement becomes a physical struggle."
             },
@@ -452,7 +429,7 @@
               "text": "“Release the lever!”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea shouted."
             },
@@ -477,32 +454,32 @@
               "text": "“So am I!”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion pulled harder. The emergency mechanism broke."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "A violent burst of pressure threw both of them across the plaza."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The dome survived, but several support bridges collapsed."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The people escaped, but many supplies and medical devices were destroyed."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "The First Crystal turned completely black."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Alethea rose slowly."
             },
@@ -512,12 +489,12 @@
               "text": "“Strength without discipline is not protection.”"
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "Elion looked at the damage."
             },
             {
-              "voice": "Narrator",
+              "voice": "Male",
               "speaker": "Narrator",
               "text": "For once, he had no answer."
             }
