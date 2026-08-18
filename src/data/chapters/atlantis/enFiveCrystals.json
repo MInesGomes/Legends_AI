@@ -55,26 +55,6 @@
       "dialog": [
         {
           "voice": "Male",
-          "speaker": "Narrator",
-          "text": "The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before."
-        },
-        {
-          "voice": "Male",
-          "speaker": "Narrator",
-          "text": "Alethea watched the blue light spread. For one moment, she believed the crisis was over."
-        },
-        {
-          "voice": "Male",
-          "speaker": "Narrator",
-          "text": "Then the Heart pulsed. The music stopped. The lights vanished. The eastern dome began to buckle."
-        },
-        {
-          "voice": "Male",
-          "speaker": "Narrator",
-          "text": "Alethea ran for the emergency controls. Elion reached them first."
-        },
-        {
-          "voice": "Male",
           "speaker": "Elion",
           "text": "Move!"
         },
@@ -86,7 +66,7 @@
         {
           "voice": "Male",
           "speaker": "Elion",
-          "text": "I can hold the panel when it—"
+          "text": "I can hold the panel when it..."
         },
         {
           "voice": "Male",

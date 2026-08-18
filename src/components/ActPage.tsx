@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Language, UserProfile, SkillType } from '../types';
 import { ActItem, getAtlantisActItems } from '../lib/atlantisData';
@@ -6,11 +6,10 @@ import {
   X as CloseIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Globe,
   Play,
   Pause,
-  RotateCcw,
-  FastForward,
   Volume2,
   VolumeX,
   MessageSquare,
@@ -65,11 +64,9 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
 
-  // Typewriter state for narrative acts - starts playing immediately
-  const [typedLength, setTypedLength] = useState<number>(0);
-  const [isTypewriterPlaying, setIsTypewriterPlaying] = useState<boolean>(true);
-  const [typingSpeed, setTypingSpeed] = useState<'normal' | 'fast'>('normal');
-  const [isTypewriterDone, setIsTypewriterDone] = useState<boolean>(false);
+  // Progressive sentence state for narrative acts (appears 1 sentence at a time)
+  const [visibleSentenceCount, setVisibleSentenceCount] = useState<number>(1);
+  const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
 
   // Selected sentence index for multi-image acts (e.g. Act 2's 6 images for 6 sentences)
   const [selectedSentenceIdx, setSelectedSentenceIdx] = useState<number | null>(null);
@@ -87,23 +84,34 @@ export const ActPage: React.FC<ActPageProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const dialogueScrollContainerRef = useRef<HTMLDivElement>(null);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
-  const typewriterBoxRef = useRef<HTMLDivElement>(null);
-  const typewriterCursorRef = useRef<HTMLSpanElement>(null);
+  const narrativeBoxRef = useRef<HTMLDivElement>(null);
 
-  // Reset typewriter, dialogue step & video finish state whenever act changes
+  // Parse sentences for the current act
+  const sentences = useMemo(() => {
+    if (!currentAct?.text) return [];
+    const lines = currentAct.text.split('\n').map((s) => s.trim()).filter(Boolean);
+    if (lines.length > 1) return lines;
+    const matched = currentAct.text.match(/[^.!?]+[.!?]+(\s+|$)|[^.!?]+$/g);
+    return matched ? matched.map((s) => s.trim()).filter(Boolean) : [currentAct.text];
+  }, [currentAct?.text]);
+
+  const isAllSentencesRevealed = visibleSentenceCount >= sentences.length;
+
+  // Reset states whenever act changes
   useEffect(() => {
-    setTypedLength(0);
-    setIsTypewriterDone(false);
+    setVisibleSentenceCount(1);
     setSelectedSentenceIdx(null);
     setDialogueStep(0);
     setIsSpeakingText(false);
-    const noVideo = !currentAct?.mp4 || (currentAct?.images && currentAct.images.length > 0);
-    setIsVideoFinished(!!noVideo);
-    // If there is no background video or it has sequential images, start playing immediately
-    setIsTypewriterPlaying(true);
+    setIsVideoFinished(true);
 
-    if (typewriterBoxRef.current) {
-      typewriterBoxRef.current.scrollTop = 0;
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+
+    if (narrativeBoxRef.current) {
+      narrativeBoxRef.current.scrollTop = 0;
     }
     if (dialogueScrollContainerRef.current) {
       dialogueScrollContainerRef.current.scrollTop = 0;
@@ -113,12 +121,44 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
   }, [currentIndex]);
 
-  // When video animation finishes or overlay appears, start typewriter immediately
+  // Progressive timer: automatically reveals 1 sentence at a time when Autoplay is enabled
   useEffect(() => {
-    if (isVideoFinished && currentAct.type === 'narrative' && !isTypewriterDone) {
-      setIsTypewriterPlaying(true);
+    if (!isAutoPlay || currentAct.type !== 'narrative' || visibleSentenceCount >= sentences.length) {
+      return;
     }
-  }, [isVideoFinished, currentAct.type, isTypewriterDone]);
+
+    const currentSentence = sentences[visibleSentenceCount - 1] || '';
+    const wordCount = currentSentence.split(/\s+/).length;
+    const delay = Math.max(1800, Math.min(4200, wordCount * 140 + 800));
+
+    const timer = setTimeout(() => {
+      setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [isAutoPlay, visibleSentenceCount, sentences, currentAct.type]);
+
+  // Progressive timer: automatically advances dialogue when Autoplay is enabled
+  useEffect(() => {
+    if (
+      !isAutoPlay ||
+      (currentAct.type !== 'dialogue' && currentAct.type !== 'choice') ||
+      !currentAct.dialogue ||
+      dialogueStep >= currentAct.dialogue.length - 1
+    ) {
+      return;
+    }
+
+    const currentLine = currentAct.dialogue[dialogueStep]?.text || '';
+    const wordCount = currentLine.split(/\s+/).length;
+    const delay = Math.max(2200, Math.min(4800, wordCount * 140 + 1000));
+
+    const timer = setTimeout(() => {
+      setDialogueStep((prev) => prev + 1);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [isAutoPlay, dialogueStep, currentAct.dialogue, currentAct.type]);
 
   // Auto-scroll down when a new speaker is revealed in dialogue
   useEffect(() => {
@@ -133,47 +173,15 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
   }, [dialogueStep, currentIndex, isVideoFinished]);
 
-  // Auto-scroll typewriter container when new text/cursor is not readable below
+  // Auto-scroll narrative box when new sentence appears
   useEffect(() => {
-    if (isTypewriterPlaying && typewriterCursorRef.current && typewriterBoxRef.current) {
-      typewriterCursorRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      const box = typewriterBoxRef.current;
-      const distanceFromBottom = box.scrollHeight - (box.scrollTop + box.clientHeight);
-      if (distanceFromBottom > 10) {
-        box.scrollTo({
-          top: box.scrollHeight,
-          behavior: 'smooth',
-        });
-      }
+    if (currentAct.type === 'narrative' && narrativeBoxRef.current) {
+      narrativeBoxRef.current.scrollTo({
+        top: narrativeBoxRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
-  }, [typedLength, isTypewriterPlaying]);
-
-  // Handle Typewriter Animation
-  const rawText = currentAct?.text || '';
-  useEffect(() => {
-    if (!rawText || !isTypewriterPlaying || isTypewriterDone) return;
-
-    const baseDelay = typingSpeed === 'fast' ? 12 : 26;
-    const timer = setTimeout(() => {
-      if (typedLength < rawText.length) {
-        const nextChar = rawText[typedLength];
-        let pause = 0;
-        if (nextChar === '.' || nextChar === '!' || nextChar === '?') {
-          pause = typingSpeed === 'fast' ? 120 : 300;
-        } else if (nextChar === ',') {
-          pause = typingSpeed === 'fast' ? 60 : 150;
-        } else if (nextChar === '\n') {
-          pause = typingSpeed === 'fast' ? 150 : 350;
-        }
-        setTypedLength((prev) => prev + 1);
-      } else {
-        setIsTypewriterDone(true);
-        setIsTypewriterPlaying(false);
-      }
-    }, baseDelay);
-
-    return () => clearTimeout(timer);
-  }, [typedLength, rawText, isTypewriterPlaying, isTypewriterDone, typingSpeed]);
+  }, [visibleSentenceCount, currentAct.type]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -192,13 +200,15 @@ export const ActPage: React.FC<ActPageProps> = ({
           }
         } else if (e.key === ' ' && currentAct.type === 'narrative') {
           e.preventDefault();
-          setIsTypewriterPlaying((prev) => !prev);
+          if (visibleSentenceCount < sentences.length) {
+            setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
+          }
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, actItems.length, currentAct, dialogueStep]);
+  }, [currentIndex, actItems.length, currentAct, dialogueStep, visibleSentenceCount, sentences.length]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -210,19 +220,6 @@ export const ActPage: React.FC<ActPageProps> = ({
     if (currentIndex < actItems.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     }
-  };
-
-  const handleSkipTypewriter = () => {
-    if (!rawText) return;
-    setTypedLength(rawText.length);
-    setIsTypewriterDone(true);
-    setIsTypewriterPlaying(false);
-  };
-
-  const handleReplayTypewriter = () => {
-    setTypedLength(0);
-    setIsTypewriterDone(false);
-    setIsTypewriterPlaying(true);
   };
 
   // Speech Read-Aloud
@@ -247,70 +244,39 @@ export const ActPage: React.FC<ActPageProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
-  // Split narrative sentences for sequential scene multi-images
-  const sentences = (currentAct?.text || '')
-    .split('\n')
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const activeTypingSentenceIdx = (() => {
-    if (!sentences.length || !rawText) return 0;
-    let charCount = 0;
-    for (let i = 0; i < sentences.length; i++) {
-      const s = sentences[i];
-      const sStart = rawText.indexOf(s, charCount);
-      const sEnd = sStart + s.length;
-      charCount = sEnd;
-      if (typedLength <= sEnd) {
-        return i;
-      }
-    }
-    return sentences.length - 1;
-  })();
-
   const activeSentenceIdx = selectedSentenceIdx !== null
     ? selectedSentenceIdx
-    : activeTypingSentenceIdx;
+    : Math.min(visibleSentenceCount - 1, Math.max(0, sentences.length - 1));
 
-  // Render Formatted Narrative Text (with paragraph spacing, bullet points, and multi-scene sentence rows)
-  const renderFormattedText = (fullString: string, currentSliceLength: number) => {
-    const visibleText = fullString.slice(0, currentSliceLength);
-    const lines = visibleText.split('\n');
+  // Render Formatted Narrative Text (Appearing 1 sentence at a time with smooth fade/slide)
+  const renderFormattedText = () => {
+    const visibleSentences = sentences.slice(0, visibleSentenceCount);
 
     if (hasSequentialImages) {
       return (
-        <div className="space-y-2.5 font-sans text-sm sm:text-base md:text-lg leading-relaxed text-black">
-          {lines.map((line, idx) => {
-            const trimmed = line.trim();
-            if (!trimmed) {
-              return <div key={idx} className="h-2" />;
-            }
+        <div className="space-y-0.5 font-sans text-sm sm:text-base md:text-lg leading-snug text-black">
+          {visibleSentences.map((line, idx) => {
             const isActive = activeSentenceIdx === idx;
 
             return (
               <motion.div
                 key={idx}
-                onClick={() => setSelectedSentenceIdx(idx)}
-                className={`p-3 sm:p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3 select-text ${
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedSentenceIdx(idx);
+                }}
+                className={`p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer select-text ${
                   isActive
-                    ? 'border-[#d4af37] bg-amber-400/25 shadow-md ring-2 ring-[#d4af37]/60'
+                    ? 'border-[#d4af37] bg-amber-400/25 shadow-sm ring-1 ring-[#d4af37]/60'
                     : 'border-amber-200/80 hover:border-amber-400 hover:bg-amber-50/70 bg-white/75'
                 }`}
               >
-                <span
-                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold font-cinzel flex-shrink-0 mt-0.5 ${
-                    isActive
-                      ? 'bg-[#d4af37] text-slate-950 shadow-[0_0_8px_#d4af37]'
-                      : 'bg-amber-100 text-amber-900 border border-amber-300'
-                  }`}
-                >
-                  {idx + 1}
-                </span>
-                <div className="flex-1">
-                  <p className={`tracking-wide ${isActive ? 'text-black font-bold' : 'text-slate-800 font-medium'}`}>
-                    {line}
-                  </p>
-                </div>
+                <p className={`tracking-normal leading-snug my-0 ${isActive ? 'text-black font-bold' : 'text-slate-800 font-medium'}`}>
+                  {line}
+                </p>
               </motion.div>
             );
           })}
@@ -319,27 +285,34 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
 
     return (
-      <div className="space-y-3 font-sans text-sm sm:text-base md:text-lg leading-relaxed text-black font-medium">
-        {lines.map((line, idx) => {
-          const trimmed = line.trim();
-          if (!trimmed) {
-            return <div key={idx} className="h-2" />;
-          }
-
-          if (trimmed.startsWith('*')) {
-            const bulletContent = trimmed.substring(1).trim();
+      <div className="font-sans text-sm sm:text-base md:text-lg leading-normal text-black font-medium space-y-0">
+        {visibleSentences.map((line, idx) => {
+          if (line.startsWith('*')) {
+            const bulletContent = line.substring(1).trim();
             return (
-              <div key={idx} className="flex items-start gap-2.5 pl-3 sm:pl-4 py-0.5 text-black">
-                <span className="inline-block w-2 h-2 rounded-full bg-[#d4af37] mt-2 flex-shrink-0 shadow-[0_0_8px_#d4af37]" />
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                className="flex items-start gap-2 pl-3 py-0.5 text-black"
+              >
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#d4af37] mt-1.5 flex-shrink-0 shadow-[0_0_6px_#d4af37]" />
                 <span className="font-semibold">{bulletContent}</span>
-              </div>
+              </motion.div>
             );
           }
 
           return (
-            <p key={idx} className="tracking-wide text-black">
+            <motion.p
+              key={idx}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="tracking-normal leading-normal my-0 py-0 text-black"
+            >
               {line}
-            </p>
+            </motion.p>
           );
         })}
       </div>
@@ -354,10 +327,26 @@ export const ActPage: React.FC<ActPageProps> = ({
       id="act-fullscreen-page"
       className="fixed inset-0 z-50 w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between select-none"
     >
-      {/* 1. BACKGROUND VIDEO / MULTI-SCENE IMAGES / FALLBACK POSTER */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
+      {/* 1. BACKGROUND VIDEO / MULTI-SCENE IMAGES / FALLBACK POSTER (Top-Aligned & Uncropped) */}
+      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none flex items-start justify-center">
         {hasSequentialImages ? (
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full flex items-start justify-center">
+            {/* Ambient subtle backdrop fill */}
+            {currentAct.images!.map((imgUrl, imgIdx) => (
+              <motion.img
+                key={`bg-blur-${imgUrl}`}
+                src={imgUrl}
+                alt=""
+                initial={false}
+                animate={{
+                  opacity: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 0.35 : 0,
+                }}
+                transition={{ duration: 0.65, ease: 'easeInOut' }}
+                className="absolute inset-0 w-full h-full object-cover object-top filter blur-2xl scale-110 -z-20"
+                referrerPolicy="no-referrer"
+              />
+            ))}
+            {/* Main Crisp, Top-Aligned & Uncropped Scene Image */}
             {currentAct.images!.map((imgUrl, imgIdx) => (
               <motion.img
                 key={imgUrl}
@@ -366,10 +355,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                 initial={false}
                 animate={{
                   opacity: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1 : 0,
-                  scale: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1.02 : 1,
+                  scale: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1 : 0.98,
                 }}
                 transition={{ duration: 0.65, ease: 'easeInOut' }}
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="absolute inset-x-0 top-0 w-full h-[52vh] sm:h-[58vh] object-contain object-top z-0"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   e.currentTarget.src = currentAct.posterImage || '/src/assets/realms/atlantis/realm_atlantis_bg.png';
@@ -378,7 +367,14 @@ export const ActPage: React.FC<ActPageProps> = ({
             ))}
           </div>
         ) : (
-          <>
+          <div className="relative w-full h-full flex items-start justify-center">
+            {/* Ambient subtle backdrop fill */}
+            <img
+              src={currentAct.posterImage}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover object-top filter blur-2xl opacity-35 scale-110 -z-20"
+              referrerPolicy="no-referrer"
+            />
             <video
               ref={videoRef}
               key={currentAct.mp4}
@@ -387,27 +383,31 @@ export const ActPage: React.FC<ActPageProps> = ({
               autoPlay
               muted={isMuted}
               playsInline
-              className="w-full h-full object-cover object-center"
-              onEnded={() => setIsVideoFinished(true)}
+              onEnded={() => {
+                setIsVideoFinished(true);
+                if (isAutoPlay && currentIndex < actItems.length - 1) {
+                  goToNext();
+                }
+              }}
+              className="absolute inset-x-0 top-0 w-full h-[52vh] sm:h-[58vh] object-contain object-top z-0"
               onError={(e) => {
                 // Graceful fallback to poster background image if video can't decode
                 const target = e.currentTarget;
                 target.style.display = 'none';
-                setIsVideoFinished(true);
               }}
             />
             {/* Fallback image behind video */}
             <img
               src={currentAct.posterImage}
               alt={currentAct.actTitle}
-              className="absolute inset-0 w-full h-full object-cover object-center -z-10"
+              className="absolute inset-x-0 top-0 w-full h-[52vh] sm:h-[58vh] object-contain object-top -z-10"
               referrerPolicy="no-referrer"
             />
-          </>
+          </div>
         )}
       </div>
 
-      {/* 2. TOP LEFT: CLOSE 'X' BUTTON (Very small on mobile) */}
+      {/* 2. TOP LEFT: CLOSE 'X' BUTTON */}
       <div className="absolute top-2.5 left-2.5 sm:top-6 sm:left-6 z-30 flex items-center gap-2 sm:gap-3">
         <button
           id="act-close-button"
@@ -418,24 +418,36 @@ export const ActPage: React.FC<ActPageProps> = ({
         >
           <CloseIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5 transition-transform group-hover:rotate-90" />
         </button>
-
-        {/* Current Act / Chapter Pill */}
-        <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border border-[#d4af37]/60 bg-black/50 text-xs tracking-wider font-cinzel text-amber-200">
-          <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
-          <span>Chapter {currentAct.chapterNumber} · {currentAct.type === 'choice' ? (currentAct.choiceTitle || 'Choice') : currentAct.type.toUpperCase()} ({currentIndex + 1}/{actItems.length})</span>
-        </div>
       </div>
 
-      {/* 3. TOP RIGHT: LANGUAGE SELECTOR & SOUND TOGGLE (Hidden on mobile) */}
-      <div className="hidden sm:flex absolute top-4 right-4 sm:top-6 sm:right-6 z-30 items-center gap-3">
+      {/* 3. TOP RIGHT: AUTOPLAY TOGGLE, SOUND TOGGLE & LANGUAGE SELECTOR */}
+      <div className="flex absolute top-2.5 right-2.5 sm:top-6 sm:right-6 z-30 items-center gap-2 sm:gap-3">
+        {/* Autoplay Toggle Button (same circular format as sound button) */}
+        <button
+          id="act-autoplay-toggle"
+          onClick={() => setIsAutoPlay(!isAutoPlay)}
+          className={`p-1.5 sm:p-3 rounded-full border sm:border-2 shadow-lg sm:shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center ${
+            isAutoPlay
+              ? 'border-[#d4af37] bg-black/80 text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.4)]'
+              : 'border-[#d4af37]/40 bg-black/60 hover:bg-black/90 text-amber-200/50'
+          }`}
+          title={isAutoPlay ? 'Autoplay: ON (Auto-advances when animation finishes)' : 'Autoplay: OFF (Manual mode)'}
+        >
+          {isAutoPlay ? (
+            <Play className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#d4af37] fill-[#d4af37]" />
+          ) : (
+            <Pause className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-200/60" />
+          )}
+        </button>
+
         {/* Ambient Sound Toggle */}
         <button
           id="act-sound-toggle"
           onClick={() => setIsMuted(!isMuted)}
-          className="p-3 rounded-full border-2 border-[#d4af37]/70 bg-black/60 hover:bg-black/90 text-amber-200 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center"
+          className="p-1.5 sm:p-3 rounded-full border sm:border-2 border-[#d4af37]/70 bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center"
           title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
         >
-          {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5 text-[#d4af37]" />}
+          {isMuted ? <VolumeX className="w-3.5 h-3.5 sm:w-5 sm:h-5" /> : <Volume2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#d4af37]" />}
         </button>
 
         {/* Language Selector Dropdown */}
@@ -443,11 +455,11 @@ export const ActPage: React.FC<ActPageProps> = ({
           <button
             id="act-lang-selector"
             onClick={() => setShowLangMenu(!showLangMenu)}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-full border-2 border-[#d4af37] bg-black/60 hover:bg-black/90 text-amber-200 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-full border sm:border-2 border-[#d4af37] bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
             title="Select Language"
           >
-            <Globe className="w-4 h-4 text-[#d4af37]" />
-            <span className="font-bold text-xs tracking-wider uppercase font-cinzel">
+            <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d4af37]" />
+            <span className="font-bold text-[10px] sm:text-xs tracking-wider uppercase font-cinzel">
               {currentLang}
             </span>
           </button>
@@ -503,22 +515,31 @@ export const ActPage: React.FC<ActPageProps> = ({
         <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:translate-x-0.5" />
       </button>
 
-      {/* 6. MAIN CONTENT DISPLAY (NARRATIVE TYPEWRITER OR DIALOGUE SPEECH CARDS) */}
-      {isVideoFinished ? (
-        <motion.div
-          key={`content-${currentIndex}`}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="relative z-10 flex-1 flex flex-col justify-end p-4 sm:p-8 md:p-12 max-w-5xl mx-auto w-full overflow-y-auto"
-        >
-          {/* A. DIALOGUE / CHOICE ACT MODE (Alternating Left/Right speech bubbles matching reference screenshot) */}
-          {(currentAct.type === 'dialogue' || currentAct.type === 'choice') ? (
-            <div className="w-full space-y-4 pb-4 animate-fadeIn">
-              
-              {/* If this is a Choice Act, show the 4 Choice selection pills using the choice titles */}
+      {/* 6. MAIN CONTENT DISPLAY (FULLSCREEN WIDTH AT THE BOTTOM) */}
+      <motion.div
+        key={`content-${currentIndex}`}
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="relative z-10 w-full max-w-none flex flex-col justify-end mt-auto overflow-hidden"
+      >
+        {/* A. DIALOGUE / CHOICE ACT MODE (Alternating Left/Right speech bubbles matching reference screenshot) */}
+        {(currentAct.type === 'dialogue' || currentAct.type === 'choice') ? (
+          <div className="w-full bg-white/95 text-black rounded-t-3xl border-t-2 border-[#d4af37] shadow-[0_-10px_35px_rgba(0,0,0,0.6)] backdrop-blur-md animate-fadeIn">
+            
+            {/* Unified Scroll Container: Choice header pills + Narrative text box + Dialogue Stream all scroll together */}
+            <div
+              ref={dialogueScrollContainerRef}
+              className="space-y-4 max-h-[46vh] sm:max-h-[44vh] overflow-y-auto p-4 sm:p-6 pr-3 select-none"
+              onClick={() => {
+                if (currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1) {
+                  setDialogueStep((prev) => prev + 1);
+                }
+              }}
+            >
+              {/* If this is a Choice Act, show the 4 Choice selection pills */}
               {currentAct.type === 'choice' && (
-                <div className="flex flex-wrap items-center justify-center gap-2.5 py-1">
+                <div className="flex flex-wrap items-center justify-center gap-2.5 pb-1">
                   {(['Best', 'Safe', 'Weak', 'Harmful'] as const).map((choiceKey) => {
                     const targetAct = actItems.find(
                       (item) => item.type === 'choice' && item.choiceType === choiceKey
@@ -532,7 +553,8 @@ export const ActPage: React.FC<ActPageProps> = ({
                     return (
                       <button
                         key={choiceKey}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (targetActIdx >= 0) setCurrentIndex(targetActIdx);
                         }}
                         className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold tracking-wide border-2 transition-all cursor-pointer whitespace-nowrap shadow-md ${
@@ -554,379 +576,243 @@ export const ActPage: React.FC<ActPageProps> = ({
                 </div>
               )}
 
-              {/* Unified Scroll Container: Narrative text box + Dialogue Stream scroll together */}
-              <div
-                ref={dialogueScrollContainerRef}
-                className="space-y-4 max-h-[62vh] sm:max-h-[68vh] overflow-y-auto pr-1 select-none"
-                onClick={() => {
-                  if (currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1) {
-                    setDialogueStep((prev) => prev + 1);
-                  }
-                }}
-              >
-                {/* Top Scene / Narrator card (scrolls with dialogue) */}
-                {currentAct.sceneNarrative && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full rounded-3xl border-2 border-[#d4af37] bg-white/85 text-black p-5 sm:p-6 shadow-2xl relative"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <p className="text-sm sm:text-base md:text-lg leading-relaxed font-sans text-black font-medium">
-                        {currentAct.sceneNarrative}
-                      </p>
-                      <MessageSquare className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
-                    </div>
-                  </motion.div>
-                )}
+              {/* Top Scene / Narrator card (scrolls with dialogue) */}
+              {currentAct.sceneNarrative && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full rounded-2xl border-2 border-[#d4af37] bg-white text-black p-4 sm:p-5 shadow-md relative"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm sm:text-base md:text-lg leading-relaxed font-sans text-black font-medium">
+                      {currentAct.sceneNarrative}
+                    </p>
+                    <MessageSquare className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
+                  </div>
+                </motion.div>
+              )}
 
-                {/* Dialogue Stream: Revealed line-by-line / speaker-by-speaker on click */}
-                {currentAct.dialogue &&
-                  currentAct.dialogue.slice(0, dialogueStep + 1).map((line, idx) => {
-                    const isFemale = line.speaker === 'Alethea' || line.voice === 'Female';
-                    const isMale = line.speaker === 'Elion' || line.voice === 'Male';
-                    const isNarrator = line.speaker === 'Narrator';
-                    const isLatest = idx === dialogueStep;
+              {/* Dialogue Stream: Revealed line-by-line / speaker-by-speaker on click */}
+              {currentAct.dialogue &&
+                currentAct.dialogue.slice(0, dialogueStep + 1).map((line, idx) => {
+                  const isFemale = line.speaker === 'Alethea' || line.voice === 'Female';
+                  const isMale = line.speaker === 'Elion' || line.voice === 'Male';
+                  const isNarrator = line.speaker === 'Narrator';
+                  const isLatest = idx === dialogueStep;
 
-                    if (isNarrator) {
-                      return (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className={`mx-auto max-w-2xl text-center px-4 py-2 rounded-2xl bg-white/85 border text-black text-xs sm:text-sm italic font-medium shadow-md ${
-                            isLatest ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40' : 'border-[#d4af37]'
-                          }`}
-                        >
-                          {line.text}
-                        </motion.div>
-                      );
-                    }
-
-                    if (isFemale) {
-                      // Female (Alethea): Aligned RIGHT with Avatar on far RIGHT
-                      return (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="flex items-center justify-end gap-3 sm:gap-4 pl-6 sm:pl-12"
-                        >
-                          <div
-                            className={`flex-1 max-w-xl rounded-3xl border-2 bg-white/85 text-black p-4 sm:p-5 shadow-xl relative cursor-pointer ${
-                              isLatest
-                                ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40'
-                                : 'border-[#d4af37]'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between pb-1">
-                              <span className="text-[#996515] font-serif text-sm font-semibold tracking-wide">
-                                {line.speaker || 'Alethea'}
-                              </span>
-                              <MessageSquare className="w-4 h-4 text-amber-700/80" />
-                            </div>
-                            <p className="text-base sm:text-xl font-bold text-black text-center py-1 font-sans">
-                              {line.text}
-                            </p>
-                          </div>
-
-                          {/* Alethea Avatar */}
-                          <img
-                            src={aletheaAvatar}
-                            alt="Alethea"
-                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#d4af37] shadow-lg object-cover flex-shrink-0"
-                            onError={(e) => {
-                              e.currentTarget.src = '/src/assets/realms/atlantis/0Alethea.jpg';
-                            }}
-                          />
-                        </motion.div>
-                      );
-                    }
-
-                    // Male (Elion): Aligned LEFT with Avatar on far LEFT
+                  if (isNarrator) {
                     return (
                       <motion.div
                         key={idx}
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className={`mx-auto max-w-2xl text-center px-4 py-2 rounded-2xl bg-white border text-black text-xs sm:text-sm italic font-medium shadow-md ${
+                          isLatest ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40' : 'border-[#d4af37]'
+                        }`}
+                      >
+                        {line.text}
+                      </motion.div>
+                    );
+                  }
+
+                  if (isFemale) {
+                    // Female (Alethea): Aligned RIGHT with Avatar on far RIGHT
+                    return (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="flex items-center justify-start gap-3 sm:gap-4 pr-6 sm:pr-12"
+                        className="flex items-center justify-end gap-3 sm:gap-4 pl-6 sm:pl-12"
                       >
-                        {/* Elion Avatar */}
-                        <img
-                          src={elionAvatar}
-                          alt="Elion"
-                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#d4af37] shadow-lg object-cover flex-shrink-0"
-                          onError={(e) => {
-                            e.currentTarget.src = '/src/assets/realms/atlantis/2Elion.jpg';
-                          }}
-                        />
-
                         <div
-                          className={`flex-1 max-w-xl rounded-3xl border-2 bg-white/85 text-black p-4 sm:p-5 shadow-xl relative cursor-pointer ${
+                          className={`flex-1 rounded-2xl border-2 bg-white text-black p-4 sm:p-5 shadow-md relative cursor-pointer ${
                             isLatest
                               ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40'
                               : 'border-[#d4af37]'
                           }`}
                         >
                           <div className="flex items-center justify-between pb-1">
-                            <span className="text-[#996515] uppercase tracking-widest text-xs font-bold font-sans">
-                              {line.speaker || 'ELION'}
+                            <span className="text-[#996515] font-serif text-sm font-semibold tracking-wide">
+                              {line.speaker || 'Alethea'}
                             </span>
                             <MessageSquare className="w-4 h-4 text-amber-700/80" />
                           </div>
-                          <p className="text-base sm:text-xl font-bold text-black text-left py-1 font-sans">
+                          <p className="text-base sm:text-xl font-bold text-black text-center py-1 font-sans">
                             {line.text}
                           </p>
                         </div>
+
+                        {/* Alethea Avatar */}
+                        <img
+                          src={aletheaAvatar}
+                          alt="Alethea"
+                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#d4af37] shadow-lg object-cover flex-shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.src = '/src/assets/realms/atlantis/0Alethea.jpg';
+                          }}
+                        />
                       </motion.div>
                     );
-                  })}
+                  }
 
-                {/* Interactive Click-to-Continue Prompt for Next Speaker */}
-                {currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1 && (
-                  <div className="flex justify-center pt-2 pb-1">
-                    <button
-                      id="dialogue-next-speaker-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDialogueStep((prev) => prev + 1);
-                      }}
-                      className="px-4 py-2 rounded-full border-2 border-[#d4af37] bg-white/95 text-black hover:bg-amber-100 font-sans font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer animate-pulse"
+                  // Male (Elion): Aligned LEFT with Avatar on far LEFT
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex items-center justify-start gap-3 sm:gap-4 pr-6 sm:pr-12"
                     >
-                      <span>Click to continue ({currentAct.dialogue[dialogueStep + 1]?.speaker || 'Next'})</span>
-                      <ChevronRight className="w-4 h-4 text-amber-700" />
-                    </button>
-                  </div>
-                )}
+                      {/* Elion Avatar */}
+                      <img
+                        src={elionAvatar}
+                        alt="Elion"
+                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#d4af37] shadow-lg object-cover flex-shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.src = '/src/assets/realms/atlantis/2Elion.jpg';
+                        }}
+                      />
 
-                {/* Invisible scroll target */}
-                <div ref={dialogueEndRef} className="h-1" />
-              </div>
-
-            </div>
-          ) : (
-            /* B. NARRATIVE / CHARACTER TYPEWRITER ACT MODE */
-            <div className="w-full space-y-4 pb-2 animate-fadeIn">
-              
-              {/* Act Header Title (Hidden on mobile) */}
-              <div className="hidden sm:block text-center px-4">
-                <span className="inline-block px-3.5 py-1.5 rounded-full bg-white/80 border-2 border-[#d4af37] text-black text-xs font-cinzel uppercase font-bold tracking-widest mb-1 shadow-md">
-                  {currentAct.actTitle}
-                </span>
-              </div>
-
-              {/* Typewriter Text Box */}
-              <motion.div
-                ref={typewriterBoxRef}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full rounded-3xl border-2 border-[#d4af37] bg-white/85 text-black shadow-2xl p-5 sm:p-7 md:p-8 relative max-h-[58vh] overflow-y-auto scroll-smooth"
-              >
-                {/* Typewriter Header Controls */}
-                <div className="flex items-center justify-between border-b border-amber-300 pb-3 mb-4">
-                  {/* Chapter Title & Icon (Hidden on mobile) */}
-                  <div className="hidden sm:flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#d4af37]" />
-                    <span className="font-cinzel text-xs sm:text-sm font-bold text-black uppercase tracking-wider">
-                      {currentAct.chapterTitle}
-                    </span>
-                  </div>
-
-                  {/* Controls: Play/Pause (Always visible), Speed/Sound/Skip (Hidden on mobile) */}
-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                    {/* Read Aloud / Sound Button (Hidden on mobile) */}
-                    <button
-                      onClick={() => handleReadAloud(rawText)}
-                      className={`hidden sm:inline-flex p-2 rounded-xl border text-xs font-semibold items-center gap-1 transition-all cursor-pointer ${
-                        isSpeakingText
-                          ? 'bg-[#d4af37] text-black border-[#d4af37]'
-                          : 'bg-white/90 text-black border-amber-400 hover:bg-amber-100'
-                      }`}
-                      title={isSpeakingText ? 'Stop reading' : 'Read text aloud'}
-                    >
-                      <Volume2 className="w-4 h-4" />
-                      <span>{isSpeakingText ? 'Speaking...' : 'Listen'}</span>
-                    </button>
-
-                    {/* Play / Pause Toggle (Visible on Mobile & Desktop) */}
-                    {!isTypewriterDone ? (
-                      <button
-                        onClick={() => setIsTypewriterPlaying(!isTypewriterPlaying)}
-                        className="px-3.5 py-1.5 rounded-xl border border-amber-400 bg-white/90 text-black hover:bg-amber-100 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
-                        title={isTypewriterPlaying ? 'Pause typewriter' : 'Play typewriter'}
+                      <div
+                        className={`flex-1 rounded-2xl border-2 bg-white text-black p-4 sm:p-5 shadow-md relative cursor-pointer ${
+                          isLatest
+                            ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40'
+                            : 'border-[#d4af37]'
+                        }`}
                       >
-                        {isTypewriterPlaying ? (
-                          <>
-                            <Pause className="w-4 h-4 text-amber-700" />
-                            <span>Pause</span>
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4 text-emerald-700 fill-emerald-600" />
-                            <span className="font-bold text-emerald-900">Play</span>
-                          </>
-                        )}
-                      </button>
+                        <div className="flex items-center justify-between pb-1">
+                          <span className="text-[#996515] uppercase tracking-widest text-xs font-bold font-sans">
+                            {line.speaker || 'ELION'}
+                          </span>
+                          <MessageSquare className="w-4 h-4 text-amber-700/80" />
+                        </div>
+                        <p className="text-base sm:text-xl font-bold text-black text-left py-1 font-sans">
+                          {line.text}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+
+              {/* Interactive Click-to-Continue Prompt for Next Speaker + Autoplay Toggle */}
+              {currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1 && (
+                <div className="flex items-center justify-center gap-3 pt-2 pb-1">
+                  <button
+                    id="dialogue-next-speaker-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDialogueStep((prev) => prev + 1);
+                    }}
+                    aria-label="Next Dialogue Line"
+                    title="Next Dialogue Line"
+                    className="p-2.5 rounded-full border-2 border-[#d4af37] bg-white text-black hover:bg-amber-100 shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                  >
+                    <ChevronDown className="w-5 h-5 text-[#996515]" />
+                  </button>
+
+                  <button
+                    id="dialogue-autoplay-toggle-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsAutoPlay((prev) => !prev);
+                    }}
+                    className="px-3 py-1.5 rounded-full border-2 border-[#996515] bg-white text-[#996515] hover:bg-amber-50 text-xs font-bold font-sans flex items-center gap-1.5 transition-all shadow-md cursor-pointer hover:scale-105 active:scale-95"
+                    title={isAutoPlay ? 'Autoplay active (click to switch to Manual)' : 'Manual active (click to switch to Autoplay)'}
+                  >
+                    {isAutoPlay ? (
+                      <>
+                        <Play className="w-3.5 h-3.5 text-[#996515] fill-[#996515]" />
+                        <span>Auto</span>
+                      </>
                     ) : (
-                      <button
-                        onClick={handleReplayTypewriter}
-                        className="px-3.5 py-1.5 rounded-xl border border-amber-400 bg-white/90 text-black hover:bg-amber-100 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
-                        title="Restart typewriter"
-                      >
-                        <RotateCcw className="w-4 h-4 text-amber-700" />
-                        <span>Replay</span>
-                      </button>
+                      <>
+                        <Pause className="w-3.5 h-3.5 text-[#996515]" />
+                        <span>Manual</span>
+                      </>
                     )}
-
-                    {/* Speed Toggle 1x/2x (Hidden on mobile) */}
-                    <button
-                      onClick={() => setTypingSpeed(typingSpeed === 'normal' ? 'fast' : 'normal')}
-                      className="hidden sm:inline-flex px-2.5 py-1 rounded-xl border border-amber-400 bg-white/90 text-black hover:bg-amber-100 text-xs font-bold cursor-pointer transition-all"
-                      title="Toggle typing speed"
-                    >
-                      {typingSpeed === 'fast' ? '2x' : '1x'}
-                    </button>
-
-                    {/* Skip to Full Text >> (Hidden on mobile) */}
-                    {!isTypewriterDone && (
-                      <button
-                        onClick={handleSkipTypewriter}
-                        className="hidden sm:inline-flex p-2 rounded-xl border border-amber-400 bg-white/90 text-black hover:bg-amber-100 text-xs font-semibold items-center gap-1 cursor-pointer transition-all"
-                        title="Show complete text"
-                      >
-                        <FastForward className="w-4 h-4" />
-                        <span>Skip</span>
-                      </button>
-                    )}
-                  </div>
+                  </button>
                 </div>
+              )}
 
-                {/* Multi-Scene Stepper Bar for Sequential Background Acts */}
-                {hasSequentialImages && currentAct.images && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 mb-4 rounded-2xl bg-amber-500/15 border border-amber-300">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#d4af37]" />
-                      <span className="text-xs font-bold text-amber-950 font-cinzel uppercase tracking-wider">
-                        Scene {activeSentenceIdx + 1} of {currentAct.images.length}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => setSelectedSentenceIdx(Math.max(0, activeSentenceIdx - 1))}
-                        disabled={activeSentenceIdx === 0}
-                        className="p-1 rounded-lg border border-amber-400 bg-white/90 text-black hover:bg-amber-100 disabled:opacity-30 disabled:pointer-events-none text-xs cursor-pointer"
-                        title="Previous background scene"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      {currentAct.images.map((_, sIdx) => (
-                        <button
-                          key={sIdx}
-                          onClick={() => setSelectedSentenceIdx(sIdx)}
-                          className={`w-6 h-6 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                            activeSentenceIdx === sIdx
-                              ? 'bg-[#d4af37] text-slate-950 shadow-md scale-105 font-extrabold'
-                              : 'bg-white/80 text-slate-700 hover:bg-amber-100'
-                          }`}
-                          title={`Scene ${sIdx + 1}`}
-                        >
-                          {sIdx + 1}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setSelectedSentenceIdx(Math.min(currentAct.images!.length - 1, activeSentenceIdx + 1))}
-                        disabled={activeSentenceIdx >= currentAct.images.length - 1}
-                        className="p-1 rounded-lg border border-amber-400 bg-white/90 text-black hover:bg-amber-100 disabled:opacity-30 disabled:pointer-events-none text-xs cursor-pointer"
-                        title="Next background scene"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Formatted Typewriter Text */}
-                <div className="pr-1">
-                  {renderFormattedText(rawText, typedLength)}
-                  {!isTypewriterDone ? (
-                    <span
-                      ref={typewriterCursorRef}
-                      className="inline-block w-2.5 h-5 bg-[#d4af37] ml-1 animate-pulse align-middle"
-                    />
-                  ) : (
-                    <span ref={typewriterCursorRef} className="inline-block h-1 w-1" />
-                  )}
-                </div>
-              </motion.div>
-
+              {/* Invisible scroll target */}
+              <div ref={dialogueEndRef} className="h-1" />
             </div>
-          )}
 
-          {/* Bottom Act Navigation Progress Dots */}
-          <div className="flex items-center justify-center gap-1.5 py-2">
-            {actItems.map((item, idx) => (
-              <button
-                key={item.id}
-                onClick={() => setCurrentIndex(idx)}
-                className={`h-2 rounded-full transition-all cursor-pointer ${
-                  currentIndex === idx
-                    ? 'w-7 bg-[#d4af37] shadow-[0_0_8px_#d4af37]'
-                    : 'w-2 bg-white/30 hover:bg-white/60'
-                }`}
-                title={`${item.chapterTitle} - ${item.actTitle}`}
-              />
-            ))}
           </div>
-
-        </motion.div>
-      ) : (
-        /* While animation plays: user can watch clear animation or tap to skip */
-        <div
-          className="relative z-10 flex flex-col items-center justify-end pb-6 sm:pb-8 w-full cursor-pointer"
-          onClick={() => {
-            setIsVideoFinished(true);
-            if (videoRef.current) {
-              videoRef.current.pause();
-            }
-          }}
-        >
-          {currentAct.mp4 && (
-            <button
-              id="skip-animation-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsVideoFinished(true);
-                if (videoRef.current) {
-                  videoRef.current.pause();
+        ) : (
+          /* B. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
+          <div className="w-full bg-white/95 text-black rounded-t-3xl border-t-2 border-[#d4af37] shadow-[0_-10px_35px_rgba(0,0,0,0.6)] backdrop-blur-md animate-fadeIn">
+            <div
+              ref={narrativeBoxRef}
+              onClick={() => {
+                if (!isAllSentencesRevealed) {
+                  setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
                 }
               }}
-              className="mb-4 px-4 py-2 rounded-full border border-[#d4af37] bg-black/60 hover:bg-black/90 text-amber-200 hover:text-white text-xs sm:text-sm font-cinzel tracking-wider flex items-center gap-2 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-sm animate-pulse"
+              className="max-h-[46vh] sm:max-h-[44vh] overflow-y-auto scroll-smooth p-4 sm:p-6 md:p-8 pr-3 cursor-pointer select-none"
             >
-              <span>Skip to Story</span>
-              <FastForward className="w-3.5 h-3.5 text-[#d4af37]" />
-            </button>
-          )}
+              {/* Header (Scrolls with text) */}
+              <div className="flex items-center justify-between border-b border-amber-300 pb-3 mb-3">
+                {/* Chapter & Act Title */}
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
+                  <span className="font-cinzel text-xs sm:text-sm font-bold text-black uppercase tracking-wider">
+                    {currentAct.chapterTitle} · {currentAct.actTitle}
+                  </span>
+                </div>
+              </div>
 
-          {/* Bottom Act Navigation Progress Dots */}
-          <div className="flex items-center justify-center gap-1.5 py-2" onClick={(e) => e.stopPropagation()}>
-            {actItems.map((item, idx) => (
-              <button
-                key={item.id}
-                onClick={() => setCurrentIndex(idx)}
-                className={`h-2 rounded-full transition-all cursor-pointer ${
-                  currentIndex === idx
-                    ? 'w-7 bg-[#d4af37] shadow-[0_0_8px_#d4af37]'
-                    : 'w-2 bg-white/30 hover:bg-white/60'
-                }`}
-                title={`${item.chapterTitle} - ${item.actTitle}`}
-              />
-            ))}
+              {/* Formatted Text (Appearing 1 sentence at a time) */}
+              <div className="pr-1">
+                {renderFormattedText()}
+              </div>
+
+              {/* Next Sentence Arrow Indicator + Autoplay Toggle (if more sentences remain) */}
+              {!isAllSentencesRevealed && (
+                <div className="flex items-center justify-center gap-3 pt-3 pb-1">
+                  <button
+                    id="narrative-next-sentence-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
+                    }}
+                    aria-label="Next Sentence"
+                    title="Next Sentence"
+                    className="p-2 rounded-full border-2 border-[#d4af37] bg-white text-black hover:bg-amber-100 shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                  >
+                    <ChevronDown className="w-4 h-4 text-[#996515]" />
+                  </button>
+
+                  <button
+                    id="narrative-autoplay-toggle-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsAutoPlay((prev) => !prev);
+                    }}
+                    className="px-3 py-1.5 rounded-full border-2 border-[#996515] bg-white text-[#996515] hover:bg-amber-50 text-xs font-bold font-sans flex items-center gap-1.5 transition-all shadow-md cursor-pointer hover:scale-105 active:scale-95"
+                    title={isAutoPlay ? 'Autoplay active (click to switch to Manual)' : 'Manual active (click to switch to Autoplay)'}
+                  >
+                    {isAutoPlay ? (
+                      <>
+                        <Play className="w-3.5 h-3.5 text-[#996515] fill-[#996515]" />
+                        <span>Auto</span>
+                      </>
+                    ) : (
+                      <>
+                        <Pause className="w-3.5 h-3.5 text-[#996515]" />
+                        <span>Manual</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </motion.div>
 
     </div>
   );
