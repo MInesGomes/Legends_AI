@@ -91,7 +91,7 @@ const GoldFamilyIcon: React.FC = () => (
   </svg>
 );
 
-// Ornamental Cartouche Plaque Banner (Transparent background with gold ornamental outline)
+// Ornamental Cartouche Plaque Banner (Matching DadMom.png reference bracket shape)
 const CartouchePlaque: React.FC<{
   icon: React.ReactNode;
   title: string;
@@ -113,12 +113,17 @@ const CartouchePlaque: React.FC<{
             <stop offset="75%" stopColor="#c59828" />
             <stop offset="100%" stopColor="#8f630f" />
           </linearGradient>
+          <linearGradient id="plaqueBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="50%" stopColor="#fffdf9" />
+            <stop offset="100%" stopColor="#faf5e8" />
+          </linearGradient>
         </defs>
 
-        {/* Outer Plaque Body with Bracket Notched Ends (No background color) */}
+        {/* Outer Ivory Plaque Body with Bracket Notched Ends */}
         <path
           d="M 46,3 L 334,3 C 350,3 360,11 366,21 C 372,31 379,38 379,38 C 379,38 372,45 366,55 C 360,65 350,73 334,73 L 46,73 C 30,73 20,65 14,55 C 8,45 1,38 1,38 C 1,38 8,31 14,21 C 20,11 30,3 46,3 Z"
-          fill="none"
+          fill="url(#plaqueBgGrad)"
           stroke="url(#plaqueGoldRim)"
           strokeWidth="2.8"
           strokeLinejoin="round"
@@ -139,7 +144,7 @@ const CartouchePlaque: React.FC<{
         <div className="shrink-0 flex items-center justify-center">
           {icon}
         </div>
-        <span className="font-serif text-lg sm:text-xl md:text-2xl font-bold tracking-wider text-[#fce0a2] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] uppercase select-none">
+        <span className="font-serif text-lg sm:text-xl md:text-2xl font-bold tracking-wider text-[#122d52] uppercase select-none">
           {title}
         </span>
       </div>
@@ -293,8 +298,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               onClick={() => onSelectRealm(realm)}
               className="p-[3.5px] rounded-[30px] sm:rounded-[32px] bg-gradient-to-b from-[#ffe59e] via-[#d4af37] via-[#c49226] to-[#7d4d0b] shadow-[0_12px_32px_rgba(0,0,0,0.18),0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)] transition-all duration-300 group cursor-pointer active:scale-[0.985]"
             >
-              {/* Inner card with gold hairline border (transparent background) */}
-              <div className="relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden bg-transparent text-left border-2 border-[#fff3cc]/80">
+              {/* Inner card with gold hairline border */}
+              <div className="relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden bg-slate-900 text-left border-2 border-[#fff3cc]/80">
                 {/* Background Cover Image */}
                 <img
                   src={realm.bgImage}
@@ -319,82 +324,90 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ))}
         </div>
 
-        {/* Daily Tales Quota & Reading Progress Card (Placed at the bottom of the Dashboard - transparent background) */}
+        {/* Daily Tales Quota & Reading Progress Card (Placed at the bottom of the Dashboard) */}
         {user && (
-          <div className="rounded-2xl border-2 border-[#d4af37]/60 bg-transparent shadow-xl p-5 sm:p-6 transition-all">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              
-              {/* Left: Quota Stats & Description */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl border border-[#d4af37] bg-transparent flex items-center justify-center shadow-md">
-                    <BookOpen className="w-5 h-5 text-[#d4af37]" />
-                  </div>
-                  <div>
-                    <h3 className={`text-lg sm:text-xl font-bold font-cinzel tracking-wide ${
-                      darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
-                    }`}>
-                      Daily Tales Journey
-                    </h3>
-                    <p className={`text-xs sm:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                      {remainingTales > 0 ? (
-                        <>
-                          <strong className="text-[#d4af37] font-semibold">{remainingTales} tale{remainingTales > 1 ? 's' : ''}</strong> left to explore today
-                        </>
-                      ) : (
-                        <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                          <CheckCircle2 className="w-4 h-4 inline" /> Daily Reading Quota Completed!
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {isUnder18 && (
-                  <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
-                    <ShieldCheck className="w-4 h-4 shrink-0" />
-                    <span>Youth Protection Limit: Under 18 accounts are limited to a max of 5 tales/day.</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Center / Right: Progress Bar & Action */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 min-w-[260px] sm:min-w-[320px]">
+          <div className="p-[2.5px] rounded-2xl bg-gradient-to-r from-[#ffe59e]/70 via-[#d4af37] to-[#8c5804]/70 shadow-xl">
+            <div className={`rounded-[14px] p-5 sm:p-6 transition-all ${
+              darkMode ? 'bg-[#121824]/95 text-slate-100' : 'bg-white/95 text-slate-900 shadow-sm'
+            }`}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 
-                {/* Progress Meter Bar */}
-                <div className="flex-1 space-y-1.5">
-                  <div className="flex justify-between text-xs font-mono font-bold">
-                    <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>Today's Tales Read</span>
-                    <span className="text-[#d4af37] text-sm font-extrabold">{todayTalesCount} / {effectiveLimit}</span>
+                {/* Left: Quota Stats & Description */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center shadow-md">
+                      <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${
+                        darkMode ? 'bg-[#121824] text-[#fce0a2]' : 'bg-white text-[#8a5d12]'
+                      }`}>
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className={`text-lg sm:text-xl font-bold font-cinzel tracking-wide ${
+                        darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+                      }`}>
+                        Daily Tales Journey
+                      </h3>
+                      <p className={`text-xs sm:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                        {remainingTales > 0 ? (
+                          <>
+                            <strong className="text-[#d4af37] font-semibold">{remainingTales} tale{remainingTales > 1 ? 's' : ''}</strong> left to explore today
+                          </>
+                        ) : (
+                          <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4 inline" /> Daily Reading Quota Completed!
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className={`w-full h-3 rounded-full overflow-hidden border ${
-                    darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-200 border-slate-300'
-                  }`}>
-                    <div
-                      className="h-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] rounded-full transition-all duration-500 shadow-sm"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
+
+                  {isUnder18 && (
+                    <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>Youth Protection Limit: Under 18 accounts are limited to a max of 5 tales/day.</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Configure Goal Button */}
-                {onOpenProfile && (
-                  <button
-                    onClick={onOpenProfile}
-                    className={`px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap ${
-                      darkMode
-                        ? 'bg-[#1a2332] border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#222e42]'
-                        : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
-                    }`}
-                    title="Adjust daily tale reading limit"
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                    <span>Set Goal</span>
-                  </button>
-                )}
+                {/* Center / Right: Progress Bar & Action */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 min-w-[260px] sm:min-w-[320px]">
+                  
+                  {/* Progress Meter Bar */}
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex justify-between text-xs font-mono font-bold">
+                      <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>Today's Tales Read</span>
+                      <span className="text-[#d4af37] text-sm font-extrabold">{todayTalesCount} / {effectiveLimit}</span>
+                    </div>
+                    <div className={`w-full h-3 rounded-full overflow-hidden border ${
+                      darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-200 border-slate-300'
+                    }`}>
+                      <div
+                        className="h-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] rounded-full transition-all duration-500 shadow-sm"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Configure Goal Button */}
+                  {onOpenProfile && (
+                    <button
+                      onClick={onOpenProfile}
+                      className={`px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap ${
+                        darkMode
+                          ? 'bg-[#1a2332] border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#222e42]'
+                          : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
+                      }`}
+                      title="Adjust daily tale reading limit"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Set Goal</span>
+                    </button>
+                  )}
+
+                </div>
 
               </div>
-
             </div>
           </div>
         )}

@@ -13,6 +13,7 @@ export interface ActItem {
   mp4: string;
   posterImage: string;
   text?: string;
+  images?: string[];
   characterName?: string;
   role?: string;
   avatarUrl?: string;
@@ -57,7 +58,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
           posterImage: DEFAULT_BG,
           text: ch.act1.text,
           femaleAvatar: chapterFemaleAvatar,
@@ -72,12 +73,12 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
         type: 'character',
         chapterTitle: ch.title,
         subtitle: ch.subtitle,
-        actTitle: `Alethea — ${ch.female_act.role || 'Guardian of the Lower Archives'}`,
+        actTitle: `Alethea — ${ch.female_act.role || 'Guardian of the Ancient Archives'}`,
         mp4: ch.female_act.mp4 || '/src/assets/realms/atlantis/0Alethea.mp4',
         posterImage: DEFAULT_BG,
         text: ch.female_act.description,
         characterName: ch.female_act.characterName || 'Alethea',
-        role: ch.female_act.role || 'Guardian of the Lower Archives',
+        role: ch.female_act.role || 'Guardian of the Ancient Archives',
         avatarUrl: chapterFemaleAvatar,
         gender: 'female',
         femaleAvatar: chapterFemaleAvatar,
@@ -122,8 +123,16 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: ch.act2.title || 'The Beginning',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
-          posterImage: DEFAULT_BG,
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
+          posterImage: (ch.act2.images && ch.act2.images[0]) || '/src/assets/realms/atlantis/act2-1.jpg',
+          images: ch.act2.images || [
+            '/src/assets/realms/atlantis/act2-1.jpg',
+            '/src/assets/realms/atlantis/act2-2.jpg',
+            '/src/assets/realms/atlantis/act2-3.jpg',
+            '/src/assets/realms/atlantis/act2-4.jpg',
+            '/src/assets/realms/atlantis/act2-5.jpg',
+            '/src/assets/realms/atlantis/act2-6.jpg'
+          ],
           text: ch.act2.text,
           femaleAvatar: chapterFemaleAvatar,
           maleAvatar: chapterMaleAvatar
@@ -142,8 +151,8 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           type: 'narrative',
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
-          actTitle: ch.act1.title || 'The Celebration and the Darkness',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+          actTitle: ch.act1.title || 'The Celebration',
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
           posterImage: DEFAULT_BG,
           text: ch.act1.text,
           femaleAvatar: chapterFemaleAvatar,
@@ -161,9 +170,9 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: 'Opening Dialogue · Emergency Controls',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
           posterImage: DEFAULT_BG,
-          sceneNarrative: ch.act1?.text || 'The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd. For the first time in generations, the Heart of Atlantis shone brighter than anyone had ever seen.',
+          sceneNarrative: ch.act1?.text || 'The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.',
           dialogue: ch.dialog,
           femaleAvatar: chapterFemaleAvatar,
           maleAvatar: chapterMaleAvatar
@@ -181,7 +190,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
             chapterTitle: ch.title,
             subtitle: ch.subtitle,
             actTitle: choice.title || `Choice: ${choice.type}`,
-            mp4: ch.mp4 || '/src/assets/realms/atlantis/0AtlantisCh1.mp4',
+            mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
             posterImage: DEFAULT_BG,
             choiceType: choice.type,
             choiceTitle: choice.title,

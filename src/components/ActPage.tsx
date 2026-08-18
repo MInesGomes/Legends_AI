@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Language, UserProfile, SkillType } from '../types';
 import { ActItem, getAtlantisActItems } from '../lib/atlantisData';
-import { ElionCinematicAnimation } from './ElionCinematicAnimation';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -72,30 +71,36 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [typingSpeed, setTypingSpeed] = useState<'normal' | 'fast'>('normal');
   const [isTypewriterDone, setIsTypewriterDone] = useState<boolean>(false);
 
+  // Selected sentence index for multi-image acts (e.g. Act 2's 6 images for 6 sentences)
+  const [selectedSentenceIdx, setSelectedSentenceIdx] = useState<number | null>(null);
+
   // Dialogue stepper index for dialogue/choice acts
   const [dialogueStep, setDialogueStep] = useState<number>(0);
   const [isSpeakingText, setIsSpeakingText] = useState(false);
 
+  const currentAct = actItems[currentIndex] || actItems[0];
+  const hasSequentialImages = !!(currentAct?.images && currentAct.images.length > 0);
+
   // Background animation state: do not repeat, only reveal overlay when animation ends
-  const [isVideoFinished, setIsVideoFinished] = useState<boolean>(!actItems[initialIdx >= 0 ? initialIdx : 0]?.mp4);
+  const [isVideoFinished, setIsVideoFinished] = useState<boolean>(!actItems[initialIdx >= 0 ? initialIdx : 0]?.mp4 || hasSequentialImages);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const dialogueScrollContainerRef = useRef<HTMLDivElement>(null);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
   const typewriterBoxRef = useRef<HTMLDivElement>(null);
   const typewriterCursorRef = useRef<HTMLSpanElement>(null);
-  const currentAct = actItems[currentIndex] || actItems[0];
 
   // Reset typewriter, dialogue step & video finish state whenever act changes
   useEffect(() => {
     setTypedLength(0);
     setIsTypewriterDone(false);
+    setSelectedSentenceIdx(null);
     setDialogueStep(0);
     setIsSpeakingText(false);
-    const noVideo = !currentAct?.mp4;
-    setIsVideoFinished(noVideo);
-    // If there is no background video, start playing immediately
-    setIsTypewriterPlaying(noVideo);
+    const noVideo = !currentAct?.mp4 || (currentAct?.images && currentAct.images.length > 0);
+    setIsVideoFinished(!!noVideo);
+    // If there is no background video or it has sequential images, start playing immediately
+    setIsTypewriterPlaying(true);
 
     if (typewriterBoxRef.current) {
       typewriterBoxRef.current.scrollTop = 0;
@@ -207,13 +212,6 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
   };
 
-  const handleSkipAnimation = () => {
-    setIsVideoFinished(true);
-    if (videoRef.current) {
-      videoRef.current.pause();
-    }
-  };
-
   const handleSkipTypewriter = () => {
     if (!rawText) return;
     setTypedLength(rawText.length);
@@ -249,10 +247,76 @@ export const ActPage: React.FC<ActPageProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
-  // Render Formatted Narrative Text (with paragraph spacing and bullet points)
+  // Split narrative sentences for sequential scene multi-images
+  const sentences = (currentAct?.text || '')
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const activeTypingSentenceIdx = (() => {
+    if (!sentences.length || !rawText) return 0;
+    let charCount = 0;
+    for (let i = 0; i < sentences.length; i++) {
+      const s = sentences[i];
+      const sStart = rawText.indexOf(s, charCount);
+      const sEnd = sStart + s.length;
+      charCount = sEnd;
+      if (typedLength <= sEnd) {
+        return i;
+      }
+    }
+    return sentences.length - 1;
+  })();
+
+  const activeSentenceIdx = selectedSentenceIdx !== null
+    ? selectedSentenceIdx
+    : activeTypingSentenceIdx;
+
+  // Render Formatted Narrative Text (with paragraph spacing, bullet points, and multi-scene sentence rows)
   const renderFormattedText = (fullString: string, currentSliceLength: number) => {
     const visibleText = fullString.slice(0, currentSliceLength);
     const lines = visibleText.split('\n');
+
+    if (hasSequentialImages) {
+      return (
+        <div className="space-y-2.5 font-sans text-sm sm:text-base md:text-lg leading-relaxed text-black">
+          {lines.map((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) {
+              return <div key={idx} className="h-2" />;
+            }
+            const isActive = activeSentenceIdx === idx;
+
+            return (
+              <motion.div
+                key={idx}
+                onClick={() => setSelectedSentenceIdx(idx)}
+                className={`p-3 sm:p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3 select-text ${
+                  isActive
+                    ? 'border-[#d4af37] bg-amber-400/25 shadow-md ring-2 ring-[#d4af37]/60'
+                    : 'border-amber-200/80 hover:border-amber-400 hover:bg-amber-50/70 bg-white/75'
+                }`}
+              >
+                <span
+                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold font-cinzel flex-shrink-0 mt-0.5 ${
+                    isActive
+                      ? 'bg-[#d4af37] text-slate-950 shadow-[0_0_8px_#d4af37]'
+                      : 'bg-amber-100 text-amber-900 border border-amber-300'
+                  }`}
+                >
+                  {idx + 1}
+                </span>
+                <div className="flex-1">
+                  <p className={`tracking-wide ${isActive ? 'text-black font-bold' : 'text-slate-800 font-medium'}`}>
+                    {line}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-3 font-sans text-sm sm:text-base md:text-lg leading-relaxed text-black font-medium">
@@ -284,50 +348,64 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const aletheaAvatar = currentAct.femaleAvatar || '/src/assets/avatars/0Alethea.jpg';
   const elionAvatar = currentAct.maleAvatar || '/src/assets/avatars/0Elion.jpg';
-  const isMaleCharacterAct = currentAct.id === 'atlantis-ch1-male' || currentAct.actKey === 'ch1-male' || (currentAct.gender === 'male' && currentAct.chapterNumber === 1);
 
   return (
     <div
       id="act-fullscreen-page"
       className="fixed inset-0 z-50 w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between select-none"
     >
-      {/* 1. BACKGROUND VIDEO / ANIMATION WITH FALLBACK POSTER (Crystal clear, align top, crop bottom if necessary) */}
-      {isMaleCharacterAct && !isVideoFinished ? (
-        <div className="absolute inset-0 z-10 w-full h-full pointer-events-auto">
-          <ElionCinematicAnimation
-            isMuted={isMuted}
-            onToggleMute={() => setIsMuted(!isMuted)}
-            onAnimationComplete={() => setIsVideoFinished(true)}
-            onSkip={handleSkipAnimation}
-          />
-        </div>
-      ) : (
-        <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
-          <video
-            ref={videoRef}
-            key={currentAct.mp4}
-            src={currentAct.mp4}
-            poster={currentAct.posterImage}
-            autoPlay
-            muted={isMuted}
-            playsInline
-            className="w-full h-full object-cover object-top"
-            onEnded={() => setIsVideoFinished(true)}
-            onError={(e) => {
-              // Graceful fallback to poster background image if video can't decode
-              const target = e.currentTarget;
-              target.style.display = 'none';
-              setIsVideoFinished(true);
-            }}
-          />
-          {/* Fallback image behind video */}
-          <img
-            src={currentAct.posterImage}
-            alt={currentAct.actTitle}
-            className="absolute inset-0 w-full h-full object-cover object-top -z-10"
-          />
-        </div>
-      )}
+      {/* 1. BACKGROUND VIDEO / MULTI-SCENE IMAGES / FALLBACK POSTER */}
+      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
+        {hasSequentialImages ? (
+          <div className="relative w-full h-full">
+            {currentAct.images!.map((imgUrl, imgIdx) => (
+              <motion.img
+                key={imgUrl}
+                src={imgUrl}
+                alt={`${currentAct.actTitle} scene ${imgIdx + 1}`}
+                initial={false}
+                animate={{
+                  opacity: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1 : 0,
+                  scale: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1.02 : 1,
+                }}
+                transition={{ duration: 0.65, ease: 'easeInOut' }}
+                className="absolute inset-0 w-full h-full object-cover object-center"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = currentAct.posterImage || '/src/assets/realms/atlantis/realm_atlantis_bg.png';
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <>
+            <video
+              ref={videoRef}
+              key={currentAct.mp4}
+              src={currentAct.mp4}
+              poster={currentAct.posterImage}
+              autoPlay
+              muted={isMuted}
+              playsInline
+              className="w-full h-full object-cover object-center"
+              onEnded={() => setIsVideoFinished(true)}
+              onError={(e) => {
+                // Graceful fallback to poster background image if video can't decode
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                setIsVideoFinished(true);
+              }}
+            />
+            {/* Fallback image behind video */}
+            <img
+              src={currentAct.posterImage}
+              alt={currentAct.actTitle}
+              className="absolute inset-0 w-full h-full object-cover object-center -z-10"
+              referrerPolicy="no-referrer"
+            />
+          </>
+        )}
+      </div>
 
       {/* 2. TOP LEFT: CLOSE 'X' BUTTON (Very small on mobile) */}
       <div className="absolute top-2.5 left-2.5 sm:top-6 sm:left-6 z-30 flex items-center gap-2 sm:gap-3">
@@ -348,32 +426,20 @@ export const ActPage: React.FC<ActPageProps> = ({
         </div>
       </div>
 
-      {/* 3. TOP RIGHT: SKIP ANIMATION, LANGUAGE SELECTOR & SOUND TOGGLE */}
-      <div className="absolute top-2.5 right-2.5 sm:top-6 sm:right-6 z-30 flex items-center gap-2 sm:gap-3">
-        {!isVideoFinished && currentAct.mp4 && (
-          <button
-            id="top-skip-animation-btn"
-            onClick={handleSkipAnimation}
-            className="px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-full border-2 border-[#d4af37] bg-black/80 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 font-cinzel font-bold text-xs sm:text-sm tracking-wider flex items-center gap-2 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer animate-pulse"
-            title="Skip background animation"
-          >
-            <span>Skip Animation</span>
-            <FastForward className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </button>
-        )}
-
-        {/* Ambient Sound Toggle (Hidden on mobile) */}
+      {/* 3. TOP RIGHT: LANGUAGE SELECTOR & SOUND TOGGLE (Hidden on mobile) */}
+      <div className="hidden sm:flex absolute top-4 right-4 sm:top-6 sm:right-6 z-30 items-center gap-3">
+        {/* Ambient Sound Toggle */}
         <button
           id="act-sound-toggle"
           onClick={() => setIsMuted(!isMuted)}
-          className="hidden sm:flex p-3 rounded-full border-2 border-[#d4af37]/70 bg-black/60 hover:bg-black/90 text-amber-200 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer items-center justify-center"
+          className="p-3 rounded-full border-2 border-[#d4af37]/70 bg-black/60 hover:bg-black/90 text-amber-200 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center"
           title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
         >
           {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5 text-[#d4af37]" />}
         </button>
 
-        {/* Language Selector Dropdown (Hidden on mobile) */}
-        <div className="relative hidden sm:block">
+        {/* Language Selector Dropdown */}
+        <div className="relative">
           <button
             id="act-lang-selector"
             onClick={() => setShowLangMenu(!showLangMenu)}
@@ -671,19 +737,6 @@ export const ActPage: React.FC<ActPageProps> = ({
 
                   {/* Controls: Play/Pause (Always visible), Speed/Sound/Skip (Hidden on mobile) */}
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                    {/* Replay Cinematic Animation for Male Background */}
-                    {isMaleCharacterAct && (
-                      <button
-                        onClick={() => setIsVideoFinished(false)}
-                        className="px-3 py-1.5 rounded-xl border border-[#d4af37] bg-black/90 text-[#fce0a2] hover:bg-[#d4af37] hover:text-black text-xs font-cinzel font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
-                        title="Replay 6-Act Cinematic Animation with Epic Music"
-                      >
-                        <Play className="w-3.5 h-3.5 fill-current" />
-                        <span className="hidden sm:inline">Play Epic Animation</span>
-                        <span className="sm:hidden">Animation</span>
-                      </button>
-                    )}
-
                     {/* Read Aloud / Sound Button (Hidden on mobile) */}
                     <button
                       onClick={() => handleReadAloud(rawText)}
@@ -751,6 +804,50 @@ export const ActPage: React.FC<ActPageProps> = ({
                   </div>
                 </div>
 
+                {/* Multi-Scene Stepper Bar for Sequential Background Acts */}
+                {hasSequentialImages && currentAct.images && (
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 mb-4 rounded-2xl bg-amber-500/15 border border-amber-300">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#d4af37]" />
+                      <span className="text-xs font-bold text-amber-950 font-cinzel uppercase tracking-wider">
+                        Scene {activeSentenceIdx + 1} of {currentAct.images.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setSelectedSentenceIdx(Math.max(0, activeSentenceIdx - 1))}
+                        disabled={activeSentenceIdx === 0}
+                        className="p-1 rounded-lg border border-amber-400 bg-white/90 text-black hover:bg-amber-100 disabled:opacity-30 disabled:pointer-events-none text-xs cursor-pointer"
+                        title="Previous background scene"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      {currentAct.images.map((_, sIdx) => (
+                        <button
+                          key={sIdx}
+                          onClick={() => setSelectedSentenceIdx(sIdx)}
+                          className={`w-6 h-6 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            activeSentenceIdx === sIdx
+                              ? 'bg-[#d4af37] text-slate-950 shadow-md scale-105 font-extrabold'
+                              : 'bg-white/80 text-slate-700 hover:bg-amber-100'
+                          }`}
+                          title={`Scene ${sIdx + 1}`}
+                        >
+                          {sIdx + 1}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setSelectedSentenceIdx(Math.min(currentAct.images!.length - 1, activeSentenceIdx + 1))}
+                        disabled={activeSentenceIdx >= currentAct.images.length - 1}
+                        className="p-1 rounded-lg border border-amber-400 bg-white/90 text-black hover:bg-amber-100 disabled:opacity-30 disabled:pointer-events-none text-xs cursor-pointer"
+                        title="Next background scene"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Formatted Typewriter Text */}
                 <div className="pr-1">
                   {renderFormattedText(rawText, typedLength)}
@@ -786,11 +883,33 @@ export const ActPage: React.FC<ActPageProps> = ({
 
         </motion.div>
       ) : (
-        /* While animation plays: user can watch clear animation or tap anywhere to skip */
+        /* While animation plays: user can watch clear animation or tap to skip */
         <div
           className="relative z-10 flex flex-col items-center justify-end pb-6 sm:pb-8 w-full cursor-pointer"
-          onClick={() => handleSkipAnimation()}
+          onClick={() => {
+            setIsVideoFinished(true);
+            if (videoRef.current) {
+              videoRef.current.pause();
+            }
+          }}
         >
+          {currentAct.mp4 && (
+            <button
+              id="skip-animation-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsVideoFinished(true);
+                if (videoRef.current) {
+                  videoRef.current.pause();
+                }
+              }}
+              className="mb-4 px-4 py-2 rounded-full border border-[#d4af37] bg-black/60 hover:bg-black/90 text-amber-200 hover:text-white text-xs sm:text-sm font-cinzel tracking-wider flex items-center gap-2 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-sm animate-pulse"
+            >
+              <span>Skip to Story</span>
+              <FastForward className="w-3.5 h-3.5 text-[#d4af37]" />
+            </button>
+          )}
+
           {/* Bottom Act Navigation Progress Dots */}
           <div className="flex items-center justify-center gap-1.5 py-2" onClick={(e) => e.stopPropagation()}>
             {actItems.map((item, idx) => (
