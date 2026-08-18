@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Language, UserProfile, SkillType } from '../types';
 import { ActItem, getAtlantisActItems } from '../lib/atlantisData';
+import { ElionCinematicAnimation } from './ElionCinematicAnimation';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -283,6 +284,7 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const aletheaAvatar = currentAct.femaleAvatar || '/src/assets/avatars/0Alethea.jpg';
   const elionAvatar = currentAct.maleAvatar || '/src/assets/avatars/0Elion.jpg';
+  const isMaleCharacterAct = currentAct.id === 'atlantis-ch1-male' || currentAct.actKey === 'ch1-male' || (currentAct.gender === 'male' && currentAct.chapterNumber === 1);
 
   return (
     <div
@@ -290,31 +292,42 @@ export const ActPage: React.FC<ActPageProps> = ({
       className="fixed inset-0 z-50 w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between select-none"
     >
       {/* 1. BACKGROUND VIDEO / ANIMATION WITH FALLBACK POSTER (Crystal clear, align top, crop bottom if necessary) */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
-        <video
-          ref={videoRef}
-          key={currentAct.mp4}
-          src={currentAct.mp4}
-          poster={currentAct.posterImage}
-          autoPlay
-          muted={isMuted}
-          playsInline
-          className="w-full h-full object-cover object-top"
-          onEnded={() => setIsVideoFinished(true)}
-          onError={(e) => {
-            // Graceful fallback to poster background image if video can't decode
-            const target = e.currentTarget;
-            target.style.display = 'none';
-            setIsVideoFinished(true);
-          }}
-        />
-        {/* Fallback image behind video */}
-        <img
-          src={currentAct.posterImage}
-          alt={currentAct.actTitle}
-          className="absolute inset-0 w-full h-full object-cover object-top -z-10"
-        />
-      </div>
+      {isMaleCharacterAct && !isVideoFinished ? (
+        <div className="absolute inset-0 z-10 w-full h-full pointer-events-auto">
+          <ElionCinematicAnimation
+            isMuted={isMuted}
+            onToggleMute={() => setIsMuted(!isMuted)}
+            onAnimationComplete={() => setIsVideoFinished(true)}
+            onSkip={handleSkipAnimation}
+          />
+        </div>
+      ) : (
+        <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
+          <video
+            ref={videoRef}
+            key={currentAct.mp4}
+            src={currentAct.mp4}
+            poster={currentAct.posterImage}
+            autoPlay
+            muted={isMuted}
+            playsInline
+            className="w-full h-full object-cover object-top"
+            onEnded={() => setIsVideoFinished(true)}
+            onError={(e) => {
+              // Graceful fallback to poster background image if video can't decode
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              setIsVideoFinished(true);
+            }}
+          />
+          {/* Fallback image behind video */}
+          <img
+            src={currentAct.posterImage}
+            alt={currentAct.actTitle}
+            className="absolute inset-0 w-full h-full object-cover object-top -z-10"
+          />
+        </div>
+      )}
 
       {/* 2. TOP LEFT: CLOSE 'X' BUTTON (Very small on mobile) */}
       <div className="absolute top-2.5 left-2.5 sm:top-6 sm:left-6 z-30 flex items-center gap-2 sm:gap-3">
@@ -658,6 +671,19 @@ export const ActPage: React.FC<ActPageProps> = ({
 
                   {/* Controls: Play/Pause (Always visible), Speed/Sound/Skip (Hidden on mobile) */}
                   <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    {/* Replay Cinematic Animation for Male Background */}
+                    {isMaleCharacterAct && (
+                      <button
+                        onClick={() => setIsVideoFinished(false)}
+                        className="px-3 py-1.5 rounded-xl border border-[#d4af37] bg-black/90 text-[#fce0a2] hover:bg-[#d4af37] hover:text-black text-xs font-cinzel font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
+                        title="Replay 6-Act Cinematic Animation with Epic Music"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span className="hidden sm:inline">Play Epic Animation</span>
+                        <span className="sm:hidden">Animation</span>
+                      </button>
+                    )}
+
                     {/* Read Aloud / Sound Button (Hidden on mobile) */}
                     <button
                       onClick={() => handleReadAloud(rawText)}

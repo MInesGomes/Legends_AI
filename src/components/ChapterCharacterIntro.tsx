@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, User, ArrowRight, ArrowLeft, BookOpen, Shield, Award, MessageSquare, CheckCircle2, ChevronRight, Volume2 } from 'lucide-react';
+import { Sparkles, User, ArrowRight, ArrowLeft, BookOpen, Shield, Award, MessageSquare, CheckCircle2, ChevronRight, Volume2, Play, X as CloseIcon } from 'lucide-react';
 import { DialogueLine } from '../types';
+import { ElionCinematicAnimation } from './ElionCinematicAnimation';
 
 export interface CharacterDetail {
   gender: 'female' | 'male';
@@ -110,6 +111,7 @@ export const ChapterCharacterIntro: React.FC<ChapterCharacterIntroProps> = ({
 
   // Active selected character (default to 0 = matches user's gender)
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
+  const [showCinematicModal, setShowCinematicModal] = useState<boolean>(false);
   const activeChar = orderedCharacters[selectedIdx];
 
   const primaryChar = orderedCharacters[0];
@@ -257,8 +259,20 @@ export const ChapterCharacterIntro: React.FC<ChapterCharacterIntroProps> = ({
                       </h2>
                     </div>
 
-                    <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-[#d4af37]/30 to-[#b8860b]/30 border border-[#d4af37] text-amber-200 font-semibold text-xs sm:text-sm font-cinzel">
-                      {activeChar.role}
+                    <div className="flex items-center gap-2">
+                      {activeChar.gender === 'male' && (
+                        <button
+                          onClick={() => setShowCinematicModal(true)}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-slate-950 font-cinzel font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer border border-amber-300 animate-pulse"
+                          title="Watch 6-Act Cinematic Animation with Epic Music"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          <span>Epic Tale Animation</span>
+                        </button>
+                      )}
+                      <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-[#d4af37]/30 to-[#b8860b]/30 border border-[#d4af37] text-amber-200 font-semibold text-xs sm:text-sm font-cinzel">
+                        {activeChar.role}
+                      </div>
                     </div>
                   </div>
 
@@ -434,6 +448,23 @@ export const ChapterCharacterIntro: React.FC<ChapterCharacterIntroProps> = ({
           </div>
 
         </motion.div>
+      </AnimatePresence>
+
+      {/* FULLSCREEN CINEMATIC ANIMATION MODAL */}
+      <AnimatePresence>
+        {showCinematicModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] w-screen h-screen bg-slate-950 flex flex-col overflow-hidden"
+          >
+            <ElionCinematicAnimation
+              onAnimationComplete={() => setShowCinematicModal(false)}
+              onSkip={() => setShowCinematicModal(false)}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
 
     </div>
