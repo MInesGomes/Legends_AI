@@ -79,17 +79,6 @@ export const INITIAL_TALES: Tale[] = [
     likesCount: 388,
     commentsCount: 24
   },
-  {
-    id: 'tale-ocean-depths',
-    realmId: 'realm-atlantis',
-    title: 'Ocean Depths',
-    subtitle: 'The Sunken Bell',
-    coverImage: atlantisBg,
-    skill: 'Listen',
-    viewsCount: 979,
-    likesCount: 211,
-    commentsCount: 15
-  },
 
   // Dad & Mom Tales (matching 2Dad&MomTales.png reference)
   {
