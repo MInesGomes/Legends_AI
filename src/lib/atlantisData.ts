@@ -122,7 +122,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: ch.act2.title || 'The Beginning',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
+          mp4: '/src/assets/realms/atlantis/Act2.mp4',
           posterImage: (ch.act2.images && ch.act2.images[0]) || DEFAULT_BG,
           images: ch.act2.images,
           text: ch.act2.text,

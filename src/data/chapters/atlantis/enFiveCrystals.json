@@ -12,7 +12,7 @@
       "mp4": "/src/assets/realms/atlantis/realm_atlantis.mp4",
       "act1": {
         "title": "The Heart of Atlantis",
-        "text": "Atlantis was a living kingdom beneath the ocean, powered by the Heart of Atlantis.\nAround the Heart stood five smaller crystals, each reflecting one dimension:\nPhysical, Social, Emotional, Intellectual, Spiritual."
+        "text": "Atlantis was a living kingdom beneath the ocean, powered by the Heart of Atlantis.\nAround the Heart stood five smaller crystals, Their names were:\nPHYSICAL, SOCIAL, EMOTIONAL, INTELLECTUAL, SPIRITUAL."
       },
       "female_act": {
         "characterName": "Alethea",
@@ -30,7 +30,8 @@
       },
       "act2": {
         "title": "The Beginning",
-        "text": "When Alethea discovered the first fissure,\nElion woke from another nightmare with a strange blue mark burning across his palm.\nNeither understood the connection.\nBut the Heart had chosen them because they represented two things Atlantis had forgotten:\nknowledge with compassion,\nand strength with purpose."
+        "mp4": "/src/assets/realms/atlantis/Act2.mp4",
+        "text": "When Alethea discovered the first fissure,\nElion woke from another nightmare with a strange blue mark burning across his palm.\nNeither understood the connection.\nBut the Heart had chosen them because they represented two things Atlantis had forgotten:\n- Knowledge with compassion,\n- Strength with purpose."
       }
     },
     {
