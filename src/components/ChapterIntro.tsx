@@ -451,22 +451,22 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                   {
                     key: 'Best',
                     defaultText: 'Protect Everyone Together',
-                    badgeColor: darkMode ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300' : 'bg-emerald-100 border-emerald-400 text-emerald-800'
+                    badgeColor: darkMode ? 'bg-[#d4af37]/20 border-[#d4af37]/50 text-[#fce0a2]' : 'bg-[#f4e8c1] border-[#d4af37] text-[#8a5d12]'
                   },
                   {
                     key: 'Safe',
                     defaultText: 'Seal the Eastern Dome',
-                    badgeColor: darkMode ? 'bg-blue-950/80 border-blue-500/50 text-blue-300' : 'bg-blue-100 border-blue-400 text-blue-800'
+                    badgeColor: darkMode ? 'bg-[#d4af37]/20 border-[#d4af37]/50 text-[#fce0a2]' : 'bg-[#f4e8c1] border-[#d4af37] text-[#8a5d12]'
                   },
                   {
                     key: 'Weak',
                     defaultText: 'Wait for the Council',
-                    badgeColor: darkMode ? 'bg-amber-950/80 border-amber-500/50 text-amber-300' : 'bg-amber-100 border-amber-400 text-amber-800'
+                    badgeColor: darkMode ? 'bg-[#d4af37]/20 border-[#d4af37]/50 text-[#fce0a2]' : 'bg-[#f4e8c1] border-[#d4af37] text-[#8a5d12]'
                   },
                   {
                     key: 'Harmful',
                     defaultText: 'Fight for Control',
-                    badgeColor: darkMode ? 'bg-rose-950/80 border-rose-500/50 text-rose-300' : 'bg-rose-100 border-rose-400 text-rose-800'
+                    badgeColor: darkMode ? 'bg-[#d4af37]/20 border-[#d4af37]/50 text-[#fce0a2]' : 'bg-[#f4e8c1] border-[#d4af37] text-[#8a5d12]'
                   }
                 ].map((opt) => {
                   const choiceData = chapterData?.choices?.[opt.key as ChoiceOptionType];
@@ -537,12 +537,12 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                 {/* FUNNY SHATTER ANIMATION FOR WEAK / HARMFUL / SAFE CHOICES */}
                 {selectedChoice !== 'Best' && (
                   <div className={`text-center p-6 rounded-2xl relative overflow-hidden border-2 space-y-3 ${
-                    darkMode ? 'bg-rose-950/40 border-rose-500/40 text-rose-300' : 'bg-rose-50 border-rose-300 text-rose-900'
+                    darkMode ? 'bg-[#121824]/90 border-[#d4af37]/40 text-[#fce0a2]' : 'bg-[#fffdf7] border-[#d4af37]/60 text-slate-900'
                   }`}>
                     <div className="inline-block text-5xl my-1 animate-shatter">
                       {selectedChoice === 'Harmful' ? '💥' : selectedChoice === 'Weak' ? '💔' : '🛡️'}
                     </div>
-                    <p className="text-sm font-bold uppercase tracking-wider font-cinzel">
+                    <p className="text-sm font-bold uppercase tracking-wider font-cinzel text-[#d4af37]">
                       {selectedChoice === 'Harmful' ? 'Harmful Consequence: Mechanism Broken!' : selectedChoice === 'Weak' ? 'Weak Decision: Hesitation Caused Flooding!' : 'Safe Compromise: Southern District Isolated!'}
                     </p>
                     <p className={`text-sm sm:text-base leading-relaxed max-w-xl mx-auto ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
@@ -567,11 +567,11 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
 
                 {/* BEST CHOICE "READ IT BACK" & SPEECH RECOGNITION ENGINE */}
                 {selectedChoice === 'Best' && (
-                  <div className={`rounded-2xl p-6 space-y-4 border-2 border-emerald-500 shadow-xl ${
+                  <div className={`rounded-2xl p-6 space-y-4 border-2 border-[#d4af37] shadow-xl ${
                     darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 text-slate-900'
                   }`}>
-                    <div className="flex items-center gap-2 text-emerald-600 text-sm font-bold uppercase tracking-wider font-cinzel">
-                      <CheckIcon className="w-4 h-4 text-emerald-600" /> Best Choice Selected! Win4All Mastery
+                    <div className="flex items-center gap-2 text-[#d4af37] text-sm font-bold uppercase tracking-wider font-cinzel">
+                      <CheckIcon className="w-4 h-4 text-[#d4af37]" /> Best Choice Selected! Win4All Mastery
                     </div>
 
                     {/* Outcome Dialogue */}
@@ -594,8 +594,8 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                           🗣️ "Read It Back" Prompt
                         </span>
                         {hasAwardedPoint && (
-                          <span className="px-2.5 py-1 rounded bg-emerald-100 border border-emerald-500 text-xs font-bold text-emerald-800 flex items-center gap-1">
-                            <TrophyIcon className="w-3.5 h-3.5 text-emerald-600" /> +1 {selectedSkill} Point Awarded!
+                          <span className="px-2.5 py-1 rounded bg-[#d4af37]/20 border border-[#d4af37] text-xs font-bold text-[#fce0a2] flex items-center gap-1">
+                            <TrophyIcon className="w-3.5 h-3.5 text-[#d4af37]" /> +1 {selectedSkill} Point Awarded!
                           </span>
                         )}
                       </div>
@@ -629,7 +629,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                               : 'bg-[#f4e8c1] border-[#d4af37] text-[#8a5d12] hover:bg-[#e8d7a1]'
                           }`}
                         >
-                          {isSpeaking ? <PauseIcon className="w-4 h-4 animate-pulse text-amber-500" /> : <PlayIcon className="w-4 h-4 text-[#8a5d12]" />}
+                          {isSpeaking ? <PauseIcon className="w-4 h-4 animate-pulse text-[#d4af37]" /> : <PlayIcon className="w-4 h-4 text-[#8a5d12]" />}
                           {isSpeaking ? 'Reading Aloud...' : 'Read Aloud'}
                         </button>
 
@@ -638,7 +638,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
                           disabled={isListeningMic}
                           className={`px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-2 shadow-md ${
                             isListeningMic
-                              ? 'bg-rose-600 text-white animate-pulse'
+                              ? 'bg-[#d4af37] text-slate-950 animate-pulse'
                               : 'bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 hover:brightness-110'
                           }`}
                         >

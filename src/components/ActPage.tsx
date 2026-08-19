@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Flame,
-  Info
+  Info,
+  RotateCcw
 } from 'lucide-react';
 
 interface ActPageProps {
@@ -41,6 +42,33 @@ const LANGUAGES: { code: Language; label: string; flag: string }[] = [
   { code: 'NL', label: 'Nederlands', flag: '🇳🇱' },
 ];
 
+const CHOICE_FEEDBACK: Record<string, { summary: string; explanation: string; icon: string; tag: string }> = {
+  Best: {
+    tag: 'Optimal Choice',
+    summary: 'Prioritized Human Lives & Courageous Unity',
+    explanation: 'Organizing an immediate, orderly evacuation saved the lives of everyone in the eastern district. Even though the old subterranean tunnels collapsed from the shock, preserving people above all else proved true leadership and aligned with the higher spirit of Atlantis.',
+    icon: '🌟'
+  },
+  Safe: {
+    tag: 'Why this was not good',
+    summary: 'Isolationism & Sacrificing the Vulnerable',
+    explanation: 'Sealing the eastern dome protected the central city but cut off life-sustaining oxygen to the southern districts. Families were left trapped in the dark before rescue vessels could arrive. Pure self-preservation without collective solidarity leaves the vulnerable behind.',
+    icon: '⚠️'
+  },
+  Weak: {
+    tag: 'Why this was not good',
+    summary: 'Fatal Indecision & Bureaucratic Delay',
+    explanation: 'Waiting for Council authorization cost irreplaceable minutes during a high-velocity emergency. By the time permission was granted, catastrophic floodwaters had already overwhelmed the eastern sector. In urgent crises, hesitation can be fatal.',
+    icon: '⏳'
+  },
+  Harmful: {
+    tag: 'Why this was not good',
+    summary: 'Destructive Force & Escalated Chaos',
+    explanation: 'Attempting to violently force the mechanism ruptured internal pressure valves. The resulting mechanical explosion tore bridges apart, destroyed vital supply stores, and blackened the First Crystal. Brute force without calm coordination turns emergencies into disasters.',
+    icon: '💥'
+  }
+};
+
 export const ActPage: React.FC<ActPageProps> = ({
   initialActId,
   initialChapter = 1,
@@ -61,7 +89,6 @@ export const ActPage: React.FC<ActPageProps> = ({
   );
 
   const [currentIndex, setCurrentIndex] = useState<number>(initialIdx >= 0 ? initialIdx : 0);
-  const [showLangMenu, setShowLangMenu] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
 
   // Progressive sentence state for narrative acts (appears 1 sentence at a time)
@@ -75,8 +102,66 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [dialogueStep, setDialogueStep] = useState<number>(0);
   const [isSpeakingText, setIsSpeakingText] = useState(false);
 
+  // Choice tracking and celebration state
+  const [playedChoices, setPlayedChoices] = useState<string[]>([]);
+  const [hasChosenBest, setHasChosenBest] = useState<boolean>(false);
+  const [showCelebration, setShowCelebration] = useState<boolean>(false);
+  const [showOtherOptions, setShowOtherOptions] = useState<boolean>(false);
+  const [shuffledOrder, setShuffledOrder] = useState<string[]>([]);
+
   const currentAct = actItems[currentIndex] || actItems[0];
   const hasSequentialImages = !!(currentAct?.images && currentAct.images.length > 0);
+
+  const isChoiceOrDialogue = currentAct.type === 'dialogue' || currentAct.type === 'choice';
+
+  const chapterChoices = useMemo(() => {
+    return actItems.filter(
+      (item) => item.chapterNumber === currentAct.chapterNumber && item.type === 'choice'
+    );
+  }, [actItems, currentAct.chapterNumber]);
+
+  // Initialize and maintain a randomized shuffle order for choices in this chapter
+  useEffect(() => {
+    if (chapterChoices.length > 0 && shuffledOrder.length === 0) {
+      const keys = chapterChoices.map((c) => c.choiceType || c.id);
+      const shuffled = [...keys];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      setShuffledOrder(shuffled);
+    }
+  }, [chapterChoices, shuffledOrder.length]);
+
+  const orderedChapterChoices = useMemo(() => {
+    if (shuffledOrder.length === 0) return chapterChoices;
+    return [...chapterChoices].sort((a, b) => {
+      const aIdx = shuffledOrder.indexOf(a.choiceType || a.id);
+      const bIdx = shuffledOrder.indexOf(b.choiceType || b.id);
+      return (aIdx >= 0 ? aIdx : 99) - (bIdx >= 0 ? bIdx : 99);
+    });
+  }, [chapterChoices, shuffledOrder]);
+
+  const unplayedChoices = useMemo(() => {
+    return orderedChapterChoices.filter((ch) => !playedChoices.includes(ch.choiceType || ''));
+  }, [orderedChapterChoices, playedChoices]);
+
+  const handleSelectChoice = (choiceKey: string) => {
+    const targetActIdx = actItems.findIndex(
+      (item) => item.chapterNumber === currentAct.chapterNumber && item.type === 'choice' && item.choiceType === choiceKey
+    );
+    if (targetActIdx >= 0) {
+      setPlayedChoices((prev) => Array.from(new Set([...prev, choiceKey])));
+      if (choiceKey === 'Best') {
+        setHasChosenBest(true);
+        setShowCelebration(true);
+        if (onEarnSkillPoint) {
+          onEarnSkillPoint('Wisdom');
+        }
+      }
+      setCurrentIndex(targetActIdx);
+    }
+  };
 
   // Background animation state: do not repeat, only reveal overlay when animation ends
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(!actItems[initialIdx >= 0 ? initialIdx : 0]?.mp4 || hasSequentialImages);
@@ -123,7 +208,11 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   // Progressive timer: automatically reveals 1 sentence at a time when Autoplay is enabled
   useEffect(() => {
-    if (!isAutoPlay || currentAct.type !== 'narrative' || visibleSentenceCount >= sentences.length) {
+    if (
+      !isAutoPlay ||
+      (currentAct.type !== 'narrative' && currentAct.type !== 'character') ||
+      visibleSentenceCount >= sentences.length
+    ) {
       return;
     }
 
@@ -160,28 +249,6 @@ export const ActPage: React.FC<ActPageProps> = ({
     return () => clearTimeout(timer);
   }, [isAutoPlay, dialogueStep, currentAct.dialogue, currentAct.type]);
 
-  // Autoplay progression: Pause 5 seconds after act content completes before going to next act or chapter
-  useEffect(() => {
-    if (!isAutoPlay || currentIndex >= actItems.length - 1) {
-      return;
-    }
-
-    let isFinished = false;
-    if (currentAct.type === 'narrative') {
-      isFinished = visibleSentenceCount >= sentences.length && sentences.length > 0;
-    } else if (currentAct.type === 'dialogue' || currentAct.type === 'choice') {
-      isFinished = !!currentAct.dialogue && dialogueStep >= currentAct.dialogue.length - 1;
-    }
-
-    if (!isFinished) return;
-
-    const timer = setTimeout(() => {
-      goToNext();
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [isAutoPlay, currentIndex, currentAct.type, currentAct.dialogue, visibleSentenceCount, sentences.length, dialogueStep, actItems.length]);
-
   // Auto-scroll down when a new speaker is revealed in dialogue
   useEffect(() => {
     if (currentAct.type === 'dialogue' || currentAct.type === 'choice') {
@@ -197,7 +264,7 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   // Auto-scroll narrative box when new sentence appears
   useEffect(() => {
-    if (currentAct.type === 'narrative' && narrativeBoxRef.current) {
+    if ((currentAct.type === 'narrative' || currentAct.type === 'character') && narrativeBoxRef.current) {
       narrativeBoxRef.current.scrollTo({
         top: narrativeBoxRef.current.scrollHeight,
         behavior: 'smooth',
@@ -220,7 +287,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             e.preventDefault();
             setDialogueStep((prev) => prev + 1);
           }
-        } else if (e.key === ' ' && currentAct.type === 'narrative') {
+        } else if (e.key === ' ' && (currentAct.type === 'narrative' || currentAct.type === 'character')) {
           e.preventDefault();
           if (visibleSentenceCount < sentences.length) {
             setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
@@ -269,6 +336,128 @@ export const ActPage: React.FC<ActPageProps> = ({
   const activeSentenceIdx = selectedSentenceIdx !== null
     ? selectedSentenceIdx
     : Math.min(visibleSentenceCount - 1, Math.max(0, sentences.length - 1));
+
+  const isActFinished = useMemo(() => {
+    if (currentAct.type === 'narrative' || currentAct.type === 'character') {
+      return visibleSentenceCount >= sentences.length && sentences.length > 0;
+    }
+    if (currentAct.type === 'dialogue' || currentAct.type === 'choice') {
+      return !currentAct.dialogue || dialogueStep >= currentAct.dialogue.length - 1;
+    }
+    return false;
+  }, [currentAct.type, currentAct.dialogue, visibleSentenceCount, sentences.length, dialogueStep]);
+
+  const nextItem = actItems[currentIndex + 1];
+  const nextIsNewChapter = nextItem && nextItem.chapterNumber !== currentAct.chapterNumber;
+  const isLastAct = currentIndex >= actItems.length - 1;
+
+  const handleReplay = () => {
+    setVisibleSentenceCount(1);
+    setSelectedSentenceIdx(null);
+    setDialogueStep(0);
+    setIsSpeakingText(false);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+    if (narrativeBoxRef.current) {
+      narrativeBoxRef.current.scrollTop = 0;
+    }
+    if (dialogueScrollContainerRef.current) {
+      dialogueScrollContainerRef.current.scrollTop = 0;
+    }
+  };
+
+  const renderCompletionControls = (isLightBg: boolean = false) => {
+    if (!isActFinished) return null;
+
+    const hideNextAndLang = isChoiceOrDialogue && !hasChosenBest;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className={`w-full flex flex-nowrap items-center justify-between gap-1 sm:gap-2 pt-2 pb-1.5 px-1.5 sm:px-3 border-t mt-2 rounded-2xl shadow-md overflow-hidden ${
+          isLightBg
+            ? 'bg-slate-100 border-[#d4af37]/40 text-black'
+            : 'bg-black/80 border-[#d4af37]/40 text-white'
+        }`}
+      >
+        {/* Left: Replay Button */}
+        <button
+          id="act-replay-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleReplay();
+          }}
+          className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-black text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+          title="Replay from beginning"
+        >
+          <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37]" />
+          <span className="hidden sm:inline">Replay {nextIsNewChapter || isLastAct ? 'Chapter' : 'Act'}</span>
+          <span className="sm:hidden">Replay</span>
+        </button>
+
+        {/* Center: Language Selector */}
+        {!hideNextAndLang && (
+          <div className="flex items-center justify-center gap-0.5 sm:gap-1 bg-black/90 p-0.5 sm:p-1.5 rounded-full border border-[#d4af37]/60 shadow-inner shrink-0">
+            <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37] ml-0.5 sm:ml-1 mr-0.5 shrink-0 hidden md:block" />
+            {LANGUAGES.map((lang) => {
+              const isSelected = currentLang === lang.code;
+              const shortCode = lang.code === 'PT-pt' ? 'PT' : lang.code;
+              return (
+                <button
+                  key={lang.code}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onLanguageChange(lang.code);
+                  }}
+                  className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-0.5 sm:gap-1 shrink-0 ${
+                    isSelected
+                      ? 'bg-[#d4af37] text-slate-950 font-bold shadow scale-105'
+                      : 'text-slate-200 hover:text-white hover:bg-white/20'
+                  }`}
+                  title={`Switch to ${lang.label}`}
+                >
+                  <span className="text-xs sm:text-sm leading-none">{lang.flag}</span>
+                  <span className="uppercase font-mono font-bold text-[9px] sm:text-xs leading-none">{shortCode}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Right: Next Act / Chapter Button */}
+        {!hideNextAndLang && (!isLastAct ? (
+          <button
+            id="act-next-completion-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              goToNext();
+            }}
+            className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+          >
+            <span className="hidden sm:inline">Next {nextIsNewChapter ? 'Chapter' : 'Act'}</span>
+            <span className="sm:hidden">Next</span>
+            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
+        ) : (
+          <button
+            id="act-close-completion-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+          >
+            <span>Complete</span>
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
+        ))}
+      </motion.div>
+    );
+  };
 
   // Render Formatted Narrative Text (Appearing 1 sentence at a time with smooth fade/slide)
   const renderFormattedText = () => {
@@ -339,8 +528,9 @@ export const ActPage: React.FC<ActPageProps> = ({
     );
   };
 
-  const aletheaAvatar = currentAct.femaleAvatar || '/src/assets/avatars/0Alethea.jpg';
-  const elionAvatar = currentAct.maleAvatar || '/src/assets/avatars/0Elion.jpg';
+  const aletheaAvatar = currentAct.femaleAvatar || '/src/assets/avatars/AvatarAlethea.jpg';
+  const elionAvatar = currentAct.maleAvatar || '/src/assets/avatars/AvatarElion.jpg';
+  const menAvatar = '/src/assets/avatars/AvatarMen.jpg';
 
   return (
     <div
@@ -409,6 +599,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                   isAutoPlay &&
                   currentIndex < actItems.length - 1 &&
                   currentAct.type !== 'narrative' &&
+                  currentAct.type !== 'character' &&
                   currentAct.type !== 'dialogue' &&
                   currentAct.type !== 'choice'
                 ) {
@@ -448,7 +639,16 @@ export const ActPage: React.FC<ActPageProps> = ({
         </button>
       </div>
 
-      {/* 3. TOP RIGHT: AUTOPLAY TOGGLE, SOUND TOGGLE & LANGUAGE SELECTOR */}
+      {/* 3. TOP CENTER: ACT TITLE */}
+      <div className="absolute top-2.5 sm:top-6 inset-x-0 mx-auto z-20 flex flex-col items-center justify-center pointer-events-none px-12 sm:px-44 text-center">
+        <div className="bg-black/80 backdrop-blur-md px-3.5 sm:px-6 py-1 sm:py-1.5 rounded-full border border-[#d4af37]/70 shadow-[0_4px_20px_rgba(0,0,0,0.8)] max-w-full truncate flex items-center justify-center">
+          <span className="text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-wider text-[#d4af37] font-cinzel truncate">
+            {currentAct.actTitle || currentAct.chapterTitle?.replace(/^Chapter\s*\d+\s*:\s*/i, '')}
+          </span>
+        </div>
+      </div>
+
+      {/* 4. TOP RIGHT: AUTOPLAY TOGGLE, SOUND TOGGLE & LANGUAGE SELECTOR */}
       <div className="flex absolute top-2.5 right-2.5 sm:top-6 sm:right-6 z-30 items-center gap-2 sm:gap-3">
         {/* Autoplay Toggle Button (|| to stop automatic, > to start automatic) */}
         <button
@@ -477,46 +677,6 @@ export const ActPage: React.FC<ActPageProps> = ({
         >
           {isMuted ? <VolumeX className="w-3.5 h-3.5 sm:w-5 sm:h-5" /> : <Volume2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#d4af37]" />}
         </button>
-
-        {/* Language Selector Dropdown */}
-        <div className="relative">
-          <button
-            id="act-lang-selector"
-            onClick={() => setShowLangMenu(!showLangMenu)}
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-full border sm:border-2 border-[#d4af37] bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            title="Select Language"
-          >
-            <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d4af37]" />
-            <span className="font-bold text-[10px] sm:text-xs tracking-wider uppercase font-cinzel">
-              {currentLang}
-            </span>
-          </button>
-
-          {showLangMenu && (
-            <div className="absolute right-0 mt-2 w-44 rounded-2xl border-2 border-[#d4af37] bg-slate-950/95 shadow-2xl p-2 z-50 animate-fadeIn">
-              <div className="text-[10px] uppercase font-bold tracking-widest text-[#d4af37] px-3 py-1 font-cinzel">
-                Select Language
-              </div>
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => {
-                    onLanguageChange(lang.code);
-                    setShowLangMenu(false);
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                    currentLang === lang.code
-                      ? 'bg-[#d4af37] text-slate-950 font-bold shadow-md'
-                      : 'text-slate-200 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <span className="text-base">{lang.flag}</span>
-                  <span>{lang.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* 4. CENTER LEFT: PREVIOUS `<` BUTTON */}
@@ -531,17 +691,19 @@ export const ActPage: React.FC<ActPageProps> = ({
         <ChevronLeft className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:-translate-x-0.5" />
       </button>
 
-      {/* 5. CENTER RIGHT: NEXT `>` BUTTON */}
-      <button
-        id="act-next-button"
-        onClick={goToNext}
-        disabled={currentIndex === actItems.length - 1}
-        aria-label="Next Act or Choice"
-        className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] bg-black/70 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 disabled:opacity-20 disabled:pointer-events-none shadow-lg sm:shadow-2xl transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group"
-        title="Next (Right Arrow)"
-      >
-        <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:translate-x-0.5" />
-      </button>
+      {/* 5. CENTER RIGHT: NEXT `>` BUTTON (Hidden in choice/dialogue until best choice chosen) */}
+      {(!isChoiceOrDialogue || hasChosenBest) && (
+        <button
+          id="act-next-button"
+          onClick={goToNext}
+          disabled={currentIndex === actItems.length - 1}
+          aria-label="Next Act or Choice"
+          className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] bg-black/70 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 disabled:opacity-20 disabled:pointer-events-none shadow-lg sm:shadow-2xl transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group"
+          title="Next (Right Arrow)"
+        >
+          <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:translate-x-0.5" />
+        </button>
+      )}
 
       {/* 6. MAIN CONTENT DISPLAY (FULLSCREEN WIDTH AT THE BOTTOM) */}
       <motion.div
@@ -555,77 +717,22 @@ export const ActPage: React.FC<ActPageProps> = ({
         {(currentAct.type === 'dialogue' || currentAct.type === 'choice') ? (
           <div className="w-full bg-white/95 text-black rounded-t-3xl border-t-2 border-[#d4af37] shadow-[0_-10px_35px_rgba(0,0,0,0.6)] backdrop-blur-md animate-fadeIn">
             
-            {/* Unified Scroll Container: Choice header pills + Narrative text box + Dialogue Stream all scroll together */}
+            {/* Unified Scroll Container: Scrolls all the way up */}
             <div
               ref={dialogueScrollContainerRef}
-              className="space-y-4 max-h-[46vh] sm:max-h-[44vh] overflow-y-auto p-4 sm:p-6 pr-3 select-none"
+              className="space-y-2 max-h-[82vh] sm:max-h-[80vh] overflow-y-auto p-2 sm:p-3 select-none"
               onClick={() => {
                 if (currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1) {
                   setDialogueStep((prev) => prev + 1);
                 }
               }}
             >
-              {/* If this is a Choice Act, show the 4 Choice selection pills */}
-              {currentAct.type === 'choice' && (
-                <div className="flex flex-wrap items-center justify-center gap-2.5 pb-1">
-                  {(['Best', 'Safe', 'Weak', 'Harmful'] as const).map((choiceKey) => {
-                    const targetAct = actItems.find(
-                      (item) => item.type === 'choice' && item.choiceType === choiceKey
-                    );
-                    const targetActIdx = actItems.findIndex(
-                      (item) => item.type === 'choice' && item.choiceType === choiceKey
-                    );
-                    const isCurrent = currentAct.choiceType === choiceKey;
-                    const choiceLabel = targetAct?.choiceTitle || targetAct?.actTitle || `${choiceKey} Choice`;
-
-                    return (
-                      <button
-                        key={choiceKey}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (targetActIdx >= 0) setCurrentIndex(targetActIdx);
-                        }}
-                        className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold tracking-wide border-2 transition-all cursor-pointer whitespace-nowrap shadow-md ${
-                          isCurrent
-                            ? choiceKey === 'Best'
-                              ? 'bg-emerald-500 text-slate-950 border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.5)] scale-105 font-bold'
-                              : choiceKey === 'Safe'
-                              ? 'bg-blue-500 text-white border-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.5)] scale-105 font-bold'
-                              : choiceKey === 'Weak'
-                              ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)] scale-105 font-bold'
-                              : 'bg-rose-500 text-white border-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.5)] scale-105 font-bold'
-                            : 'bg-black/60 text-slate-200 border-slate-700 hover:border-[#d4af37] hover:text-white hover:bg-black/80'
-                        }`}
-                      >
-                        {choiceLabel}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Top Scene / Narrator card (scrolls with dialogue) */}
-              {currentAct.sceneNarrative && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="w-full rounded-2xl border-2 border-[#d4af37] bg-white text-black p-4 sm:p-5 shadow-md relative"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="text-sm sm:text-base md:text-lg leading-relaxed font-sans text-black font-medium">
-                      {currentAct.sceneNarrative}
-                    </p>
-                    <MessageSquare className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
-                  </div>
-                </motion.div>
-              )}
-
               {/* Dialogue Stream: Revealed line-by-line / speaker-by-speaker on click */}
               {currentAct.dialogue &&
                 currentAct.dialogue.slice(0, dialogueStep + 1).map((line, idx) => {
-                  const isFemale = line.speaker === 'Alethea' || line.voice === 'Female';
-                  const isMale = line.speaker === 'Elion' || line.voice === 'Male';
                   const isNarrator = line.speaker === 'Narrator';
+                  const isMen = line.speaker?.toLowerCase() === 'men' || line.speaker?.toLowerCase() === 'young man' || line.speaker?.toLowerCase() === 'young men';
+                  const isFemale = !isNarrator && !isMen && (line.speaker === 'Alethea' || line.voice === 'Female');
                   const isLatest = idx === dialogueStep;
 
                   if (isNarrator) {
@@ -635,8 +742,8 @@ export const ActPage: React.FC<ActPageProps> = ({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.25 }}
-                        className={`mx-auto max-w-2xl text-center px-4 py-2 rounded-2xl bg-white border text-black text-xs sm:text-sm italic font-medium shadow-md ${
-                          isLatest ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40' : 'border-[#d4af37]'
+                        className={`mx-auto max-w-xl text-center px-3 py-1.5 rounded-2xl bg-white border text-black text-xs sm:text-sm italic font-medium shadow-sm ${
+                          isLatest ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40' : 'border-[#d4af37]/60'
                         }`}
                       >
                         {line.text}
@@ -645,25 +752,25 @@ export const ActPage: React.FC<ActPageProps> = ({
                   }
 
                   if (isFemale) {
-                    // Female (Alethea): Aligned RIGHT with Avatar on far RIGHT
+                    // Female (Alethea): Aligned strictly to RIGHT with Avatar on far RIGHT
                     return (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="flex items-center justify-end gap-3 sm:gap-4 pl-4 sm:pl-8 m-0 p-0"
+                        className="flex items-start justify-end gap-2 max-w-[85%] sm:max-w-[78%] ml-auto m-0 p-0"
                       >
                         <div
-                          className="flex-1 rounded-2xl bg-[#313030] text-white p-3 sm:p-4 m-0 relative cursor-pointer"
+                          className="rounded-2xl bg-white border border-[#d4af37]/60 text-black p-2 sm:p-2.5 m-0 relative shadow-sm cursor-pointer"
                         >
-                          <div className="flex items-center justify-between pb-1 m-0 p-0">
-                            <span className="text-[#d4af37] font-serif text-sm font-semibold tracking-wide">
+                          <div className="flex items-center justify-between gap-3 pb-0.5 m-0 p-0">
+                            <span className="text-[#b8860b] font-serif text-xs font-bold tracking-wide">
                               {line.speaker || 'Alethea'}
                             </span>
-                            <MessageSquare className="w-4 h-4 text-amber-400/80" />
+                            <MessageSquare className="w-3.5 h-3.5 text-amber-600" />
                           </div>
-                          <p className="text-base sm:text-xl font-bold text-white text-center m-0 p-0 font-sans">
+                          <p className="text-xs sm:text-sm md:text-base font-bold text-black text-left m-0 p-0 font-sans leading-snug">
                             {line.text}
                           </p>
                         </div>
@@ -672,44 +779,81 @@ export const ActPage: React.FC<ActPageProps> = ({
                         <img
                           src={aletheaAvatar}
                           alt="Alethea"
-                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#d4af37] shadow-lg object-cover flex-shrink-0"
+                          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#d4af37] shadow object-cover flex-shrink-0 mt-0.5"
                           onError={(e) => {
-                            e.currentTarget.src = '/src/assets/realms/atlantis/0Alethea.jpg';
+                            e.currentTarget.src = '/src/assets/avatars/AvatarAlethea.jpg';
                           }}
                         />
                       </motion.div>
                     );
                   }
 
-                  // Male (Elion): Aligned LEFT with Avatar on far LEFT
+                  if (isMen) {
+                    // Men (Young Men / Citizens): Aligned to LEFT with AvatarMen.jpg
+                    return (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="flex items-start justify-start gap-2 max-w-[85%] sm:max-w-[78%] mr-auto m-0 p-0"
+                      >
+                        {/* Men Avatar */}
+                        <img
+                          src={menAvatar}
+                          alt="Men"
+                          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#d4af37] shadow object-cover flex-shrink-0 mt-0.5"
+                          onError={(e) => {
+                            e.currentTarget.src = '/src/assets/avatars/AvatarMen.jpg';
+                          }}
+                        />
+
+                        <div
+                          className="rounded-2xl bg-white border border-[#d4af37]/60 text-black p-2 sm:p-2.5 m-0 relative shadow-sm cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between gap-3 pb-0.5 m-0 p-0">
+                            <span className="text-[#b8860b] uppercase tracking-wider text-xs font-bold font-sans">
+                              Men
+                            </span>
+                            <MessageSquare className="w-3.5 h-3.5 text-amber-600" />
+                          </div>
+                          <p className="text-xs sm:text-sm md:text-base font-bold text-black text-left m-0 p-0 font-sans leading-snug">
+                            {line.text}
+                          </p>
+                        </div>
+                      </motion.div>
+                    );
+                  }
+
+                  // Male (Elion): Aligned strictly to LEFT with Avatar on far LEFT
                   return (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.25 }}
-                      className="flex items-center justify-start gap-3 sm:gap-4 pr-4 sm:pr-8 m-0 p-0"
+                      className="flex items-start justify-start gap-2 max-w-[85%] sm:max-w-[78%] mr-auto m-0 p-0"
                     >
                       {/* Elion Avatar */}
                       <img
                         src={elionAvatar}
                         alt="Elion"
-                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-[#d4af37] shadow-lg object-cover flex-shrink-0"
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#d4af37] shadow object-cover flex-shrink-0 mt-0.5"
                         onError={(e) => {
-                          e.currentTarget.src = '/src/assets/realms/atlantis/2Elion.jpg';
+                          e.currentTarget.src = '/src/assets/avatars/AvatarElion.jpg';
                         }}
                       />
 
                       <div
-                        className="flex-1 rounded-2xl bg-[#313030] text-white p-3 sm:p-4 m-0 relative cursor-pointer"
+                        className="rounded-2xl bg-white border border-[#d4af37]/60 text-black p-2 sm:p-2.5 m-0 relative shadow-sm cursor-pointer"
                       >
-                        <div className="flex items-center justify-between pb-1 m-0 p-0">
-                          <span className="text-[#d4af37] uppercase tracking-widest text-xs font-bold font-sans">
+                        <div className="flex items-center justify-between gap-3 pb-0.5 m-0 p-0">
+                          <span className="text-[#b8860b] uppercase tracking-wider text-xs font-bold font-sans">
                             {line.speaker || 'ELION'}
                           </span>
-                          <MessageSquare className="w-4 h-4 text-amber-400/80" />
+                          <MessageSquare className="w-3.5 h-3.5 text-amber-600" />
                         </div>
-                        <p className="text-base sm:text-xl font-bold text-white text-left m-0 p-0 font-sans">
+                        <p className="text-xs sm:text-sm md:text-base font-bold text-black text-left m-0 p-0 font-sans leading-snug">
                           {line.text}
                         </p>
                       </div>
@@ -717,9 +861,9 @@ export const ActPage: React.FC<ActPageProps> = ({
                   );
                 })}
 
-              {/* Manual Next Speaker Arrow Indicator (shown only when autoplay is paused/off) */}
+              {/* Manual Next Speaker Arrow Indicator (shown only when autoplay is paused/off and not yet finished) */}
               {!isAutoPlay && currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1 && (
-                <div className="flex justify-center pt-2 pb-1 m-0">
+                <div className="flex justify-center pt-1.5 pb-0.5 m-0">
                   <button
                     id="dialogue-next-speaker-btn"
                     onClick={(e) => {
@@ -728,12 +872,128 @@ export const ActPage: React.FC<ActPageProps> = ({
                     }}
                     aria-label="Next Dialogue Line"
                     title="Reveal Next Line"
-                    className="p-2.5 rounded-full border-2 border-[#d4af37] bg-[#313030] text-[#d4af37] hover:bg-black/60 shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                    className="p-2 rounded-full border-2 border-[#d4af37] bg-white text-[#d4af37] hover:bg-slate-100 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
                   >
-                    <ChevronDown className="w-5 h-5 text-[#d4af37]" />
+                    <ChevronDown className="w-4 h-4 text-[#d4af37]" />
                   </button>
                 </div>
               )}
+
+              {/* Tactical Feedback Card: Explains why non-best choices were suboptimal */}
+              {currentAct.type === 'choice' && currentAct.choiceType && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`my-2 p-3 rounded-2xl border select-none ${
+                    currentAct.choiceType === 'Best'
+                      ? 'border-[#d4af37] bg-amber-50/90 text-slate-900'
+                      : 'border-amber-400/80 bg-amber-50/95 text-slate-900'
+                  } shadow-sm`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-slate-900 font-cinzel mb-1">
+                    <span className="text-base">{CHOICE_FEEDBACK[currentAct.choiceType]?.icon || 'ℹ️'}</span>
+                    <span className="text-amber-900 font-bold">{CHOICE_FEEDBACK[currentAct.choiceType]?.tag || 'Feedback'}:</span>
+                    <span className="text-slate-900">{CHOICE_FEEDBACK[currentAct.choiceType]?.summary}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-800 font-sans leading-relaxed">
+                    {CHOICE_FEEDBACK[currentAct.choiceType]?.explanation}
+                  </p>
+                  {hasChosenBest && currentAct.choiceType !== 'Best' && (
+                    <div className="mt-2 pt-2 border-t border-amber-300/60 flex items-center justify-between">
+                      <span className="text-[11px] text-slate-600 font-medium">Best path already achieved.</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const bestIdx = actItems.findIndex(
+                            (item) => item.chapterNumber === currentAct.chapterNumber && item.choiceType === 'Best'
+                          );
+                          if (bestIdx >= 0) setCurrentIndex(bestIdx);
+                        }}
+                        className="text-xs font-bold text-amber-900 hover:text-amber-700 underline cursor-pointer"
+                      >
+                        Return to Best Choice →
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* 4 Choices Buttons Below */}
+              {isChoiceOrDialogue && (
+                <div className="pt-2.5 pb-2 border-t border-[#d4af37]/40 space-y-2 select-none">
+                  {!hasChosenBest ? (
+                    <>
+                      <div className="text-center font-cinzel font-bold text-xs sm:text-sm text-slate-900 tracking-wider">
+                        What do you choose? {unplayedChoices.length > 0 && `(${unplayedChoices.length} left)`}
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1 pb-1">
+                        {unplayedChoices.map((choice) => (
+                          <button
+                            key={choice.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectChoice(choice.choiceType || '');
+                            }}
+                            className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border-2 border-[#d4af37] bg-white hover:bg-[#d4af37] text-slate-950 hover:text-black text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                          >
+                            {choice.choiceTitle || choice.actTitle}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+                        <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-900">
+                          <Sparkles className="w-4 h-4 text-[#d4af37]" />
+                          <span>Best Choice Completed!</span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowOtherOptions((prev) => !prev);
+                          }}
+                          className="px-3 py-1 rounded-full border-2 border-[#d4af37] bg-white hover:bg-[#d4af37] text-slate-950 text-xs font-bold shadow transition-all cursor-pointer hover:scale-105"
+                        >
+                          {showOtherOptions ? 'Hide Alternative Options' : 'Explore Other Options & Feedback'}
+                        </button>
+                      </div>
+
+                      {showOtherOptions && (
+                        <div className="p-2.5 rounded-2xl bg-amber-50/80 border border-[#d4af37]/40 space-y-2 animate-fadeIn">
+                          <p className="text-[11px] sm:text-xs text-slate-700 font-medium">
+                            Explore alternative paths below to discover the outcomes and learn why they were suboptimal:
+                          </p>
+                          <div className="flex flex-wrap items-center justify-center gap-2">
+                            {orderedChapterChoices.map((choice) => {
+                              const isCurrent = currentAct.choiceType === choice.choiceType;
+                              return (
+                                <button
+                                  key={choice.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectChoice(choice.choiceType || '');
+                                  }}
+                                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                                    isCurrent
+                                      ? 'bg-[#d4af37] text-slate-950 border-2 border-[#ffe599] shadow scale-105'
+                                      : 'bg-white text-slate-900 border border-[#d4af37]/60 hover:border-[#d4af37] hover:bg-amber-100'
+                                  }`}
+                                >
+                                  {choice.choiceTitle || choice.actTitle}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Bottom Replay & Languages Selector bar when Dialogue Act Finishes */}
+              {renderCompletionControls(true)}
 
               {/* Invisible scroll target */}
               <div ref={dialogueEndRef} className="h-1" />
@@ -757,7 +1017,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 {renderFormattedText()}
               </div>
 
-              {/* Manual Next Sentence Arrow Indicator (shown only when autoplay is paused/off) */}
+              {/* Manual Next Sentence Arrow Indicator (shown only when autoplay is paused/off and not yet finished) */}
               {!isAutoPlay && !isAllSentencesRevealed && (
                 <div className="flex justify-center pt-2 pb-1 m-0">
                   <button
@@ -774,10 +1034,61 @@ export const ActPage: React.FC<ActPageProps> = ({
                   </button>
                 </div>
               )}
+
+              {/* Bottom Replay & Languages Selector bar when Narrative / Character Act Finishes */}
+              {renderCompletionControls(false)}
             </div>
           </div>
         )}
       </motion.div>
+
+      {/* CELEBRATION MODAL ON BEST CHOICE */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md pointer-events-auto"
+            onClick={() => setShowCelebration(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.85, y: 20 }}
+              className="relative max-w-md w-full rounded-3xl border-2 border-[#d4af37] bg-slate-950 p-6 text-center text-white shadow-[0_0_50px_rgba(212,175,55,0.7)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-tr from-[#d4af37] to-amber-200 flex items-center justify-center shadow-lg animate-bounce">
+                <Sparkles className="w-9 h-9 text-slate-950" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold font-cinzel text-[#d4af37] mb-2">
+                🌟 Best Choice Celebrated!
+              </h3>
+              <p className="text-sm text-slate-200 mb-5 font-sans leading-relaxed">
+                You chose to organize a full evacuation! The district is safely evacuated, unlocking the next stage of your journey.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mt-4">
+                <button
+                  onClick={() => {
+                    setShowCelebration(false);
+                    setShowOtherOptions(true);
+                  }}
+                  className="w-full sm:w-auto px-4 py-2 rounded-full border border-[#d4af37] bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+                >
+                  Explore Other Options
+                </button>
+                <button
+                  onClick={() => setShowCelebration(false)}
+                  className="w-full sm:w-auto px-6 py-2 rounded-full border-2 border-[#d4af37] bg-[#d4af37] text-slate-950 font-bold hover:bg-amber-400 shadow-lg cursor-pointer transition-all hover:scale-105 text-xs sm:text-sm"
+                >
+                  Continue Adventure
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

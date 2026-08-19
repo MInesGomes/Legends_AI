@@ -354,8 +354,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             <strong className="text-[#d4af37] font-semibold">{remainingTales} tale{remainingTales > 1 ? 's' : ''}</strong> left to explore today
                           </>
                         ) : (
-                          <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-4 h-4 inline" /> Daily Reading Quota Completed!
+                          <span className="text-[#d4af37] font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4 inline text-[#d4af37]" /> Daily Reading Quota Completed!
                           </span>
                         )}
                       </p>

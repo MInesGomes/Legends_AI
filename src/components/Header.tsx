@@ -137,7 +137,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <User className="w-5 h-5 text-[#d4af37]" />
               )}
             </div>
-            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 ${
+            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#d4af37] border-2 ${
               darkMode ? 'border-[#121824]' : 'border-white'
             }`} />
           </button>

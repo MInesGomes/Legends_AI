@@ -472,15 +472,7 @@ export const ChapterWork: React.FC<ChapterWorkProps> = ({
                       Leo (Product Manager)
                     </span>
                     {currentOption && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                        currentOption.type === 'Best' 
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
-                          : currentOption.type === 'Safe'
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                          : currentOption.type === 'Weak'
-                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
-                          : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                      }`}>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[#d4af37]/20 text-[#fce0a2] border border-[#d4af37]/50">
                         {currentOption.type} Option ({currentOption.points > 0 ? `+${currentOption.points}` : currentOption.points} pts)
                       </span>
                     )}

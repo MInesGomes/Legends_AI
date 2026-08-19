@@ -30,8 +30,8 @@ export interface ActItem {
 }
 
 const DEFAULT_BG = '/src/assets/realms/atlantis/realm_atlantis_bg.png';
-const FEMALE_AVATAR = '/src/assets/avatars/0Alethea.jpg';
-const MALE_AVATAR = '/src/assets/avatars/0Elion.jpg';
+const FEMALE_AVATAR = '/src/assets/avatars/AvatarAlethea.jpg';
+const MALE_AVATAR = '/src/assets/avatars/AvatarElion.jpg';
 
 export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' | 'male' | string = 'female'): ActItem[] {
   const data = enData; // Primary source
@@ -72,7 +72,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
         type: 'character',
         chapterTitle: ch.title,
         subtitle: ch.subtitle,
-        actTitle: `Alethea — ${ch.female_act.role || 'Guardian of the Ancient Archives'}`,
+        actTitle: ch.female_act.title || `Alethea — ${ch.female_act.role || 'Guardian of the Ancient Archives'}`,
         mp4: ch.female_act.mp4 || '/src/assets/realms/atlantis/0Alethea.mp4',
         posterImage: DEFAULT_BG,
         text: ch.female_act.description,
@@ -91,7 +91,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
         type: 'character',
         chapterTitle: ch.title,
         subtitle: ch.subtitle,
-        actTitle: `Elion — ${ch.male_act.role || "Atlantis's Most Celebrated Warrior"}`,
+        actTitle: ch.male_act.title || `Elion — ${ch.male_act.role || "Atlantis's Most Celebrated Warrior"}`,
         mp4: ch.male_act.mp4 || '/src/assets/realms/atlantis/0Elion.mp4',
         posterImage: DEFAULT_BG,
         text: ch.male_act.description,
@@ -161,7 +161,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           type: 'dialogue',
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
-          actTitle: 'Opening Dialogue · Emergency Controls',
+          actTitle: 'What do you chose',
           mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
           posterImage: DEFAULT_BG,
           sceneNarrative: ch.act1?.text || 'The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.',

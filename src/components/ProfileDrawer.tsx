@@ -266,11 +266,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               {/* Progress Bar */}
               <div className="w-full bg-slate-700/40 rounded-full h-2 overflow-hidden">
                 <div
-                  className={`h-full transition-all duration-300 rounded-full ${
-                    todayTalesCount >= effectiveLimit
-                      ? 'bg-rose-500'
-                      : 'bg-gradient-to-r from-[#d4af37] to-[#fce0a2]'
-                  }`}
+                  className="h-full transition-all duration-300 rounded-full bg-gradient-to-r from-[#d4af37] to-[#fce0a2]"
                   style={{
                     width: `${Math.min(100, (todayTalesCount / Math.max(1, effectiveLimit)) * 100)}%`,
                   }}
@@ -279,7 +275,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
 
               <div className="flex justify-between text-[11px] opacity-80">
                 <span>Today's Tales Explored:</span>
-                <span className={`font-semibold ${todayTalesCount >= effectiveLimit ? 'text-rose-400' : 'text-[#d4af37]'}`}>
+                <span className="font-semibold text-[#d4af37]">
                   {todayTalesCount} of {effectiveLimit}
                 </span>
               </div>

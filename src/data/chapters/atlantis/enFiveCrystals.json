@@ -16,12 +16,14 @@
       },
       "female_act": {
         "characterName": "Alethea",
+        "title": "Alethea, Guardian of Archives",
         "mp4": "/src/assets/realms/atlantis/0Alethea.mp4",
         "role": "Guardian of the Ancient Archives",
         "description": "Alethea was a guardian of the Ancient Archives.\nShe spent her life studying the discipline of heart, mind, and character.\nShe was Patient, observant, stubbornly compassionate and was neither famous nor powerful.\nShe discovered the first fissure beneath the Heart Chamber.\nTried to inform the council, but no one believe her."
       },
       "male_act": {
         "characterName": "Elion",
+        "title": "Elion, the Warrior",
         "mp4": "/src/assets/realms/atlantis/0Elion.mp4",
         "role": "Atlantis's Most Celebrated Warrior",
         "description": "Elion was Atlantis’s most celebrated warrior.\nHe had won every major tournament,\nHis name was painted on training halls and carved into medals.\nBut his victories had made him lonely.\nHe trained until his muscles trembled and refused help even when injured.\nIn his dreams he saw Atlantis cracking beneath the sea, crowds running through flooded streets.\nElion woke from another nightmare with a strange blue mark burning across his palm."
@@ -36,8 +38,8 @@
       "id": "atlantis-ch2",
       "title": "The Celebration",
       "skill": "Win4All",
-      "Female_Avatar": "/src/assets/avatars/0Alethea.jpg",
-      "Male_Avatar": "/src/assets/avatars/0Elion.jpg",
+      "Female_Avatar": "/src/assets/avatars/AvatarAlethea.jpg",
+      "Male_Avatar": "/src/assets/avatars/AvatarElion.jpg",
       "mp4": "/src/assets/realms/atlantis/realm_atlantis.mp4",
       "text": "The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.\nAlethea watched the blue light spread. For one moment, she believed the crisis was over.\nThen the Heart pulsed. The music stopped. The lights vanished. The eastern dome began to buckle.\nAlethea ran for the emergency controls. Elion reached them first.",
       "dialog": [
@@ -160,7 +162,7 @@
             },
             {
               "voice": "Male",
-              "speaker": "Young Man",
+              "speaker": "Men",
               "text": "Why should we listen to you?"
             },
             {
