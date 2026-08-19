@@ -1,5 +1,4 @@
 import enData from '../data/chapters/atlantis/enFiveCrystals.json';
-import atlantisData from '../data/chapters/atlantis/atlantisFiveCrystals.json';
 import { Language } from '../types';
 
 export interface ActItem {
