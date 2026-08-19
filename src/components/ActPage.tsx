@@ -160,6 +160,28 @@ export const ActPage: React.FC<ActPageProps> = ({
     return () => clearTimeout(timer);
   }, [isAutoPlay, dialogueStep, currentAct.dialogue, currentAct.type]);
 
+  // Autoplay progression: Pause 5 seconds after act content completes before going to next act or chapter
+  useEffect(() => {
+    if (!isAutoPlay || currentIndex >= actItems.length - 1) {
+      return;
+    }
+
+    let isFinished = false;
+    if (currentAct.type === 'narrative') {
+      isFinished = visibleSentenceCount >= sentences.length && sentences.length > 0;
+    } else if (currentAct.type === 'dialogue' || currentAct.type === 'choice') {
+      isFinished = !!currentAct.dialogue && dialogueStep >= currentAct.dialogue.length - 1;
+    }
+
+    if (!isFinished) return;
+
+    const timer = setTimeout(() => {
+      goToNext();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [isAutoPlay, currentIndex, currentAct.type, currentAct.dialogue, visibleSentenceCount, sentences.length, dialogueStep, actItems.length]);
+
   // Auto-scroll down when a new speaker is revealed in dialogue
   useEffect(() => {
     if (currentAct.type === 'dialogue' || currentAct.type === 'choice') {
@@ -254,7 +276,7 @@ export const ActPage: React.FC<ActPageProps> = ({
 
     if (hasSequentialImages) {
       return (
-        <div className="space-y-0.5 font-sans text-sm sm:text-base md:text-lg leading-snug text-black">
+        <div className="space-y-0 font-sans text-sm sm:text-base md:text-lg leading-snug text-white p-0 m-0 text-center">
           {visibleSentences.map((line, idx) => {
             const isActive = activeSentenceIdx === idx;
 
@@ -268,13 +290,11 @@ export const ActPage: React.FC<ActPageProps> = ({
                   e.stopPropagation();
                   setSelectedSentenceIdx(idx);
                 }}
-                className={`p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer select-text ${
-                  isActive
-                    ? 'border-[#d4af37] bg-amber-400/25 shadow-sm ring-1 ring-[#d4af37]/60'
-                    : 'border-amber-200/80 hover:border-amber-400 hover:bg-amber-50/70 bg-white/75'
+                className={`p-0 m-0 transition-all cursor-pointer select-text text-center ${
+                  isActive ? 'text-amber-300 font-bold' : 'text-white font-normal'
                 }`}
               >
-                <p className={`tracking-normal leading-snug my-0 ${isActive ? 'text-black font-bold' : 'text-slate-800 font-medium'}`}>
+                <p className={`tracking-normal leading-snug m-0 p-0 text-center ${isActive ? 'text-amber-300 font-bold' : 'text-white'}`}>
                   {line}
                 </p>
               </motion.div>
@@ -285,7 +305,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
 
     return (
-      <div className="font-sans text-sm sm:text-base md:text-lg leading-normal text-black font-medium space-y-0">
+      <div className="font-sans text-sm sm:text-base md:text-lg leading-normal text-white font-medium space-y-0 p-0 m-0 text-center">
         {visibleSentences.map((line, idx) => {
           if (line.startsWith('*')) {
             const bulletContent = line.substring(1).trim();
@@ -295,10 +315,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="flex items-start gap-2 pl-3 py-0.5 text-black"
+                className="flex items-center justify-center gap-2 m-0 p-0 text-white text-center"
               >
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#d4af37] mt-1.5 flex-shrink-0 shadow-[0_0_6px_#d4af37]" />
-                <span className="font-semibold">{bulletContent}</span>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#d4af37] flex-shrink-0 shadow-[0_0_6px_#d4af37]" />
+                <span className="font-semibold text-white">{bulletContent}</span>
               </motion.div>
             );
           }
@@ -309,7 +329,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="tracking-normal leading-normal my-0 py-0 text-black"
+              className="tracking-normal leading-normal m-0 p-0 text-white text-center"
             >
               {line}
             </motion.p>
@@ -327,10 +347,10 @@ export const ActPage: React.FC<ActPageProps> = ({
       id="act-fullscreen-page"
       className="fixed inset-0 z-50 w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between select-none"
     >
-      {/* 1. BACKGROUND VIDEO / MULTI-SCENE IMAGES / FALLBACK POSTER (Top-Aligned & Uncropped) */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none flex items-start justify-center">
+      {/* 1. BACKGROUND VIDEO / MULTI-SCENE IMAGES / FALLBACK POSTER (Fills the Screen) */}
+      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none flex items-center justify-center">
         {hasSequentialImages ? (
-          <div className="relative w-full h-full flex items-start justify-center">
+          <div className="relative w-full h-full flex items-center justify-center">
             {/* Ambient subtle backdrop fill */}
             {currentAct.images!.map((imgUrl, imgIdx) => (
               <motion.img
@@ -342,11 +362,11 @@ export const ActPage: React.FC<ActPageProps> = ({
                   opacity: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 0.35 : 0,
                 }}
                 transition={{ duration: 0.65, ease: 'easeInOut' }}
-                className="absolute inset-0 w-full h-full object-cover object-top filter blur-2xl scale-110 -z-20"
+                className="absolute inset-0 w-full h-full object-cover filter blur-2xl scale-110 -z-20"
                 referrerPolicy="no-referrer"
               />
             ))}
-            {/* Main Crisp, Top-Aligned & Uncropped Scene Image */}
+            {/* Main Fullscreen Scene Image */}
             {currentAct.images!.map((imgUrl, imgIdx) => (
               <motion.img
                 key={imgUrl}
@@ -355,10 +375,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                 initial={false}
                 animate={{
                   opacity: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1 : 0,
-                  scale: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1 : 0.98,
+                  scale: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1 : 1.02,
                 }}
                 transition={{ duration: 0.65, ease: 'easeInOut' }}
-                className="absolute inset-x-0 top-0 w-full h-[52vh] sm:h-[58vh] object-contain object-top z-0"
+                className="absolute inset-x-0 top-0 w-full h-full object-cover sm:object-top sm:-top-[10cm] sm:h-[calc(100%+10cm)] z-0"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   e.currentTarget.src = currentAct.posterImage || '/src/assets/realms/atlantis/realm_atlantis_bg.png';
@@ -367,12 +387,12 @@ export const ActPage: React.FC<ActPageProps> = ({
             ))}
           </div>
         ) : (
-          <div className="relative w-full h-full flex items-start justify-center">
+          <div className="relative w-full h-full flex items-center justify-center">
             {/* Ambient subtle backdrop fill */}
             <img
               src={currentAct.posterImage}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover object-top filter blur-2xl opacity-35 scale-110 -z-20"
+              className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-35 scale-110 -z-20"
               referrerPolicy="no-referrer"
             />
             <video
@@ -385,11 +405,19 @@ export const ActPage: React.FC<ActPageProps> = ({
               playsInline
               onEnded={() => {
                 setIsVideoFinished(true);
-                if (isAutoPlay && currentIndex < actItems.length - 1) {
-                  goToNext();
+                if (
+                  isAutoPlay &&
+                  currentIndex < actItems.length - 1 &&
+                  currentAct.type !== 'narrative' &&
+                  currentAct.type !== 'dialogue' &&
+                  currentAct.type !== 'choice'
+                ) {
+                  setTimeout(() => {
+                    goToNext();
+                  }, 5000);
                 }
               }}
-              className="absolute inset-x-0 top-0 w-full h-[52vh] sm:h-[58vh] object-contain object-top z-0"
+              className="absolute inset-x-0 top-0 w-full h-full object-cover sm:object-top sm:-top-[10cm] sm:h-[calc(100%+10cm)] z-0"
               onError={(e) => {
                 // Graceful fallback to poster background image if video can't decode
                 const target = e.currentTarget;
@@ -400,7 +428,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             <img
               src={currentAct.posterImage}
               alt={currentAct.actTitle}
-              className="absolute inset-x-0 top-0 w-full h-[52vh] sm:h-[58vh] object-contain object-top -z-10"
+              className="absolute inset-x-0 top-0 w-full h-full object-cover sm:object-top sm:-top-[10cm] sm:h-[calc(100%+10cm)] -z-10"
               referrerPolicy="no-referrer"
             />
           </div>
@@ -422,21 +450,21 @@ export const ActPage: React.FC<ActPageProps> = ({
 
       {/* 3. TOP RIGHT: AUTOPLAY TOGGLE, SOUND TOGGLE & LANGUAGE SELECTOR */}
       <div className="flex absolute top-2.5 right-2.5 sm:top-6 sm:right-6 z-30 items-center gap-2 sm:gap-3">
-        {/* Autoplay Toggle Button (same circular format as sound button) */}
+        {/* Autoplay Toggle Button (|| to stop automatic, > to start automatic) */}
         <button
           id="act-autoplay-toggle"
           onClick={() => setIsAutoPlay(!isAutoPlay)}
           className={`p-1.5 sm:p-3 rounded-full border sm:border-2 shadow-lg sm:shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center ${
             isAutoPlay
               ? 'border-[#d4af37] bg-black/80 text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.4)]'
-              : 'border-[#d4af37]/40 bg-black/60 hover:bg-black/90 text-amber-200/50'
+              : 'border-[#d4af37]/50 bg-black/60 hover:bg-black/90 text-amber-200/70 hover:text-amber-200'
           }`}
-          title={isAutoPlay ? 'Autoplay: ON (Auto-advances when animation finishes)' : 'Autoplay: OFF (Manual mode)'}
+          title={isAutoPlay ? 'Autoplay is ON — Click to pause' : 'Autoplay is OFF — Click to play automatically'}
         >
           {isAutoPlay ? (
-            <Play className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#d4af37] fill-[#d4af37]" />
+            <Pause className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#d4af37] fill-[#d4af37]" />
           ) : (
-            <Pause className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-200/60" />
+            <Play className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-amber-200 fill-amber-200 ml-0.5" />
           )}
         </button>
 
@@ -624,22 +652,18 @@ export const ActPage: React.FC<ActPageProps> = ({
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="flex items-center justify-end gap-3 sm:gap-4 pl-6 sm:pl-12"
+                        className="flex items-center justify-end gap-3 sm:gap-4 pl-4 sm:pl-8 m-0 p-0"
                       >
                         <div
-                          className={`flex-1 rounded-2xl border-2 bg-white text-black p-4 sm:p-5 shadow-md relative cursor-pointer ${
-                            isLatest
-                              ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40'
-                              : 'border-[#d4af37]'
-                          }`}
+                          className="flex-1 rounded-2xl bg-[#313030] text-white p-3 sm:p-4 m-0 relative cursor-pointer"
                         >
-                          <div className="flex items-center justify-between pb-1">
-                            <span className="text-[#996515] font-serif text-sm font-semibold tracking-wide">
+                          <div className="flex items-center justify-between pb-1 m-0 p-0">
+                            <span className="text-[#d4af37] font-serif text-sm font-semibold tracking-wide">
                               {line.speaker || 'Alethea'}
                             </span>
-                            <MessageSquare className="w-4 h-4 text-amber-700/80" />
+                            <MessageSquare className="w-4 h-4 text-amber-400/80" />
                           </div>
-                          <p className="text-base sm:text-xl font-bold text-black text-center py-1 font-sans">
+                          <p className="text-base sm:text-xl font-bold text-white text-center m-0 p-0 font-sans">
                             {line.text}
                           </p>
                         </div>
@@ -664,7 +688,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.25 }}
-                      className="flex items-center justify-start gap-3 sm:gap-4 pr-6 sm:pr-12"
+                      className="flex items-center justify-start gap-3 sm:gap-4 pr-4 sm:pr-8 m-0 p-0"
                     >
                       {/* Elion Avatar */}
                       <img
@@ -677,19 +701,15 @@ export const ActPage: React.FC<ActPageProps> = ({
                       />
 
                       <div
-                        className={`flex-1 rounded-2xl border-2 bg-white text-black p-4 sm:p-5 shadow-md relative cursor-pointer ${
-                          isLatest
-                            ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40'
-                            : 'border-[#d4af37]'
-                        }`}
+                        className="flex-1 rounded-2xl bg-[#313030] text-white p-3 sm:p-4 m-0 relative cursor-pointer"
                       >
-                        <div className="flex items-center justify-between pb-1">
-                          <span className="text-[#996515] uppercase tracking-widest text-xs font-bold font-sans">
+                        <div className="flex items-center justify-between pb-1 m-0 p-0">
+                          <span className="text-[#d4af37] uppercase tracking-widest text-xs font-bold font-sans">
                             {line.speaker || 'ELION'}
                           </span>
-                          <MessageSquare className="w-4 h-4 text-amber-700/80" />
+                          <MessageSquare className="w-4 h-4 text-amber-400/80" />
                         </div>
-                        <p className="text-base sm:text-xl font-bold text-black text-left py-1 font-sans">
+                        <p className="text-base sm:text-xl font-bold text-white text-left m-0 p-0 font-sans">
                           {line.text}
                         </p>
                       </div>
@@ -697,9 +717,9 @@ export const ActPage: React.FC<ActPageProps> = ({
                   );
                 })}
 
-              {/* Interactive Click-to-Continue Prompt for Next Speaker + Autoplay Toggle */}
-              {currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1 && (
-                <div className="flex items-center justify-center gap-3 pt-2 pb-1">
+              {/* Manual Next Speaker Arrow Indicator (shown only when autoplay is paused/off) */}
+              {!isAutoPlay && currentAct.dialogue && dialogueStep < currentAct.dialogue.length - 1 && (
+                <div className="flex justify-center pt-2 pb-1 m-0">
                   <button
                     id="dialogue-next-speaker-btn"
                     onClick={(e) => {
@@ -707,32 +727,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                       setDialogueStep((prev) => prev + 1);
                     }}
                     aria-label="Next Dialogue Line"
-                    title="Next Dialogue Line"
-                    className="p-2.5 rounded-full border-2 border-[#d4af37] bg-white text-black hover:bg-amber-100 shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                    title="Reveal Next Line"
+                    className="p-2.5 rounded-full border-2 border-[#d4af37] bg-[#313030] text-[#d4af37] hover:bg-black/60 shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
                   >
-                    <ChevronDown className="w-5 h-5 text-[#996515]" />
-                  </button>
-
-                  <button
-                    id="dialogue-autoplay-toggle-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsAutoPlay((prev) => !prev);
-                    }}
-                    className="px-3 py-1.5 rounded-full border-2 border-[#996515] bg-white text-[#996515] hover:bg-amber-50 text-xs font-bold font-sans flex items-center gap-1.5 transition-all shadow-md cursor-pointer hover:scale-105 active:scale-95"
-                    title={isAutoPlay ? 'Autoplay active (click to switch to Manual)' : 'Manual active (click to switch to Autoplay)'}
-                  >
-                    {isAutoPlay ? (
-                      <>
-                        <Play className="w-3.5 h-3.5 text-[#996515] fill-[#996515]" />
-                        <span>Auto</span>
-                      </>
-                    ) : (
-                      <>
-                        <Pause className="w-3.5 h-3.5 text-[#996515]" />
-                        <span>Manual</span>
-                      </>
-                    )}
+                    <ChevronDown className="w-5 h-5 text-[#d4af37]" />
                   </button>
                 </div>
               )}
@@ -744,7 +742,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           </div>
         ) : (
           /* B. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
-          <div className="w-full bg-white/95 text-black rounded-t-3xl border-t-2 border-[#d4af37] shadow-[0_-10px_35px_rgba(0,0,0,0.6)] backdrop-blur-md animate-fadeIn">
+          <div className="w-full bg-[#313030] text-white rounded-t-3xl shadow-[0_-10px_35px_rgba(0,0,0,0.6)] backdrop-blur-md animate-fadeIn m-0 p-0">
             <div
               ref={narrativeBoxRef}
               onClick={() => {
@@ -752,27 +750,16 @@ export const ActPage: React.FC<ActPageProps> = ({
                   setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
                 }
               }}
-              className="max-h-[46vh] sm:max-h-[44vh] overflow-y-auto scroll-smooth p-4 sm:p-6 md:p-8 pr-3 cursor-pointer select-none"
+              className="max-h-[46vh] sm:max-h-[44vh] overflow-y-auto scroll-smooth p-0 m-0 cursor-pointer select-none"
             >
-              {/* Header (Scrolls with text) */}
-              <div className="flex items-center justify-between border-b border-amber-300 pb-3 mb-3">
-                {/* Chapter & Act Title */}
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
-                  <span className="font-cinzel text-xs sm:text-sm font-bold text-black uppercase tracking-wider">
-                    {currentAct.chapterTitle} · {currentAct.actTitle}
-                  </span>
-                </div>
-              </div>
-
               {/* Formatted Text (Appearing 1 sentence at a time) */}
-              <div className="pr-1">
+              <div className="p-0 m-0">
                 {renderFormattedText()}
               </div>
 
-              {/* Next Sentence Arrow Indicator + Autoplay Toggle (if more sentences remain) */}
-              {!isAllSentencesRevealed && (
-                <div className="flex items-center justify-center gap-3 pt-3 pb-1">
+              {/* Manual Next Sentence Arrow Indicator (shown only when autoplay is paused/off) */}
+              {!isAutoPlay && !isAllSentencesRevealed && (
+                <div className="flex justify-center pt-2 pb-1 m-0">
                   <button
                     id="narrative-next-sentence-btn"
                     onClick={(e) => {
@@ -780,32 +767,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                       setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
                     }}
                     aria-label="Next Sentence"
-                    title="Next Sentence"
-                    className="p-2 rounded-full border-2 border-[#d4af37] bg-white text-black hover:bg-amber-100 shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                    title="Reveal Next Sentence"
+                    className="p-2 rounded-full border-2 border-[#d4af37] bg-[#313030] text-[#d4af37] hover:bg-black/60 shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
                   >
-                    <ChevronDown className="w-4 h-4 text-[#996515]" />
-                  </button>
-
-                  <button
-                    id="narrative-autoplay-toggle-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsAutoPlay((prev) => !prev);
-                    }}
-                    className="px-3 py-1.5 rounded-full border-2 border-[#996515] bg-white text-[#996515] hover:bg-amber-50 text-xs font-bold font-sans flex items-center gap-1.5 transition-all shadow-md cursor-pointer hover:scale-105 active:scale-95"
-                    title={isAutoPlay ? 'Autoplay active (click to switch to Manual)' : 'Manual active (click to switch to Autoplay)'}
-                  >
-                    {isAutoPlay ? (
-                      <>
-                        <Play className="w-3.5 h-3.5 text-[#996515] fill-[#996515]" />
-                        <span>Auto</span>
-                      </>
-                    ) : (
-                      <>
-                        <Pause className="w-3.5 h-3.5 text-[#996515]" />
-                        <span>Manual</span>
-                      </>
-                    )}
+                    <ChevronDown className="w-5 h-5 text-[#d4af37]" />
                   </button>
                 </div>
               )}

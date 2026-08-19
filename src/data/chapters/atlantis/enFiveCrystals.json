@@ -6,8 +6,8 @@
     {
       "chapter": 1,
       "id": "atlantis-ch1",
-      "title": "Intro: The Heart of Atlantis",
-      "subtitle": "The Heart of Atlantis & The Five Crystals",
+      "title": "The Heart of Atlantis",
+      "subtitle": "The Five Crystals",
       "skill": "Win4All",
       "mp4": "/src/assets/realms/atlantis/realm_atlantis.mp4",
       "act1": {
@@ -28,30 +28,18 @@
       },
       "act2": {
         "title": "The Beginning",
-        "text": "When Alethea discovered the first fissure,\nElion woke from another nightmare with a strange blue mark burning across his palm.\nNeither understood the connection.\nBut the Heart had chosen them because they represented two things Atlantis had forgotten:\nknowledge with compassion,\nand strength with purpose.",
-        "images": [
-          "/src/assets/realms/atlantis/act2-1.jpg",
-          "/src/assets/realms/atlantis/act2-2.jpg",
-          "/src/assets/realms/atlantis/act2-3.jpg",
-          "/src/assets/realms/atlantis/act2-4.jpg",
-          "/src/assets/realms/atlantis/act2-5.jpg",
-          "/src/assets/realms/atlantis/act2-6.jpg"
-        ]
+        "text": "When Alethea discovered the first fissure,\nElion woke from another nightmare with a strange blue mark burning across his palm.\nNeither understood the connection.\nBut the Heart had chosen them because they represented two things Atlantis had forgotten:\nknowledge with compassion,\nand strength with purpose."
       }
     },
     {
       "chapter": 2,
       "id": "atlantis-ch2",
-      "title": "Chapter 1 — The Celebration",
-      "subtitle": "The Celebration and the Darkness",
+      "title": "The Celebration",
       "skill": "Win4All",
       "Female_Avatar": "/src/assets/avatars/0Alethea.jpg",
       "Male_Avatar": "/src/assets/avatars/0Elion.jpg",
       "mp4": "/src/assets/realms/atlantis/realm_atlantis.mp4",
-      "act1": {
-        "title": "The Celebration",
-        "text": "The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.\nAlethea watched the blue light spread. For one moment, she believed the crisis was over.\nThen the Heart pulsed. The music stopped. The lights vanished. The eastern dome began to buckle.\nAlethea ran for the emergency controls. Elion reached them first."
-      },
+      "text": "The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.\nAlethea watched the blue light spread. For one moment, she believed the crisis was over.\nThen the Heart pulsed. The music stopped. The lights vanished. The eastern dome began to buckle.\nAlethea ran for the emergency controls. Elion reached them first.",
       "dialog": [
         {
           "voice": "Male",
@@ -82,6 +70,16 @@
           "voice": "Male",
           "speaker": "Elion",
           "text": "Nothing."
+        },
+{
+          "voice": "Female",
+          "speaker": "Alethea",
+          "text": "That is not nothing."
+        },
+        {
+          "voice": "Male",
+          "speaker": "Elion",
+          "text": "Then ask me after we keep half the city from drowning."
         },
         {
           "voice": "Male",

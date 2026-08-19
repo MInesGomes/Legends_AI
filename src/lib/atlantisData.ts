@@ -124,15 +124,8 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           subtitle: ch.subtitle,
           actTitle: ch.act2.title || 'The Beginning',
           mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
-          posterImage: (ch.act2.images && ch.act2.images[0]) || '/src/assets/realms/atlantis/act2-1.jpg',
-          images: ch.act2.images || [
-            '/src/assets/realms/atlantis/act2-1.jpg',
-            '/src/assets/realms/atlantis/act2-2.jpg',
-            '/src/assets/realms/atlantis/act2-3.jpg',
-            '/src/assets/realms/atlantis/act2-4.jpg',
-            '/src/assets/realms/atlantis/act2-5.jpg',
-            '/src/assets/realms/atlantis/act2-6.jpg'
-          ],
+          posterImage: (ch.act2.images && ch.act2.images[0]) || DEFAULT_BG,
+          images: ch.act2.images,
           text: ch.act2.text,
           femaleAvatar: chapterFemaleAvatar,
           maleAvatar: chapterMaleAvatar
@@ -143,18 +136,18 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
     // 2. Chapter 2
     if (ch.chapter === 2) {
       // Act 1 Narrative (The Celebration and the Darkness)
-      if (ch.act1) {
+      if (ch.act1 || ch.text) {
         items.push({
           id: 'atlantis-ch2-act1',
           chapterNumber: 2,
           actKey: 'ch2-act1',
           type: 'narrative',
           chapterTitle: ch.title,
-          subtitle: ch.subtitle,
-          actTitle: ch.act1.title || 'The Celebration',
+          subtitle: ch.subtitle || '',
+          actTitle: ch.act1?.title || ch.title || 'The Celebration',
           mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
           posterImage: DEFAULT_BG,
-          text: ch.act1.text,
+          text: ch.act1?.text || ch.text,
           femaleAvatar: chapterFemaleAvatar,
           maleAvatar: chapterMaleAvatar
         });
