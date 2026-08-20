@@ -1,5 +1,6 @@
 import enData from '../data/chapters/atlantis/enFiveCrystals.json';
 import { Language } from '../types';
+import { ASSETS, resolveAssetUrl } from './assetRegistry';
 
 export interface ActItem {
   id: string;
@@ -29,9 +30,9 @@ export interface ActItem {
   maleAvatar?: string;
 }
 
-const DEFAULT_BG = '/src/assets/realms/atlantis/realm_atlantis.jpg';
-const FEMALE_AVATAR = '/src/assets/avatars/AvatarAlethea.jpg';
-const MALE_AVATAR = '/src/assets/avatars/AvatarElion.jpg';
+const DEFAULT_BG = ASSETS.realmAtlantisJpg;
+const FEMALE_AVATAR = ASSETS.avatarAlethea;
+const MALE_AVATAR = ASSETS.avatarElion;
 
 export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' | 'male' | string = 'female'): ActItem[] {
   const data = enData; // Primary source
@@ -42,8 +43,8 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
   const isMaleUser = userGender === 'male' || (typeof userGender === 'string' && userGender.toLowerCase().includes('male') && !userGender.toLowerCase().includes('female'));
 
   data.chapters.forEach((ch: any) => {
-    const chapterFemaleAvatar = ch.Female_Avatar || FEMALE_AVATAR;
-    const chapterMaleAvatar = ch.Male_Avatar || MALE_AVATAR;
+    const chapterFemaleAvatar = resolveAssetUrl(ch.Female_Avatar, FEMALE_AVATAR);
+    const chapterMaleAvatar = resolveAssetUrl(ch.Male_Avatar, MALE_AVATAR);
 
     // 1. Chapter 1
     if (ch.chapter === 1) {
@@ -57,7 +58,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
+          mp4: resolveAssetUrl(ch.mp4, ASSETS.realmAtlantisMp4),
           posterImage: DEFAULT_BG,
           text: ch.act1.text,
           femaleAvatar: chapterFemaleAvatar,
@@ -73,7 +74,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
         chapterTitle: ch.title,
         subtitle: ch.subtitle,
         actTitle: ch.female_act.title || `Alethea — ${ch.female_act.role || 'Guardian of the Ancient Archives'}`,
-        mp4: ch.female_act.mp4 || '/src/assets/realms/atlantis/0Alethea.mp4',
+        mp4: resolveAssetUrl(ch.female_act.mp4, ASSETS.aletheaMp4),
         posterImage: DEFAULT_BG,
         text: ch.female_act.description,
         characterName: ch.female_act.characterName || 'Alethea',
@@ -92,7 +93,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
         chapterTitle: ch.title,
         subtitle: ch.subtitle,
         actTitle: ch.male_act.title || `Elion — ${ch.male_act.role || "Atlantis's Most Celebrated Warrior"}`,
-        mp4: ch.male_act.mp4 || '/src/assets/realms/atlantis/0Elion.mp4',
+        mp4: resolveAssetUrl(ch.male_act.mp4, ASSETS.elionMp4),
         posterImage: DEFAULT_BG,
         text: ch.male_act.description,
         characterName: ch.male_act.characterName || 'Elion',
@@ -122,7 +123,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: ch.act2.title || 'The Beginning',
-          mp4: '/src/assets/realms/atlantis/Act2.mp4',
+          mp4: ASSETS.act2Mp4,
           posterImage: (ch.act2.images && ch.act2.images[0]) || DEFAULT_BG,
           images: ch.act2.images,
           text: ch.act2.text,
@@ -144,7 +145,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle || '',
           actTitle: ch.act1?.title || ch.title || 'The Celebration',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
+          mp4: resolveAssetUrl(ch.mp4, ASSETS.realmAtlantisMp4),
           posterImage: DEFAULT_BG,
           text: ch.act1?.text || ch.text,
           femaleAvatar: chapterFemaleAvatar,
@@ -162,7 +163,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: 'What do you chose',
-          mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
+          mp4: resolveAssetUrl(ch.mp4, ASSETS.realmAtlantisMp4),
           posterImage: DEFAULT_BG,
           sceneNarrative: ch.act1?.text || 'The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.',
           dialogue: ch.dialog,
@@ -182,7 +183,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
             chapterTitle: ch.title,
             subtitle: ch.subtitle,
             actTitle: choice.title || `Choice: ${choice.type}`,
-            mp4: ch.mp4 || '/src/assets/realms/atlantis/realm_atlantis.mp4',
+            mp4: resolveAssetUrl(ch.mp4, ASSETS.realmAtlantisMp4),
             posterImage: DEFAULT_BG,
             choiceType: choice.type,
             choiceTitle: choice.title,

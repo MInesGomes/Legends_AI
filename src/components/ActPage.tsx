@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Language, UserProfile, SkillType } from '../types';
 import { ActItem, getAtlantisActItems } from '../lib/atlantisData';
+import { ASSETS, resolveAssetUrl } from '../lib/assetRegistry';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -549,9 +550,9 @@ export const ActPage: React.FC<ActPageProps> = ({
     );
   };
 
-  const aletheaAvatar = currentAct.femaleAvatar || '/src/assets/avatars/AvatarAlethea.jpg';
-  const elionAvatar = currentAct.maleAvatar || '/src/assets/avatars/AvatarElion.jpg';
-  const menAvatar = '/src/assets/avatars/AvatarMen.jpg';
+  const aletheaAvatar = resolveAssetUrl(currentAct.femaleAvatar, ASSETS.avatarAlethea);
+  const elionAvatar = resolveAssetUrl(currentAct.maleAvatar, ASSETS.avatarElion);
+  const menAvatar = ASSETS.avatarMen;
 
   return (
     <div
@@ -571,7 +572,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             {currentAct.images!.map((imgUrl, imgIdx) => (
               <motion.img
                 key={`bg-blur-${imgUrl}`}
-                src={imgUrl}
+                src={resolveAssetUrl(imgUrl)}
                 alt=""
                 initial={false}
                 animate={{
@@ -586,7 +587,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             {currentAct.images!.map((imgUrl, imgIdx) => (
               <motion.img
                 key={imgUrl}
-                src={imgUrl}
+                src={resolveAssetUrl(imgUrl)}
                 alt={`${currentAct.actTitle} scene ${imgIdx + 1}`}
                 initial={false}
                 animate={{
@@ -597,7 +598,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 className="w-full h-full object-contain sm:object-cover z-0"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
-                  e.currentTarget.src = currentAct.posterImage || '/src/assets/realms/atlantis/realm_atlantis.jpg';
+                  e.currentTarget.src = resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg);
                 }}
               />
             ))}
@@ -606,7 +607,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
             {/* Ambient subtle backdrop fill */}
             <img
-              src={currentAct.posterImage}
+              src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
               alt=""
               className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-30 scale-110 -z-20 pointer-events-none"
               referrerPolicy="no-referrer"
@@ -616,8 +617,8 @@ export const ActPage: React.FC<ActPageProps> = ({
                 id="act-fullscreen-video"
                 ref={videoRef}
                 key={currentAct.mp4}
-                src={currentAct.mp4}
-                poster={currentAct.posterImage}
+                src={resolveAssetUrl(currentAct.mp4)}
+                poster={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 muted={isMuted}
                 playsInline
                 preload="auto"
@@ -640,11 +641,9 @@ export const ActPage: React.FC<ActPageProps> = ({
                 className="w-full h-full object-contain sm:object-cover z-0"
                 onError={(e) => {
                   const target = e.currentTarget;
-                  const currentSrc = target.src;
-                  if (currentSrc.includes('/src/assets/')) {
-                    target.src = currentSrc.replace('/src/assets/', '/assets/');
-                  } else if (currentSrc.includes('/assets/') && !currentSrc.includes('/src/assets/')) {
-                    target.src = currentSrc.replace('/assets/', '/src/assets/');
+                  const fallback = resolveAssetUrl(currentAct.mp4);
+                  if (fallback && target.src !== fallback) {
+                    target.src = fallback;
                   } else {
                     target.style.display = 'none';
                   }
@@ -652,7 +651,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               />
             ) : (
               <img
-                src={currentAct.posterImage}
+                src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 alt={currentAct.actTitle}
                 className="w-full h-full object-contain sm:object-cover z-0"
                 referrerPolicy="no-referrer"
@@ -826,7 +825,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                           alt="Alethea"
                           className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#d4af37] shadow object-cover flex-shrink-0 mt-0.5"
                           onError={(e) => {
-                            e.currentTarget.src = '/src/assets/avatars/AvatarAlethea.jpg';
+                            e.currentTarget.src = ASSETS.avatarAlethea;
                           }}
                         />
                       </motion.div>
@@ -849,7 +848,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                           alt="Men"
                           className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#d4af37] shadow object-cover flex-shrink-0 mt-0.5"
                           onError={(e) => {
-                            e.currentTarget.src = '/src/assets/avatars/AvatarMen.jpg';
+                            e.currentTarget.src = ASSETS.avatarMen;
                           }}
                         />
 
@@ -885,7 +884,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                         alt="Elion"
                         className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#d4af37] shadow object-cover flex-shrink-0 mt-0.5"
                         onError={(e) => {
-                          e.currentTarget.src = '/src/assets/avatars/AvatarElion.jpg';
+                          e.currentTarget.src = ASSETS.avatarElion;
                         }}
                       />
 

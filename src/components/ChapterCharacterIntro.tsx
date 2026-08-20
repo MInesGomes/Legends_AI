@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, User, ArrowRight, ArrowLeft, BookOpen, Shield, Award, MessageSquare, CheckCircle2, ChevronRight, Volume2 } from 'lucide-react';
 import { DialogueLine } from '../types';
+import { ASSETS, resolveAssetUrl } from '../lib/assetRegistry';
 
 export interface CharacterDetail {
   gender: 'female' | 'male';
@@ -43,7 +44,7 @@ const DEFAULT_FEMALE: CharacterDetail = {
   characterName: 'Elena Moreau',
   age: 29,
   role: 'Educational Content Designer',
-  avatarUrl: '/src/assets/avatars/elena_character_intro_1786794191159.jpg',
+  avatarUrl: ASSETS.elenaAvatar,
   quote: 'We cannot control every event, but we can always control our response.',
   backgroundStory:
     'Elena loved helping people learn. She spent years creating training materials and educational programs, believing that knowledge could change lives. Then AI systems began producing courses automatically. Projects disappeared. Contracts ended. Her inbox became a museum of rejection letters. Despite her intelligence, Elena began questioning herself: "Perhaps I\'m not good enough anymore." Yet beneath her doubts remained a powerful strength: she believed that every problem contained a hidden opportunity.',
@@ -61,7 +62,7 @@ const DEFAULT_MALE: CharacterDetail = {
   characterName: 'Daniel Carter',
   age: 31,
   role: 'Software Developer',
-  avatarUrl: '/src/assets/avatars/daniel_character_intro_1786794200296.jpg',
+  avatarUrl: ASSETS.danielAvatar,
   quote: "If something breaks, I want to fix it. But uncertainty can't be debugged with logic alone.",
   backgroundStory:
     "Daniel had always loved technology. Ironically, the same technology he admired transformed his profession. Companies expected developers to master new AI tools overnight. Experience that once guaranteed employment suddenly seemed outdated. Daniel hid his fears behind humor, but every rejection damaged his confidence: 'Maybe I\'ve already become obsolete.' Unlike Elena, Daniel preferred solving problems immediately with logic. Unfortunately, not every problem could be solved with code alone.",
@@ -89,7 +90,7 @@ export const ChapterCharacterIntro: React.FC<ChapterCharacterIntroProps> = ({
   const femaleChar: CharacterDetail = {
     ...DEFAULT_FEMALE,
     characterName: femaleIntro?.characterName || DEFAULT_FEMALE.characterName,
-    avatarUrl: femaleIntro?.avatarUrl || DEFAULT_FEMALE.avatarUrl,
+    avatarUrl: resolveAssetUrl(femaleIntro?.avatarUrl, DEFAULT_FEMALE.avatarUrl),
     backgroundStory: femaleIntro?.backgroundStory || DEFAULT_FEMALE.backgroundStory,
     dialogue: femaleIntro?.dialogue?.length ? femaleIntro.dialogue : DEFAULT_FEMALE.dialogue,
   };
@@ -97,7 +98,7 @@ export const ChapterCharacterIntro: React.FC<ChapterCharacterIntroProps> = ({
   const maleChar: CharacterDetail = {
     ...DEFAULT_MALE,
     characterName: maleIntro?.characterName || DEFAULT_MALE.characterName,
-    avatarUrl: maleIntro?.avatarUrl || DEFAULT_MALE.avatarUrl,
+    avatarUrl: resolveAssetUrl(maleIntro?.avatarUrl, DEFAULT_MALE.avatarUrl),
     backgroundStory: maleIntro?.backgroundStory || DEFAULT_MALE.backgroundStory,
     dialogue: maleIntro?.dialogue?.length ? maleIntro.dialogue : DEFAULT_MALE.dialogue,
   };
