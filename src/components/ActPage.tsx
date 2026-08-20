@@ -189,11 +189,15 @@ export const ActPage: React.FC<ActPageProps> = ({
     setSelectedSentenceIdx(null);
     setDialogueStep(0);
     setIsSpeakingText(false);
-    setIsVideoFinished(true);
+    setIsVideoFinished(false);
 
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {});
+      if (isAutoPlay) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
     }
 
     if (narrativeBoxRef.current) {
@@ -206,6 +210,24 @@ export const ActPage: React.FC<ActPageProps> = ({
       window.speechSynthesis.cancel();
     }
   }, [currentIndex]);
+
+  // Synchronize video play / pause state whenever isAutoPlay changes
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isAutoPlay) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isAutoPlay]);
+
+  // Synchronize video mute state with audio toggle
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   // Progressive timer: automatically reveals 1 sentence at a time when Autoplay is enabled
   useEffect(() => {
@@ -536,8 +558,13 @@ export const ActPage: React.FC<ActPageProps> = ({
       id="act-fullscreen-page"
       className="fixed inset-0 z-50 w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between select-none"
     >
-      {/* 1. BACKGROUND VIDEO / MULTI-SCENE IMAGES / FALLBACK POSTER (Fills the Screen) */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none flex items-center justify-center">
+      {/* 1. FULLSCREEN MEDIA CONTAINER (Video Box / Sequential Scene Images) */}
+      <div
+        id="act-fullscreen-media-box"
+        className="absolute inset-0 z-0 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer select-none"
+        onClick={() => setIsAutoPlay(!isAutoPlay)}
+        title={isAutoPlay ? 'Click to stop / pause video & story' : 'Click to start / play video & story'}
+      >
         {hasSequentialImages ? (
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Ambient subtle backdrop fill */}
@@ -551,7 +578,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                   opacity: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 0.35 : 0,
                 }}
                 transition={{ duration: 0.65, ease: 'easeInOut' }}
-                className="absolute inset-0 w-full h-full object-cover filter blur-2xl scale-110 -z-20"
+                className="absolute inset-0 w-full h-full object-cover filter blur-2xl scale-110 -z-20 pointer-events-none"
                 referrerPolicy="no-referrer"
               />
             ))}
@@ -567,7 +594,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                   scale: (activeSentenceIdx % currentAct.images!.length) === imgIdx ? 1 : 1.02,
                 }}
                 transition={{ duration: 0.65, ease: 'easeInOut' }}
-                className="absolute inset-x-0 top-0 w-full h-full object-cover sm:object-top sm:-top-[10cm] sm:h-[calc(100%+10cm)] z-0"
+                className="w-full h-full object-contain sm:object-cover z-0"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   e.currentTarget.src = currentAct.posterImage || '/src/assets/realms/atlantis/realm_atlantis.jpg';
@@ -576,51 +603,63 @@ export const ActPage: React.FC<ActPageProps> = ({
             ))}
           </div>
         ) : (
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
             {/* Ambient subtle backdrop fill */}
             <img
               src={currentAct.posterImage}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-35 scale-110 -z-20"
+              className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-30 scale-110 -z-20 pointer-events-none"
               referrerPolicy="no-referrer"
             />
-            <video
-              ref={videoRef}
-              key={currentAct.mp4}
-              src={currentAct.mp4}
-              poster={currentAct.posterImage}
-              autoPlay
-              muted={isMuted}
-              playsInline
-              onEnded={() => {
-                setIsVideoFinished(true);
-                if (
-                  isAutoPlay &&
-                  currentIndex < actItems.length - 1 &&
-                  currentAct.type !== 'narrative' &&
-                  currentAct.type !== 'character' &&
-                  currentAct.type !== 'dialogue' &&
-                  currentAct.type !== 'choice'
-                ) {
-                  setTimeout(() => {
-                    goToNext();
-                  }, 5000);
-                }
-              }}
-              className="absolute inset-x-0 top-0 w-full h-full object-cover sm:object-top sm:-top-[10cm] sm:h-[calc(100%+10cm)] z-0"
-              onError={(e) => {
-                // Graceful fallback to poster background image if video can't decode
-                const target = e.currentTarget;
-                target.style.display = 'none';
-              }}
-            />
-            {/* Fallback image behind video */}
-            <img
-              src={currentAct.posterImage}
-              alt={currentAct.actTitle}
-              className="absolute inset-x-0 top-0 w-full h-full object-cover sm:object-top sm:-top-[10cm] sm:h-[calc(100%+10cm)] -z-10"
-              referrerPolicy="no-referrer"
-            />
+            {currentAct.mp4 ? (
+              <video
+                id="act-fullscreen-video"
+                ref={videoRef}
+                key={currentAct.mp4}
+                src={currentAct.mp4}
+                poster={currentAct.posterImage}
+                muted={isMuted}
+                playsInline
+                loop
+                onEnded={() => {
+                  setIsVideoFinished(true);
+                  if (
+                    isAutoPlay &&
+                    currentIndex < actItems.length - 1 &&
+                    currentAct.type !== 'narrative' &&
+                    currentAct.type !== 'character' &&
+                    currentAct.type !== 'dialogue' &&
+                    currentAct.type !== 'choice'
+                  ) {
+                    setTimeout(() => {
+                      goToNext();
+                    }, 5000);
+                  }
+                }}
+                className="w-full h-full object-contain sm:object-cover z-0"
+                onError={(e) => {
+                  // Fallback to poster image if video can't decode
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                }}
+              />
+            ) : (
+              <img
+                src={currentAct.posterImage}
+                alt={currentAct.actTitle}
+                className="w-full h-full object-contain sm:object-cover z-0"
+                referrerPolicy="no-referrer"
+              />
+            )}
+
+            {/* Play / Pause Indicator Badge overlay on top of video box when stopped/paused */}
+            {!isAutoPlay && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
+                <div className="p-4 sm:p-5 rounded-full bg-black/80 border-2 border-[#d4af37] text-[#d4af37] shadow-[0_0_30px_rgba(212,175,55,0.6)] transform hover:scale-110 transition-transform">
+                  <Play className="w-8 h-8 sm:w-10 sm:h-10 text-[#d4af37] fill-[#d4af37] ml-1" />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

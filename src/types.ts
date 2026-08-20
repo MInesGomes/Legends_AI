@@ -14,7 +14,7 @@ export interface UserProfile {
   language: Language;
   avatar_url: string;
   created_at: string;
-  daily_tale_limit?: number; // Configurable daily limit (max 10 for 18+, max 5 for under 18)
+  daily_tale_limit?: number; // Configurable daily limit (max 5 for 18+, max 2 for under 18)
 }
 
 export interface UserSkillsPoints {

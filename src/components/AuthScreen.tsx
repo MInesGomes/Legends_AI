@@ -73,7 +73,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       age: calculatedAge,
       language: lang,
       avatar_url: selectedAvatar,
-      daily_tale_limit: calculatedAge < 18 ? 5 : 10,
+      daily_tale_limit: calculatedAge < 18 ? 2 : 5,
       created_at: new Date().toISOString(),
     };
     onLoginSuccess(newUser);
