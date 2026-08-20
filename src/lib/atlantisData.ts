@@ -29,7 +29,7 @@ export interface ActItem {
   maleAvatar?: string;
 }
 
-const DEFAULT_BG = '/src/assets/realms/atlantis/realm_atlantis_bg.png';
+const DEFAULT_BG = '/src/assets/realms/atlantis/realm_atlantis.jpg';
 const FEMALE_AVATAR = '/src/assets/avatars/AvatarAlethea.jpg';
 const MALE_AVATAR = '/src/assets/avatars/AvatarElion.jpg';
 

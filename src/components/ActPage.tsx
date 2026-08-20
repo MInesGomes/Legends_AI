@@ -113,6 +113,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   const hasSequentialImages = !!(currentAct?.images && currentAct.images.length > 0);
 
   const isChoiceOrDialogue = currentAct.type === 'dialogue' || currentAct.type === 'choice';
+  const isDialogueFinished = !currentAct.dialogue || currentAct.dialogue.length === 0 || dialogueStep >= currentAct.dialogue.length - 1;
 
   const chapterChoices = useMemo(() => {
     return actItems.filter(
@@ -371,7 +372,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   const renderCompletionControls = (isLightBg: boolean = false) => {
     if (!isActFinished) return null;
 
-    const hideNextAndLang = isChoiceOrDialogue && !hasChosenBest;
+    const hideNext = isChoiceOrDialogue && !hasChosenBest;
 
     return (
       <motion.div
@@ -399,37 +400,35 @@ export const ActPage: React.FC<ActPageProps> = ({
           <span className="sm:hidden">Replay</span>
         </button>
 
-        {/* Center: Language Selector */}
-        {!hideNextAndLang && (
-          <div className="flex items-center justify-center gap-0.5 sm:gap-1 bg-black/90 p-0.5 sm:p-1.5 rounded-full border border-[#d4af37]/60 shadow-inner shrink-0">
-            <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37] ml-0.5 sm:ml-1 mr-0.5 shrink-0 hidden md:block" />
-            {LANGUAGES.map((lang) => {
-              const isSelected = currentLang === lang.code;
-              const shortCode = lang.code === 'PT-pt' ? 'PT' : lang.code;
-              return (
-                <button
-                  key={lang.code}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onLanguageChange(lang.code);
-                  }}
-                  className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-0.5 sm:gap-1 shrink-0 ${
-                    isSelected
-                      ? 'bg-[#d4af37] text-slate-950 font-bold shadow scale-105'
-                      : 'text-slate-200 hover:text-white hover:bg-white/20'
-                  }`}
-                  title={`Switch to ${lang.label}`}
-                >
-                  <span className="text-xs sm:text-sm leading-none">{lang.flag}</span>
-                  <span className="uppercase font-mono font-bold text-[9px] sm:text-xs leading-none">{shortCode}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {/* Center: Language Selector (Always visible at the bottom) */}
+        <div className="flex items-center justify-center gap-0.5 sm:gap-1 bg-black/90 p-0.5 sm:p-1.5 rounded-full border border-[#d4af37]/60 shadow-inner shrink-0">
+          <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37] ml-0.5 sm:ml-1 mr-0.5 shrink-0 hidden md:block" />
+          {LANGUAGES.map((lang) => {
+            const isSelected = currentLang === lang.code;
+            const shortCode = lang.code === 'PT-pt' ? 'PT' : lang.code;
+            return (
+              <button
+                key={lang.code}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLanguageChange(lang.code);
+                }}
+                className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-0.5 sm:gap-1 shrink-0 ${
+                  isSelected
+                    ? 'bg-[#d4af37] text-slate-950 font-bold shadow scale-105'
+                    : 'text-slate-200 hover:text-white hover:bg-white/20'
+                }`}
+                title={`Switch to ${lang.label}`}
+              >
+                <span className="text-xs sm:text-sm leading-none">{lang.flag}</span>
+                <span className="uppercase font-mono font-bold text-[9px] sm:text-xs leading-none">{shortCode}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* Right: Next Act / Chapter Button */}
-        {!hideNextAndLang && (!isLastAct ? (
+        {!hideNext && (!isLastAct ? (
           <button
             id="act-next-completion-btn"
             onClick={(e) => {
@@ -451,7 +450,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             }}
             className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
           >
-            <span>Complete</span>
+            <span>Finish</span>
             <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         ))}
@@ -571,7 +570,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 className="absolute inset-x-0 top-0 w-full h-full object-cover sm:object-top sm:-top-[10cm] sm:h-[calc(100%+10cm)] z-0"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
-                  e.currentTarget.src = currentAct.posterImage || '/src/assets/realms/atlantis/realm_atlantis_bg.png';
+                  e.currentTarget.src = currentAct.posterImage || '/src/assets/realms/atlantis/realm_atlantis.jpg';
                 }}
               />
             ))}
@@ -879,8 +878,8 @@ export const ActPage: React.FC<ActPageProps> = ({
                 </div>
               )}
 
-              {/* Tactical Feedback Card: Explains why non-best choices were suboptimal */}
-              {currentAct.type === 'choice' && currentAct.choiceType && (
+              {/* Tactical Feedback Card: Explains why non-best choices were suboptimal (only after dialogue finishes) */}
+              {isDialogueFinished && currentAct.type === 'choice' && currentAct.choiceType && (
                 <motion.div
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -918,8 +917,8 @@ export const ActPage: React.FC<ActPageProps> = ({
                 </motion.div>
               )}
 
-              {/* 4 Choices Buttons Below */}
-              {isChoiceOrDialogue && (
+              {/* 4 Choices Buttons Below (shown only after dialogue finishes) */}
+              {isDialogueFinished && isChoiceOrDialogue && (
                 <div className="pt-2.5 pb-2 border-t border-[#d4af37]/40 space-y-2 select-none">
                   {!hasChosenBest ? (
                     <>

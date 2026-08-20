@@ -8,7 +8,7 @@
     "skill": "Win4All",
     "bgMedia": {
       "type": "image",
-      "url": "/src/assets/realms/atlantis/realm_atlantis_bg.png"
+      "url": "/src/assets/realms/atlantis/realm_atlantis.jpg"
     },
     "story": {
       "paragraphs": [

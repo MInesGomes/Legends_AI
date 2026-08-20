@@ -2,7 +2,7 @@ import { Realm, Tale } from '../types';
 import workBg from '../assets/realms/work/work_realm_bg_1786616108471.jpg';
 import marriageBg from '../assets/realms/marriage/marriage.jpeg';
 import dadMomBg from '../assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg';
-import atlantisBg from '../assets/realms/atlantis/realm_atlantis_bg.png';
+import atlantisBg from '../assets/realms/atlantis/realm_atlantis.jpg';
 import eldoradoBg from '../assets/realms/eldorado/eldorado_realm_bg_1786616150490.jpg';
 import futureLandBg from '../assets/realms/future_land/future_land_realm_bg_1786616159214.jpg';
 
@@ -13,7 +13,7 @@ import pridePrejudiceImg from '../assets/realms/marriage/tale_pride_prejudice_17
 import oneHartImg from '../assets/realms/marriage/tale_one_hart_1786619538922.jpg';
 import startupWinnerImg from '../assets/realms/work/tale_startup_winner_1786619547804.jpg';
 import jobQuestImg from '../assets/realms/work/job_quest_ch1_1786784386457.jpg';
-import fiveCrystalsImg from '../assets/realms/atlantis/realm_atlantis_bg.png';
+import fiveCrystalsImg from '../assets/realms/atlantis/realm_atlantis.jpg';
 
 export const REALMS: Realm[] = [
   {

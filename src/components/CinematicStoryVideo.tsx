@@ -32,7 +32,7 @@ const SCENES: VideoScene[] = [
     id: 1,
     title: 'Act I: The Day of Founding',
     duration: 6,
-    image: '/src/assets/realms/atlantis/realm_atlantis_bg.png',
+    image: '/src/assets/realms/atlantis/realm_atlantis.jpg',
     panDirection: 'zoom-in',
     caption: 'The Day of Founding had begun with music. Citizens filled the central plaza, children released glowing fish-shaped lanterns, and fountains rose in spirals above the crowd.',
     soundType: 'festival'
