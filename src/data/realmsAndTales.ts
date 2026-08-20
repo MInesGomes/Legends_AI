@@ -67,7 +67,7 @@ export const REALMS: Realm[] = [
 ];
 
 export const INITIAL_TALES: Tale[] = [
-  // Atlantis Tales (matching 2AtlantisTales.png reference)
+  // Atlantis Tales 
   {
     id: 'tale-5-crystals',
     realmId: 'realm-atlantis',
@@ -80,7 +80,7 @@ export const INITIAL_TALES: Tale[] = [
     commentsCount: 24
   },
 
-  // Dad & Mom Tales (matching 2Dad&MomTales.png reference)
+  // Dad & Mom Tales
   {
     id: 'tale-baby',
     realmId: 'realm-dad-mom',

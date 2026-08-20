@@ -12,7 +12,7 @@ interface DashboardProps {
   darkMode?: boolean;
 }
 
-// 3D Metallic Golden Family Icon (matching DadMom.png reference)
+// 3D Metallic Golden Family Icon 
 const GoldFamilyIcon: React.FC = () => (
   <svg
     className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 filter drop-shadow-[0_2px_3px_rgba(150,90,10,0.45)]"
@@ -299,7 +299,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               className="p-[3.5px] rounded-[30px] sm:rounded-[32px] bg-gradient-to-b from-[#ffe59e] via-[#d4af37] via-[#c49226] to-[#7d4d0b] shadow-[0_12px_32px_rgba(0,0,0,0.18),0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)] transition-all duration-300 group cursor-pointer active:scale-[0.985]"
             >
               {/* Inner card with gold hairline border */}
-              <div className="relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden bg-slate-900 text-left border-2 border-[#fff3cc]/80">
+              <div className="relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden bg-transparent text-left border-2 border-[#fff3cc]/80">
                 {/* Background Cover Image */}
                 <img
                   src={realm.bgImage}

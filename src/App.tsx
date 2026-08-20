@@ -23,7 +23,6 @@ import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
 import { TalesPage } from './components/TalesPage';
 import { FullscreenChapterView } from './components/ChapterIntro';
-import { ChapterWork } from './components/ChapterWork';
 import { ActPage } from './components/ActPage';
 import { ProfileDrawer } from './components/ProfileDrawer';
 import { BottomHub, FontScale } from './components/BottomHub';
@@ -369,24 +368,6 @@ export default function App() {
               onClose={() => setCurrentPage('tails')}
               onEarnSkillPoint={handleEarnSkillPoint}
               darkMode={darkMode}
-            />
-          ) : activeTale.id === 'tale-startup-winner' ? (
-            <ChapterWork
-              user={dbState.user_profile}
-              currentLang={currentLang}
-              onLanguageChange={handleLanguageChange}
-              onClose={() => setCurrentPage('tails')}
-              onEarnSkillPoint={handleEarnSkillPoint}
-              likedChapters={dbState.chapters_id_Liked}
-              viewedChapters={dbState.chapters_id_Views}
-              commentsMap={dbState.chapters_id_Comments}
-              onToggleLike={handleToggleLike}
-              onRecordView={handleRecordView}
-              onAddComment={handleAddComment}
-              onEditComment={handleEditComment}
-              onDeleteComment={handleDeleteComment}
-              darkMode={darkMode}
-              onToggleDarkMode={() => setDarkMode(!darkMode)}
             />
           ) : (
             <FullscreenChapterView

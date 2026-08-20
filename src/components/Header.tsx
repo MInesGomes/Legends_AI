@@ -13,7 +13,7 @@ interface HeaderProps {
   onInstallPWA: () => void;
 }
 
-// 8-Point 3D Faceted Compass Star with Golden Ring (matching title.png reference)
+// 8-Point 3D Faceted Compass Star with Golden Ring
 const CompassStarIcon: React.FC<{ className?: string }> = ({ className = "w-8 h-8 sm:w-10 sm:h-10" }) => (
   <svg
     className={`${className} shrink-0 filter drop-shadow-[0_2px_4px_rgba(140,85,10,0.45)]`}

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChapterContent, ChoiceOptionType, SkillType, UserProfile, ChapterComment, Language, Tale } from '../types';
 import { getChapterById } from '../lib/chapterLoader';
 import { CommentsDrawer } from './CommentsDrawer';
-import { CinematicStoryVideo } from './CinematicStoryVideo';
 import { ChapterTypewriterStory } from './ChapterTypewriterStory';
 import { ChapterCharacterIntro } from './ChapterCharacterIntro';
 import { X as CloseIcon, Volume2 as VolOn, VolumeX as VolOff, Heart as HeartIcon, Eye as EyeIcon, MessageSquare as MsgIcon, Mic as MicIcon, Play as PlayIcon, Pause as PauseIcon, Sparkles as SparkleIcon, CheckCircle2 as CheckIcon, AlertTriangle as AlertIcon, ArrowRight as ArrowRightIcon, RefreshCw as RefreshIcon, Trophy as TrophyIcon, BookOpen, Users } from 'lucide-react';
@@ -394,49 +393,45 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
           /* CHAPTER 2+ MODE: 4 Choice Options with Image Illustrations */
           <div className="space-y-6 animate-fadeIn">
             
-            {/* If Atlantis Chapter 2, display Cinematic Video; otherwise Scene Description card */}
-            {tale.id === 'tale-5-crystals' && currentChapterNum === 2 ? (
-              <CinematicStoryVideo darkMode={darkMode} />
-            ) : (
-              <div className={`rounded-2xl p-6 sm:p-7 space-y-4 border-2 shadow-xl ${
-                darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className={`text-xs font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
-                      {chapterData.subtitle || 'Chapter Dilemma'}
-                    </span>
-                    <h3 className={`text-xl sm:text-2xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
-                      {chapterData.title}
-                    </h3>
-                  </div>
-                  <span className="text-xs sm:text-sm px-3 py-1 rounded-full font-bold bg-[#d4af37]/20 border border-[#d4af37] text-[#d4af37]">
-                    Skill: {chapterData.skill}
+            {/* Scene Description card */}
+            <div className={`rounded-2xl p-6 sm:p-7 space-y-4 border-2 shadow-xl ${
+              darkMode ? 'gold-card-frame bg-[#121824]/90' : 'bg-white/95 border-[#d4af37] text-slate-900'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className={`text-xs font-bold uppercase tracking-widest font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+                    {chapterData.subtitle || 'Chapter Dilemma'}
                   </span>
+                  <h3 className={`text-xl sm:text-2xl font-bold font-cinzel ${darkMode ? 'text-[#fce0a2]' : 'text-[#0f172a]'}`}>
+                    {chapterData.title}
+                  </h3>
                 </div>
-
-                <p className={`text-sm sm:text-base md:text-lg leading-relaxed font-serif-display ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                  {chapterData.sceneText || "Choose how to proceed."}
-                </p>
-
-                {introData.dialogue && introData.dialogue.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-slate-700/50">
-                    <p className={`text-xs font-bold uppercase tracking-wider font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
-                      Key Dialogue:
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {introData.dialogue.map((dlg, dIdx) => (
-                        <div key={dIdx} className={`p-3 rounded-xl border text-sm ${
-                          darkMode ? 'bg-slate-900/60 border-slate-800 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'
-                        }`}>
-                          <span className="font-bold text-[#d4af37]">{dlg.speaker}:</span> "{dlg.text}"
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <span className="text-xs sm:text-sm px-3 py-1 rounded-full font-bold bg-[#d4af37]/20 border border-[#d4af37] text-[#d4af37]">
+                  Skill: {chapterData.skill}
+                </span>
               </div>
-            )}
+
+              <p className={`text-sm sm:text-base md:text-lg leading-relaxed font-serif-display ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                {chapterData.sceneText || "Choose how to proceed."}
+              </p>
+
+              {introData.dialogue && introData.dialogue.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-slate-700/50">
+                  <p className={`text-xs font-bold uppercase tracking-wider font-cinzel ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`}>
+                    Key Dialogue:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {introData.dialogue.map((dlg, dIdx) => (
+                      <div key={dIdx} className={`p-3 rounded-xl border text-sm ${
+                        darkMode ? 'bg-slate-900/60 border-slate-800 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'
+                      }`}>
+                        <span className="font-bold text-[#d4af37]">{dlg.speaker}:</span> "{dlg.text}"
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* 4 CHOICE BUTTONS (`Best` / `Safe` / `Weak` / `Harmful`) */}
             <div className="space-y-3">
