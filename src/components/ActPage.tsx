@@ -620,6 +620,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 poster={currentAct.posterImage}
                 muted={isMuted}
                 playsInline
+                preload="auto"
                 loop
                 onEnded={() => {
                   setIsVideoFinished(true);
@@ -638,9 +639,15 @@ export const ActPage: React.FC<ActPageProps> = ({
                 }}
                 className="w-full h-full object-contain sm:object-cover z-0"
                 onError={(e) => {
-                  // Fallback to poster image if video can't decode
                   const target = e.currentTarget;
-                  target.style.display = 'none';
+                  const currentSrc = target.src;
+                  if (currentSrc.includes('/src/assets/')) {
+                    target.src = currentSrc.replace('/src/assets/', '/assets/');
+                  } else if (currentSrc.includes('/assets/') && !currentSrc.includes('/src/assets/')) {
+                    target.src = currentSrc.replace('/assets/', '/src/assets/');
+                  } else {
+                    target.style.display = 'none';
+                  }
                 }}
               />
             ) : (
