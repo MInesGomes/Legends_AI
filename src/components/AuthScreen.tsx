@@ -299,31 +299,29 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       <div
         className={`w-full max-w-md border rounded-2xl p-6 sm:p-8 relative z-10 shadow-2xl transition-all ${
           darkMode
-            ? 'bg-[#131b28]/95 border-[#d4af37]/35 shadow-black/70'
-            : 'bg-white border-amber-300/70 shadow-amber-950/10'
+            ? 'bg-[#131b28]/95 border-[#d4af37] shadow-black/70 ring-1 ring-[#d4af37]/40'
+            : 'bg-white border-[#d4af37] shadow-amber-950/10 ring-1 ring-[#d4af37]/40'
         }`}
       >
         {/* Brand Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 text-[#d4af37]">
           <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#f3c457] to-[#996515] p-0.5 mx-auto mb-3.5 shadow-lg shadow-[#d4af37]/20 flex items-center justify-center">
             <div
               className={`w-full h-full rounded-full flex items-center justify-center ${
-                darkMode ? 'bg-[#121824] text-[#f3c457]' : 'bg-white text-[#9e7b0d]'
+                darkMode ? 'bg-[#121824] text-[#d4af37]' : 'bg-white text-[#d4af37]'
               }`}
             >
-              <Sparkles className="w-7 h-7" />
+              <Sparkles className="w-7 h-7 text-[#d4af37]" />
             </div>
           </div>
           <h1
-            className={`text-2xl sm:text-3xl font-bold font-cinzel tracking-wide ${
-              darkMode ? 'text-[#fce0a2]' : 'text-[#854d0e]'
-            }`}
+            className={`text-2xl sm:text-3xl font-bold font-cinzel tracking-wide text-[#d4af37]`}
           >
             Learn with Legends
           </h1>
           <p
             className={`text-sm mt-1.5 font-medium ${
-              darkMode ? 'text-slate-300' : 'text-slate-600'
+              darkMode ? 'text-[#d4af37]/90' : 'text-[#b38f2a]'
             }`}
           >
             {mode === 'login'
@@ -342,14 +340,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             disabled={isGoogleLoading}
             className={`w-full py-3 px-4 rounded-xl border font-semibold text-sm flex items-center justify-center gap-3 transition-all cursor-pointer shadow-sm ${
               darkMode
-                ? 'bg-[#1a2333] hover:bg-[#202c40] border-slate-700 text-slate-100 hover:border-[#d4af37]/60 active:bg-[#151c28]'
-                : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-800 hover:border-amber-400 active:bg-slate-100'
+                ? 'bg-[#1a2333] hover:bg-[#202c40] border-[#d4af37]/60 text-slate-100 hover:border-[#d4af37] active:bg-[#151c28]'
+                : 'bg-white hover:bg-slate-50 border-[#d4af37]/60 text-slate-800 hover:border-[#d4af37] active:bg-slate-100'
             }`}
           >
             {isGoogleLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin text-[#d4af37]" />
-                <span>Connecting to Google...</span>
+                <span className="text-[#d4af37]">Connecting to Google...</span>
               </>
             ) : (
               <>
@@ -372,7 +370,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                   />
                 </svg>
-                <span>Continue with Google</span>
+                <span className="font-semibold text-[#d4af37]">Continue with Google</span>
               </>
             )}
           </button>
@@ -388,11 +386,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         {/* Divider */}
         <div className="relative my-5 text-center">
           <div className="absolute inset-0 flex items-center">
-            <div className={`w-full border-t ${darkMode ? 'border-slate-800' : 'border-slate-200'}`} />
+            <div className={`w-full border-t ${darkMode ? 'border-[#d4af37]/30' : 'border-[#d4af37]/30'}`} />
           </div>
           <span
-            className={`relative px-3 text-xs font-semibold uppercase tracking-wider ${
-              darkMode ? 'bg-[#131b28] text-slate-400' : 'bg-white text-slate-500'
+            className={`relative px-3 text-xs font-semibold uppercase tracking-wider text-[#d4af37] ${
+              darkMode ? 'bg-[#131b28]' : 'bg-white'
             }`}
           >
             Or with email
@@ -402,7 +400,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         {/* Tab Switcher: Sign In vs Create Account */}
         <div
           className={`grid grid-cols-2 p-1 rounded-xl border mb-5 transition-colors ${
-            darkMode ? 'bg-[#0b0f17] border-slate-800' : 'bg-slate-100 border-slate-200'
+            darkMode ? 'bg-[#0b0f17] border-[#d4af37]/40' : 'bg-slate-100 border-[#d4af37]/40'
           }`}
         >
           <button
@@ -415,8 +413,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               mode === 'login'
                 ? 'bg-gradient-to-r from-[#d4af37] via-[#f3c457] to-[#b38f2a] text-slate-950 font-bold shadow-md'
                 : darkMode
-                ? 'text-slate-300 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'text-[#d4af37]/80 hover:text-[#d4af37]'
+                : 'text-[#854d0e] hover:text-slate-900'
             }`}
           >
             Sign In
@@ -431,8 +429,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               mode === 'create'
                 ? 'bg-gradient-to-r from-[#d4af37] via-[#f3c457] to-[#b38f2a] text-slate-950 font-bold shadow-md'
                 : darkMode
-                ? 'text-slate-300 hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'text-[#d4af37]/80 hover:text-[#d4af37]'
+                : 'text-[#854d0e] hover:text-slate-900'
             }`}
           >
             Create Account
@@ -444,9 +442,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
               <label
-                className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 ${
-                  darkMode ? 'text-slate-200' : 'text-slate-800'
-                }`}
+                className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
               >
                 <Mail className="w-3.5 h-3.5 text-[#d4af37]" /> Email Address
               </label>
@@ -458,8 +454,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 placeholder="traveler@example.com"
                 className={`w-full rounded-xl px-4 py-3 text-sm border focus:outline-none transition-all ${
                   darkMode
-                    ? 'bg-[#0b0f17] border-slate-700 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
-                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
+                    ? 'bg-[#0b0f17] border-[#d4af37]/40 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
+                    : 'bg-white border-[#d4af37]/50 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
                 }`}
               />
             </div>
@@ -467,9 +463,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label
-                  className={`text-xs sm:text-sm font-semibold flex items-center gap-1.5 ${
-                    darkMode ? 'text-slate-200' : 'text-slate-800'
-                  }`}
+                  className={`text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-[#d4af37]`}
                 >
                   <Lock className="w-3.5 h-3.5 text-[#d4af37]" /> Password
                 </label>
@@ -483,8 +477,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   placeholder="••••••••"
                   className={`w-full rounded-xl px-4 py-3 pr-11 text-sm border focus:outline-none transition-all ${
                     darkMode
-                      ? 'bg-[#0b0f17] border-slate-700 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
-                      : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
+                      ? 'bg-[#0b0f17] border-[#d4af37]/40 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
+                      : 'bg-white border-[#d4af37]/50 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
                   }`}
                 />
                 <button
@@ -492,7 +486,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    darkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'
+                    darkMode ? 'text-[#d4af37]/70 hover:text-[#d4af37]' : 'text-[#854d0e] hover:text-slate-800'
                   }`}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -517,9 +511,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <form onSubmit={handleCreateStep1Next} className="space-y-4">
                 <div>
                   <label
-                    className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 ${
-                      darkMode ? 'text-slate-200' : 'text-slate-800'
-                    }`}
+                    className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
                   >
                     <User className="w-3.5 h-3.5 text-[#d4af37]" /> Your Full Name
                   </label>
@@ -531,17 +523,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     placeholder="e.g. Aria Vale"
                     className={`w-full rounded-xl px-4 py-3 text-sm border focus:outline-none transition-all ${
                       darkMode
-                        ? 'bg-[#0b0f17] border-slate-700 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
-                        : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
+                        ? 'bg-[#0b0f17] border-[#d4af37]/40 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
+                        : 'bg-white border-[#d4af37]/50 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
                     }`}
                   />
                 </div>
 
                 <div>
                   <label
-                    className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 ${
-                      darkMode ? 'text-slate-200' : 'text-slate-800'
-                    }`}
+                    className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
                   >
                     <Mail className="w-3.5 h-3.5 text-[#d4af37]" /> Email Address
                   </label>
@@ -553,17 +543,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     placeholder="aria@example.com"
                     className={`w-full rounded-xl px-4 py-3 text-sm border focus:outline-none transition-all ${
                       darkMode
-                        ? 'bg-[#0b0f17] border-slate-700 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
-                        : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
+                        ? 'bg-[#0b0f17] border-[#d4af37]/40 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
+                        : 'bg-white border-[#d4af37]/50 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
                     }`}
                   />
                 </div>
 
                 <div>
                   <label
-                    className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 ${
-                      darkMode ? 'text-slate-200' : 'text-slate-800'
-                    }`}
+                    className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
                   >
                     <Lock className="w-3.5 h-3.5 text-[#d4af37]" /> Password
                   </label>
@@ -576,8 +564,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       placeholder="••••••••"
                       className={`w-full rounded-xl px-4 py-3 pr-11 text-sm border focus:outline-none transition-all ${
                         darkMode
-                          ? 'bg-[#0b0f17] border-slate-700 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
-                          : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
+                          ? 'bg-[#0b0f17] border-[#d4af37]/40 text-slate-100 placeholder-slate-500 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30'
+                          : 'bg-white border-[#d4af37]/50 text-slate-900 placeholder-slate-400 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200'
                       }`}
                     />
                     <button
@@ -585,7 +573,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors cursor-pointer ${
-                        darkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'
+                        darkMode ? 'text-[#d4af37]/70 hover:text-[#d4af37]' : 'text-[#854d0e] hover:text-slate-800'
                       }`}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -608,9 +596,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 <div className="space-y-1.5">
                   <label
                     htmlFor="pwa-date"
-                    className={`block text-xs sm:text-sm font-semibold flex items-center gap-1.5 font-cinzel ${
-                      darkMode ? 'text-[#fce0a2]' : 'text-[#854d0e]'
-                    }`}
+                    className={`block text-xs sm:text-sm font-semibold flex items-center gap-1.5 font-cinzel text-[#d4af37]`}
                   >
                     <Calendar className="w-4 h-4 text-[#d4af37]" /> Date of Birth
                   </label>
@@ -623,30 +609,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     min="1930-01-01"
                     className={`w-full rounded-xl px-4 py-3 text-sm border focus:outline-none transition-all ${
                       darkMode
-                        ? 'bg-[#0b0f17] border-[#d4af37]/40 text-slate-100 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30 [color-scheme:dark]'
-                        : 'bg-white border-amber-300 text-slate-900 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200 [color-scheme:light]'
+                        ? 'bg-[#0b0f17] border-[#d4af37] text-slate-100 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/30 [color-scheme:dark]'
+                        : 'bg-white border-[#d4af37] text-slate-900 focus:border-[#b38f2a] focus:ring-2 focus:ring-amber-200 [color-scheme:light]'
                     }`}
                   />
                   <div
-                    className={`mt-1.5 flex items-center justify-between text-xs ${
-                      darkMode ? 'text-slate-300' : 'text-slate-600'
-                    }`}
+                    className={`mt-1.5 flex items-center justify-between text-xs text-[#d4af37]`}
                   >
                     <span>
                       Calculated Age:{' '}
-                      <strong className={`font-bold ${darkMode ? 'text-[#fce0a2]' : 'text-[#854d0e]'}`}>
+                      <strong className={`font-bold text-[#d4af37]`}>
                         {calculatedAge} years old
                       </strong>
                     </span>
                     {calculatedAge < 18 && (
                       <span
-                        className={`font-semibold px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 ${
-                          darkMode
-                            ? 'text-amber-300 bg-amber-950/80 border-amber-500/50'
-                            : 'text-amber-900 bg-amber-100 border-amber-300'
-                        }`}
+                        className={`font-semibold px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 text-[#d4af37] border-[#d4af37]/60 bg-[#d4af37]/10`}
                       >
-                        <ShieldCheck className="w-3 h-3" /> Youth Shield Active
+                        <ShieldCheck className="w-3 h-3 text-[#d4af37]" /> Youth Shield Active
                       </span>
                     )}
                   </div>
@@ -656,13 +636,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label
-                      className={`text-xs sm:text-sm font-semibold font-cinzel flex items-center gap-1.5 ${
-                        darkMode ? 'text-[#fce0a2]' : 'text-[#854d0e]'
-                      }`}
+                      className={`text-xs sm:text-sm font-semibold font-cinzel flex items-center gap-1.5 text-[#d4af37]`}
                     >
                       <User className="w-4 h-4 text-[#d4af37]" /> Choose Archetype
                     </label>
-                    <span className="text-xs font-medium text-slate-400">
+                    <span className="text-xs font-medium text-[#d4af37]/80">
                       4 {gender === 'female' ? 'Lady' : 'Gentlemen'} Options
                     </span>
                   </div>
@@ -670,7 +648,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   {/* Gender Selector Toggle */}
                   <div
                     className={`grid grid-cols-2 p-1 rounded-xl border transition-colors ${
-                      darkMode ? 'bg-[#0b0f17] border-slate-800' : 'bg-slate-100 border-slate-200'
+                      darkMode ? 'bg-[#0b0f17] border-[#d4af37]/40' : 'bg-slate-100 border-[#d4af37]/40'
                     }`}
                   >
                     <button
@@ -680,11 +658,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         gender === 'female'
                           ? 'bg-gradient-to-r from-[#d4af37] to-[#b38f2a] text-slate-950 shadow-md font-bold'
                           : darkMode
-                          ? 'text-slate-300 hover:text-white'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'text-[#d4af37]/80 hover:text-[#d4af37]'
+                          : 'text-[#854d0e] hover:text-slate-900'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5" /> Lady Avatars
+                      <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" /> Lady Avatars
                     </button>
 
                     <button
@@ -694,11 +672,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         gender === 'male'
                           ? 'bg-gradient-to-r from-[#d4af37] to-[#b38f2a] text-slate-950 shadow-md font-bold'
                           : darkMode
-                          ? 'text-slate-300 hover:text-white'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'text-[#d4af37]/80 hover:text-[#d4af37]'
+                          : 'text-[#854d0e] hover:text-slate-900'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5" /> Gentlemen Avatars
+                      <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" /> Gentlemen Avatars
                     </button>
                   </div>
 
@@ -715,10 +693,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                             isSelected
                               ? darkMode
                                 ? 'bg-[#d4af37]/20 border-[#d4af37] ring-2 ring-[#d4af37]/70 shadow-lg shadow-[#d4af37]/15'
-                                : 'bg-amber-100/70 border-amber-500 ring-2 ring-amber-400 shadow-md'
+                                : 'bg-amber-100/70 border-[#d4af37] ring-2 ring-[#d4af37] shadow-md'
                               : darkMode
-                              ? 'bg-[#0b0f17] border-slate-800 hover:border-slate-600 hover:bg-[#121824]'
-                              : 'bg-white border-slate-200 hover:border-amber-200 hover:bg-amber-50/50'
+                              ? 'bg-[#0b0f17] border-[#d4af37]/30 hover:border-[#d4af37] hover:bg-[#121824]'
+                              : 'bg-white border-[#d4af37]/30 hover:border-[#d4af37] hover:bg-amber-50/50'
                           }`}
                         >
                           {isSelected && (
@@ -727,7 +705,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                             </div>
                           )}
 
-                          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 p-0.5 border-[#d4af37]/80 shadow-md flex-shrink-0">
+                          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 p-0.5 border-[#d4af37] shadow-md flex-shrink-0">
                             <img
                               src={avatar.url}
                               alt={avatar.title}
@@ -738,15 +716,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                           <div className="text-center w-full min-w-0">
                             <div
-                              className={`text-xs font-bold font-cinzel truncate ${
-                                isSelected
-                                  ? darkMode
-                                    ? 'text-[#fce0a2]'
-                                    : 'text-[#854d0e]'
-                                  : darkMode
-                                  ? 'text-slate-100'
-                                  : 'text-slate-900'
-                              }`}
+                              className={`text-xs font-bold font-cinzel truncate text-[#d4af37]`}
                             >
                               {avatar.title}
                             </div>
@@ -754,7 +724,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                             <div className="flex items-center justify-center gap-1 mt-1">
                               <span
                                 className={`text-[11px] px-2 py-0.5 rounded font-medium ${
-                                  darkMode ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-700'
+                                  darkMode ? 'bg-slate-800 text-[#d4af37]' : 'bg-amber-50 text-[#854d0e] border border-[#d4af37]/30'
                                 }`}
                               >
                                 {avatar.role}
@@ -771,8 +741,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     <div
                       className={`p-3 rounded-xl border flex items-center gap-3 text-xs ${
                         darkMode
-                          ? 'bg-[#151c28] border-[#d4af37]/30 text-slate-200'
-                          : 'bg-amber-50 border-amber-200 text-slate-800'
+                          ? 'bg-[#151c28] border-[#d4af37] text-slate-200'
+                          : 'bg-amber-50 border-[#d4af37] text-slate-800'
                       }`}
                     >
                       <img
@@ -783,13 +753,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       />
                       <div className="min-w-0 flex-1">
                         <div
-                          className={`font-semibold font-cinzel text-xs ${
-                            darkMode ? 'text-[#fce0a2]' : 'text-[#854d0e]'
-                          }`}
+                          className={`font-semibold font-cinzel text-xs text-[#d4af37]`}
                         >
                           {currentSelectedAvatarObj.title} ({currentSelectedAvatarObj.name})
                         </div>
-                        <p className="text-xs text-slate-300 line-clamp-1 mt-0.5">
+                        <p className="text-xs text-[#d4af37]/90 line-clamp-1 mt-0.5">
                           {currentSelectedAvatarObj.description}
                         </p>
                       </div>
@@ -801,21 +769,21 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     className={`p-3 rounded-xl border flex items-center justify-between text-xs ${
                       calculatedAge < 18
                         ? darkMode
-                          ? 'bg-amber-950/40 border-amber-500/40 text-amber-200'
-                          : 'bg-amber-50 border-amber-300 text-amber-900'
+                          ? 'bg-amber-950/40 border-[#d4af37]/60 text-[#d4af37]'
+                          : 'bg-amber-50 border-[#d4af37] text-[#854d0e]'
                         : darkMode
-                        ? 'bg-[#121824] border-slate-800 text-slate-300'
-                        : 'bg-slate-50 border-slate-200 text-slate-700'
+                        ? 'bg-[#121824] border-[#d4af37]/40 text-[#d4af37]'
+                        : 'bg-slate-50 border-[#d4af37]/40 text-[#854d0e]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-[#d4af37]" />
                       <span>
                         Daily Tale Limit:{' '}
-                        <strong>{calculatedAge < 18 ? 'Max 5 tales/day' : 'Max 10 tales/day'}</strong>
+                        <strong className="text-[#d4af37]">{calculatedAge < 18 ? 'Max 5 tales/day' : 'Max 10 tales/day'}</strong>
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-400">Profile Configurable</span>
+                    <span className="text-[11px] text-[#d4af37]/80">Profile Configurable</span>
                   </div>
                 </div>
 
@@ -846,11 +814,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         {/* DEMO LOGINS SECTION */}
         <div className="relative my-6 text-center">
           <div className="absolute inset-0 flex items-center">
-            <div className={`w-full border-t ${darkMode ? 'border-slate-800' : 'border-slate-200'}`} />
+            <div className={`w-full border-t border-[#d4af37]/30`} />
           </div>
           <span
-            className={`relative px-3 text-xs font-semibold uppercase tracking-wider ${
-              darkMode ? 'bg-[#131b28] text-slate-400' : 'bg-white text-slate-500'
+            className={`relative px-3 text-xs font-semibold uppercase tracking-wider text-[#d4af37] ${
+              darkMode ? 'bg-[#131b28]' : 'bg-white'
             }`}
           >
             Instant Demo Logins
@@ -863,15 +831,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             onClick={() => handleQuickDemo('female')}
             className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-between transition-all cursor-pointer ${
               darkMode
-                ? 'bg-[#0b0f17] border-slate-700/80 text-[#fce0a2] hover:bg-[#d4af37]/10 hover:border-[#d4af37]/50'
-                : 'bg-[#fcfaf5] border-amber-300/80 text-[#854d0e] hover:bg-amber-100/50 hover:border-amber-400'
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-[#854d0e] hover:bg-amber-100/50 hover:border-[#d4af37]'
             }`}
           >
-            <span className="font-semibold">👩 Aria Vale (Adult Lady, Age 28)</span>
+            <span className="font-semibold text-[#d4af37]">👩 Aria Vale (Adult Lady, Age 28)</span>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                darkMode ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-100 text-emerald-800'
-              }`}
+              className={`text-xs px-2 py-0.5 rounded-full font-bold border border-[#d4af37] text-[#d4af37] bg-[#d4af37]/10`}
             >
               All 6 Realms
             </span>
@@ -882,15 +848,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             onClick={() => handleQuickDemo('male')}
             className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-between transition-all cursor-pointer ${
               darkMode
-                ? 'bg-[#0b0f17] border-slate-700/80 text-[#fce0a2] hover:bg-[#d4af37]/10 hover:border-[#d4af37]/50'
-                : 'bg-[#fcfaf5] border-amber-300/80 text-[#854d0e] hover:bg-amber-100/50 hover:border-amber-400'
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-[#854d0e] hover:bg-amber-100/50 hover:border-[#d4af37]'
             }`}
           >
-            <span className="font-semibold">👨 Elion Drake (Adult Gent, Age 32)</span>
+            <span className="font-semibold text-[#d4af37]">👨 Elion Drake (Adult Gent, Age 32)</span>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                darkMode ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-100 text-emerald-800'
-              }`}
+              className={`text-xs px-2 py-0.5 rounded-full font-bold border border-[#d4af37] text-[#d4af37] bg-[#d4af37]/10`}
             >
               All 6 Realms
             </span>
@@ -901,15 +865,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             onClick={() => handleQuickDemo('youth')}
             className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-between transition-all cursor-pointer ${
               darkMode
-                ? 'bg-amber-950/40 border-amber-500/40 text-amber-200 hover:bg-amber-900/40'
-                : 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100'
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-amber-50 border-[#d4af37]/60 text-[#854d0e] hover:bg-amber-100'
             }`}
           >
-            <span className="font-semibold">👦 Leo Star (Youth Shield, Age 14)</span>
+            <span className="font-semibold text-[#d4af37]">👦 Leo Star (Youth Shield, Age 14)</span>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                darkMode ? 'bg-amber-900/80 text-amber-200 border border-amber-500/40' : 'bg-amber-200 text-amber-900'
-              }`}
+              className={`text-xs px-2 py-0.5 rounded-full font-bold border border-[#d4af37] text-[#d4af37] bg-[#d4af37]/20`}
             >
               Child Safe
             </span>
