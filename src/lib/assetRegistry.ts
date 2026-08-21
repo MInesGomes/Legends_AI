@@ -4,16 +4,17 @@
 import avatarAlethea from '../assets/avatars/AvatarAlethea.jpg';
 import avatarElion from '../assets/avatars/AvatarElion.jpg';
 import avatarMen from '../assets/avatars/AvatarMen.jpg';
-import danielAvatar from '../assets/avatars/daniel_character_intro_1786794200296.jpg';
-import elenaAvatar from '../assets/avatars/elena_character_intro_1786794191159.jpg';
-import femaleExplorer from '../assets/avatars/female_explorer_1786725050427.jpg';
-import femaleMystic from '../assets/avatars/female_mystic_1786725039652.jpg';
-import femaleScholar from '../assets/avatars/female_scholar_1786725027022.jpg';
-import femaleWayfinder from '../assets/avatars/female_wayfinder_1786725010669.jpg';
-import maleChampion from '../assets/avatars/male_champion_1786725076356.jpg';
-import maleExplorer from '../assets/avatars/male_explorer_1786725100677.jpg';
-import maleScholar from '../assets/avatars/male_scholar_1786725087685.jpg';
-import maleWanderer from '../assets/avatars/male_wanderer_1786725060485.jpg';
+
+const danielAvatar = avatarElion;
+const elenaAvatar = avatarAlethea;
+const femaleExplorer = avatarAlethea;
+const femaleMystic = avatarAlethea;
+const femaleScholar = avatarAlethea;
+const femaleWayfinder = avatarAlethea;
+const maleChampion = avatarElion;
+const maleExplorer = avatarElion;
+const maleScholar = avatarMen;
+const maleWanderer = avatarMen;
 
 // Realm Media & Videos
 import realmAtlantisJpg from '../assets/realms/atlantis/realm_atlantis.jpg';

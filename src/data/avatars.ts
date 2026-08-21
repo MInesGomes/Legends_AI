@@ -1,12 +1,6 @@
-import femaleWayfinder from '../assets/avatars/female_wayfinder_1786725010669.jpg';
-import femaleScholar from '../assets/avatars/female_scholar_1786725027022.jpg';
-import femaleMystic from '../assets/avatars/female_mystic_1786725039652.jpg';
-import femaleExplorer from '../assets/avatars/female_explorer_1786725050427.jpg';
-
-import maleWanderer from '../assets/avatars/male_wanderer_1786725060485.jpg';
-import maleChampion from '../assets/avatars/male_champion_1786725076356.jpg';
-import maleScholar from '../assets/avatars/male_scholar_1786725087685.jpg';
-import maleExplorer from '../assets/avatars/male_explorer_1786725100677.jpg';
+import avatarAlethea from '../assets/avatars/AvatarAlethea.jpg';
+import avatarElion from '../assets/avatars/AvatarElion.jpg';
+import avatarMen from '../assets/avatars/AvatarMen.jpg';
 
 export interface AvatarOption {
   id: string;
@@ -21,22 +15,22 @@ export interface AvatarOption {
 
 export const FEMALE_AVATARS: AvatarOption[] = [
   {
-    id: 'female_wayfinder',
-    name: 'Aria',
-    title: 'The Wayfinder',
-    role: 'Pathfinder',
-    gender: 'female',
-    url: femaleWayfinder,
-    description: 'Spirited scout & voyager of uncharted realms.',
-  },
-  {
     id: 'female_scholar',
     name: 'Alethea',
     title: 'The Royal Scholar',
     role: 'Archivist',
     gender: 'female',
-    url: femaleScholar,
+    url: avatarAlethea,
     description: 'Keeper of ancient lore, wisdom & grand archives.',
+  },
+  {
+    id: 'female_wayfinder',
+    name: 'Aria',
+    title: 'The Wayfinder',
+    role: 'Pathfinder',
+    gender: 'female',
+    url: avatarAlethea,
+    description: 'Spirited scout & voyager of uncharted realms.',
   },
   {
     id: 'female_mystic',
@@ -44,7 +38,7 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     title: 'The Crystal Mystic',
     role: 'Oracle',
     gender: 'female',
-    url: femaleMystic,
+    url: avatarAlethea,
     description: 'Wielder of luminous elemental energies & visions.',
   },
   {
@@ -53,7 +47,7 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     title: 'The Torchbearer',
     role: 'Explorer',
     gender: 'female',
-    url: femaleExplorer,
+    url: avatarAlethea,
     description: 'Fearless young adventurer lighting mysterious caves.',
     isYouthRecommended: true,
   },
@@ -61,22 +55,22 @@ export const FEMALE_AVATARS: AvatarOption[] = [
 
 export const MALE_AVATARS: AvatarOption[] = [
   {
-    id: 'male_wanderer',
-    name: 'Kaelen',
-    title: 'The Wanderer',
-    role: 'Ranger',
-    gender: 'male',
-    url: maleWanderer,
-    description: 'Free-spirited ranger traversing the mythical wild.',
-  },
-  {
     id: 'male_champion',
     name: 'Elion',
     title: 'The Palace Champion',
     role: 'Champion',
     gender: 'male',
-    url: maleChampion,
+    url: avatarElion,
     description: 'Noble guardian & defender of the high kingdoms.',
+  },
+  {
+    id: 'male_wanderer',
+    name: 'Kaelen',
+    title: 'The Wanderer',
+    role: 'Ranger',
+    gender: 'male',
+    url: avatarMen,
+    description: 'Free-spirited ranger traversing the mythical wild.',
   },
   {
     id: 'male_scholar',
@@ -84,7 +78,7 @@ export const MALE_AVATARS: AvatarOption[] = [
     title: 'The Sage Scholar',
     role: 'Researcher',
     gender: 'male',
-    url: maleScholar,
+    url: avatarMen,
     description: 'Grand archivist deciphering ancient lost codices.',
   },
   {
@@ -93,7 +87,7 @@ export const MALE_AVATARS: AvatarOption[] = [
     title: 'The Torchbearer',
     role: 'Explorer',
     gender: 'male',
-    url: maleExplorer,
+    url: avatarElion,
     description: 'Cheerful young pioneer seeking ancient treasures.',
     isYouthRecommended: true,
   },
