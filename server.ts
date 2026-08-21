@@ -1,6 +1,9 @@
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function startServer() {
   const app = express();
@@ -12,6 +15,210 @@ async function startServer() {
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', service: 'Learn with Legends PWA' });
   });
+
+  // Google OAuth Authorization URL endpoint
+  app.get('/api/auth/google/url', (req, res) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID || '';
+    
+    // Determine dynamic origin (from query param or request headers)
+    const reqOrigin = req.query.origin ? String(req.query.origin).replace(/\/+$/, '') : '';
+    const host = req.get('host');
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const origin = reqOrigin || `${protocol}://${host}`;
+    const redirectUri = `${origin}/auth/google/callback`;
+
+    if (!clientId) {
+      return res.json({
+        configured: false,
+        url: null,
+        callbackUrl: redirectUri,
+        message: 'GOOGLE_CLIENT_ID is not configured in environment variables. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Settings.',
+      });
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'openid email profile',
+      access_type: 'offline',
+      prompt: 'select_account',
+    });
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    res.json({
+      configured: true,
+      url: authUrl,
+      callbackUrl: redirectUri,
+    });
+  });
+
+  // Google OAuth Callback Route
+  const handleGoogleCallback = async (req: express.Request, res: express.Response) => {
+    const { code, error, error_description } = req.query;
+
+    const host = req.get('host');
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const origin = `${protocol}://${host}`;
+    const redirectUri = `${origin}/auth/google/callback`;
+
+    if (error) {
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>Authentication Cancelled</title>
+            <style>
+              body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+              .card { background: #121824; border: 1px solid #d4af37; border-radius: 16px; padding: 28px; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+              h2 { color: #f87171; margin-top: 0; }
+              p { color: #94a3b8; font-size: 14px; line-height: 1.5; }
+              button { background: #d4af37; color: #0f141c; border: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <h2>Authentication Failed</h2>
+              <p>${error_description || error || 'Google sign-in was cancelled.'}</p>
+              <button onclick="window.close()">Close Window</button>
+            </div>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: '${error}' }, '*');
+                setTimeout(() => window.close(), 1500);
+              }
+            </script>
+          </body>
+        </html>
+      `);
+    }
+
+    if (!code) {
+      return res.status(400).send('Missing authorization code');
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID || '';
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.CLIENT_SECRET || '';
+
+    try {
+      if (!clientId || !clientSecret) {
+        throw new Error('Google OAuth credentials not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.');
+      }
+
+      // Exchange authorization code for access tokens
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code: String(code),
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        }),
+      });
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenResponse.ok || !tokenData.access_token) {
+        throw new Error(tokenData.error_description || tokenData.error || 'Failed to exchange token with Google');
+      }
+
+      // Fetch user profile from Google UserInfo endpoint
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+        },
+      });
+
+      const googleUser = await userInfoResponse.json();
+
+      const userPayload = {
+        name: googleUser.name || googleUser.given_name || 'Google Traveler',
+        email: googleUser.email || '',
+        picture: googleUser.picture || '',
+        sub: googleUser.sub || `google_${Date.now()}`,
+      };
+
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>Google Sign-In Successful</title>
+            <style>
+              body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+              .card { background: #121824; border: 1px solid #d4af37; border-radius: 16px; padding: 32px; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+              .avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #d4af37; margin: 0 auto 16px; object-fit: cover; }
+              h2 { color: #fce0a2; margin: 0 0 8px; font-size: 20px; }
+              p { color: #94a3b8; font-size: 14px; margin: 0; }
+              .spinner { width: 24px; height: 24px; border: 3px solid rgba(212,175,55,0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 16px auto 0; }
+              @keyframes spin { to { transform: rotate(360deg); } }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              ${userPayload.picture ? `<img class="avatar" src="${userPayload.picture}" alt="" />` : ''}
+              <h2>Welcome, ${userPayload.name}!</h2>
+              <p>Signing in to Learn with Legends...</p>
+              <div class="spinner"></div>
+            </div>
+            <script>
+              try {
+                if (window.opener) {
+                  window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_SUCCESS',
+                    user: ${JSON.stringify(userPayload)}
+                  }, '*');
+                  setTimeout(() => window.close(), 600);
+                } else {
+                  window.location.href = '/';
+                }
+              } catch (err) {
+                console.error('PostMessage error:', err);
+              }
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (err: any) {
+      console.error('OAuth Callback exchange error:', err);
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>OAuth Error</title>
+            <style>
+              body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+              .card { background: #121824; border: 1px solid #ef4444; border-radius: 16px; padding: 28px; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+              h2 { color: #f87171; margin-top: 0; }
+              p { color: #cbd5e1; font-size: 14px; line-height: 1.5; }
+              .details { background: #1e293b; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; color: #fca5a5; margin: 14px 0; word-break: break-all; }
+              button { background: #d4af37; color: #0f141c; border: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <h2>Authentication Error</h2>
+              <p>Could not complete Google authentication.</p>
+              <div class="details">${err?.message || 'Unknown error during token exchange'}</div>
+              <button onclick="window.close()">Close Window</button>
+            </div>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${JSON.stringify(err?.message || 'Error')} }, '*');
+              }
+            </script>
+          </body>
+        </html>
+      `);
+    }
+  };
+
+  app.get(['/auth/google/callback', '/auth/google/callback/'], handleGoogleCallback);
+  app.get(['/auth/callback', '/auth/callback/'], handleGoogleCallback);
 
   // Mock server API endpoints mirroring Supabase DB actions for instant response & offline resilience
   app.post('/api/comments/check-limit', (req, res) => {
@@ -43,3 +250,4 @@ async function startServer() {
 startServer().catch((err) => {
   console.error('Failed to start server:', err);
 });
+
