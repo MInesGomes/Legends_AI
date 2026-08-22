@@ -2,6 +2,30 @@ import avatarAlethea from '../assets/avatars/AvatarAlethea.jpg';
 import avatarElion from '../assets/avatars/AvatarElion.jpg';
 import avatarMen from '../assets/avatars/AvatarMen.jpg';
 
+// Female Avatars
+import female1 from '../assets/avatars/female1.jpg';
+import female2 from '../assets/avatars/female2.jpg';
+import female3 from '../assets/avatars/female3.jpg';
+import female4 from '../assets/avatars/female4.jpg';
+import female_13 from '../assets/avatars/female_13.jpg';
+import female_18 from '../assets/avatars/female_18.jpg';
+import female_51 from '../assets/avatars/female_51.jpg';
+import female1_13 from '../assets/avatars/female1_13.jpg';
+import female1_18 from '../assets/avatars/female1_18.jpg';
+import female50 from '../assets/avatars/female50.jpg';
+
+// Male Avatars
+import male1 from '../assets/avatars/male1.jpg';
+import male2 from '../assets/avatars/male2.jpg';
+import male3 from '../assets/avatars/male3.jpg';
+import male4 from '../assets/avatars/male4.jpg';
+import male_13 from '../assets/avatars/male_13.jpg';
+import male_18 from '../assets/avatars/male_18.jpg';
+import male_51 from '../assets/avatars/male_51.jpg';
+import male1_13 from '../assets/avatars/male1_13.jpg';
+import male1_18 from '../assets/avatars/male1_18.jpg';
+import male50 from '../assets/avatars/male50.jpg';
+
 export interface AvatarOption {
   id: string;
   name: string;
@@ -20,7 +44,7 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     title: 'The Royal Scholar',
     role: 'Archivist',
     gender: 'female',
-    url: avatarAlethea,
+    url: female1,
     description: 'Keeper of ancient lore, wisdom & grand archives.',
   },
   {
@@ -29,7 +53,7 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     title: 'The Wayfinder',
     role: 'Pathfinder',
     gender: 'female',
-    url: avatarAlethea,
+    url: female2,
     description: 'Spirited scout & voyager of uncharted realms.',
   },
   {
@@ -38,7 +62,7 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     title: 'The Crystal Mystic',
     role: 'Oracle',
     gender: 'female',
-    url: avatarAlethea,
+    url: female3,
     description: 'Wielder of luminous elemental energies & visions.',
   },
   {
@@ -47,9 +71,73 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     title: 'The Torchbearer',
     role: 'Explorer',
     gender: 'female',
-    url: avatarAlethea,
+    url: female_13,
     description: 'Fearless young adventurer lighting mysterious caves.',
     isYouthRecommended: true,
+  },
+  {
+    id: 'female_alethea_classic',
+    name: 'Elena',
+    title: 'The Grand Sorceress',
+    role: 'Mage',
+    gender: 'female',
+    url: avatarAlethea,
+    description: 'Master of enchanted tides and kingdom spells.',
+  },
+  {
+    id: 'female_guardian',
+    name: 'Isolde',
+    title: 'The Guardian Lady',
+    role: 'Knight',
+    gender: 'female',
+    url: female4,
+    description: 'Noble knight shielding ancient sanctuaries.',
+  },
+  {
+    id: 'female_junior',
+    name: 'Lyra',
+    title: 'Young Adventuress',
+    role: 'Apprentice',
+    gender: 'female',
+    url: female1_13,
+    description: 'Energetic apprentice discovering magical mysteries.',
+    isYouthRecommended: true,
+  },
+  {
+    id: 'female_voyager',
+    name: 'Valeria',
+    title: 'The Voyager',
+    role: 'Navigator',
+    gender: 'female',
+    url: female_18,
+    description: 'Bold pioneer navigating stormy celestial seas.',
+  },
+  {
+    id: 'female_elder',
+    name: 'Morrigan',
+    title: 'The High Elder',
+    role: 'Sage',
+    gender: 'female',
+    url: female_51,
+    description: 'Venerable seer guiding generations with timeless wisdom.',
+  },
+  {
+    id: 'female_grand_matron',
+    name: 'Cassandra',
+    title: 'The Sovereign Matron',
+    role: 'Chancellor',
+    gender: 'female',
+    url: female50,
+    description: 'Wise ruler orchestrating diplomacy across realms.',
+  },
+  {
+    id: 'female_noble',
+    name: 'Aurelia',
+    title: 'The Noble Heiress',
+    role: 'Diplomat',
+    gender: 'female',
+    url: female1_18,
+    description: 'Graceful aristocrat bridging legendary cultures.',
   },
 ];
 
@@ -60,7 +148,7 @@ export const MALE_AVATARS: AvatarOption[] = [
     title: 'The Palace Champion',
     role: 'Champion',
     gender: 'male',
-    url: avatarElion,
+    url: male1,
     description: 'Noble guardian & defender of the high kingdoms.',
   },
   {
@@ -69,7 +157,7 @@ export const MALE_AVATARS: AvatarOption[] = [
     title: 'The Wanderer',
     role: 'Ranger',
     gender: 'male',
-    url: avatarMen,
+    url: male2,
     description: 'Free-spirited ranger traversing the mythical wild.',
   },
   {
@@ -78,7 +166,7 @@ export const MALE_AVATARS: AvatarOption[] = [
     title: 'The Sage Scholar',
     role: 'Researcher',
     gender: 'male',
-    url: avatarMen,
+    url: male3,
     description: 'Grand archivist deciphering ancient lost codices.',
   },
   {
@@ -87,9 +175,82 @@ export const MALE_AVATARS: AvatarOption[] = [
     title: 'The Torchbearer',
     role: 'Explorer',
     gender: 'male',
-    url: avatarElion,
+    url: male_13,
     description: 'Cheerful young pioneer seeking ancient treasures.',
     isYouthRecommended: true,
+  },
+  {
+    id: 'male_elion_classic',
+    name: 'Daniel',
+    title: 'The High Commander',
+    role: 'Commander',
+    gender: 'male',
+    url: avatarElion,
+    description: 'Tactical strategist leading grand expeditions.',
+  },
+  {
+    id: 'male_paladin',
+    name: 'Gareth',
+    title: 'The Radiant Paladin',
+    role: 'Paladin',
+    gender: 'male',
+    url: male4,
+    description: 'Holy warrior channeling celestial brilliance.',
+  },
+  {
+    id: 'male_junior',
+    name: 'Rowan',
+    title: 'Young Pathfinder',
+    role: 'Apprentice',
+    gender: 'male',
+    url: male1_13,
+    description: 'Curious young traveler exploring forgotten ruins.',
+    isYouthRecommended: true,
+  },
+  {
+    id: 'male_adventurer',
+    name: 'Cedric',
+    title: 'The Brave Scout',
+    role: 'Scout',
+    gender: 'male',
+    url: male_18,
+    description: 'Courageous tracker charting hidden mountain passes.',
+  },
+  {
+    id: 'male_elder_sage',
+    name: 'Archibald',
+    title: 'The Grand Patriarch',
+    role: 'Patriarch',
+    gender: 'male',
+    url: male_51,
+    description: 'Distinguished elder harboring secrets of the universe.',
+  },
+  {
+    id: 'male_archmage',
+    name: 'Ignatius',
+    title: 'The Archmage Elder',
+    role: 'Archmage',
+    gender: 'male',
+    url: male50,
+    description: 'Ancient sorcerer commanding legendary prime magic.',
+  },
+  {
+    id: 'male_nobleman',
+    name: 'Julian',
+    title: 'The Crown Envoy',
+    role: 'Envoy',
+    gender: 'male',
+    url: male1_18,
+    description: 'Distinguished ambassador uniting distant realms.',
+  },
+  {
+    id: 'male_men_classic',
+    name: 'Alistair',
+    title: 'The Royal Chronicler',
+    role: 'Chronicler',
+    gender: 'male',
+    url: avatarMen,
+    description: 'Dedicated scribe documenting historical epics.',
   },
 ];
 

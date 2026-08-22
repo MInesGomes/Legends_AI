@@ -321,7 +321,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           </h1>
           <p
             className={`text-sm mt-1.5 font-medium ${
-              darkMode ? 'text-[#d4af37]/90' : 'text-[#b38f2a]'
+              darkMode ? 'text-slate-300' : 'text-slate-700'
             }`}
           >
             {mode === 'login'
@@ -347,7 +347,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             {isGoogleLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin text-[#d4af37]" />
-                <span className="text-[#d4af37]">Connecting to Google...</span>
+                <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>Connecting to Google...</span>
               </>
             ) : (
               <>
@@ -370,7 +370,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                   />
                 </svg>
-                <span className="font-semibold text-[#d4af37]">Continue with Google</span>
+                <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>Continue with Google</span>
               </>
             )}
           </button>
@@ -381,6 +381,58 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <span>{googleError}</span>
             </div>
           )}
+        </div>
+
+        {/* DEMO LOGINS SECTION */}
+        <div className="relative my-6 text-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className={`w-full border-t border-[#d4af37]/30`} />
+          </div>
+          <span
+            className={`relative px-3 text-xs font-semibold uppercase tracking-wider text-[#d4af37] ${
+              darkMode ? 'bg-[#131b28]' : 'bg-white'
+            }`}
+          >
+            Instant Demo Logins
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => handleQuickDemo('female')}
+            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
+              darkMode
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-black hover:bg-amber-100/50 hover:border-[#d4af37]'
+            }`}
+          >
+            <span className="font-semibold text-black">👩 Aria Vale (Adult Lady, Age 28)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleQuickDemo('male')}
+            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
+              darkMode
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-black hover:bg-amber-100/50 hover:border-[#d4af37]'
+            }`}
+          >
+            <span className="font-semibold text-black">👨 Elion Drake (Adult Gent, Age 32)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleQuickDemo('youth')}
+            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
+              darkMode
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-amber-50 border-[#d4af37]/60 text-black hover:bg-amber-100'
+            }`}
+          >
+            <span className="font-semibold text-black">👦 Leo Star (Youth Shield, Age 14)</span>
+          </button>
         </div>
 
         {/* Divider */}
@@ -641,7 +693,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       <User className="w-4 h-4 text-[#d4af37]" /> Choose Archetype
                     </label>
                     <span className="text-xs font-medium text-[#d4af37]/80">
-                      4 {gender === 'female' ? 'Lady' : 'Gentlemen'} Options
+                      {activeAvatarsList.length} {gender === 'female' ? 'Lady' : 'Gentlemen'} Choices
                     </span>
                   </div>
 
@@ -680,8 +732,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </button>
                   </div>
 
-                  {/* 4 Avatar Grid Choice Cards */}
-                  <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  {/* Avatar Grid Choice Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 max-h-80 overflow-y-auto pr-1">
                     {activeAvatarsList.map((avatar) => {
                       const isSelected = selectedAvatar === avatar.url;
                       return (
@@ -689,7 +741,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                           key={avatar.id}
                           type="button"
                           onClick={() => setSelectedAvatar(avatar.url)}
-                          className={`p-3 rounded-xl border text-left flex flex-col items-center gap-2 transition-all relative cursor-pointer ${
+                          className={`p-2.5 rounded-xl border text-left flex flex-col items-center gap-2 transition-all relative cursor-pointer ${
                             isSelected
                               ? darkMode
                                 ? 'bg-[#d4af37]/20 border-[#d4af37] ring-2 ring-[#d4af37]/70 shadow-lg shadow-[#d4af37]/15'
@@ -700,12 +752,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                           }`}
                         >
                           {isSelected && (
-                            <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#d4af37] text-slate-950 flex items-center justify-center shadow">
-                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                            <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#d4af37] text-slate-950 flex items-center justify-center shadow">
+                              <Check className="w-3 h-3 stroke-[3]" />
                             </div>
                           )}
 
-                          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 p-0.5 border-[#d4af37] shadow-md flex-shrink-0">
+                          <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 p-0.5 border-[#d4af37] shadow-md flex-shrink-0">
                             <img
                               src={avatar.url}
                               alt={avatar.title}
@@ -716,14 +768,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                           <div className="text-center w-full min-w-0">
                             <div
-                              className={`text-xs font-bold font-cinzel truncate text-[#d4af37]`}
+                              className={`text-[11px] sm:text-xs font-bold font-cinzel truncate text-[#d4af37]`}
+                            >
+                              {avatar.name}
+                            </div>
+                            <div
+                              className={`text-[10px] truncate text-slate-400`}
                             >
                               {avatar.title}
                             </div>
 
-                            <div className="flex items-center justify-center gap-1 mt-1">
+                            <div className="flex items-center justify-center gap-1 mt-0.5">
                               <span
-                                className={`text-[11px] px-2 py-0.5 rounded font-medium ${
+                                className={`text-[10px] px-1.5 py-0.2 rounded font-medium ${
                                   darkMode ? 'bg-slate-800 text-[#d4af37]' : 'bg-amber-50 text-[#854d0e] border border-[#d4af37]/30'
                                 }`}
                               >
@@ -811,72 +868,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           </>
         )}
 
-        {/* DEMO LOGINS SECTION */}
-        <div className="relative my-6 text-center">
-          <div className="absolute inset-0 flex items-center">
-            <div className={`w-full border-t border-[#d4af37]/30`} />
-          </div>
-          <span
-            className={`relative px-3 text-xs font-semibold uppercase tracking-wider text-[#d4af37] ${
-              darkMode ? 'bg-[#131b28]' : 'bg-white'
-            }`}
-          >
-            Instant Demo Logins
-          </span>
-        </div>
-
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => handleQuickDemo('female')}
-            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-between transition-all cursor-pointer ${
-              darkMode
-                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
-                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-[#854d0e] hover:bg-amber-100/50 hover:border-[#d4af37]'
-            }`}
-          >
-            <span className="font-semibold text-[#d4af37]">👩 Aria Vale (Adult Lady, Age 28)</span>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold border border-[#d4af37] text-[#d4af37] bg-[#d4af37]/10`}
-            >
-              All 6 Realms
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleQuickDemo('male')}
-            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-between transition-all cursor-pointer ${
-              darkMode
-                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
-                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-[#854d0e] hover:bg-amber-100/50 hover:border-[#d4af37]'
-            }`}
-          >
-            <span className="font-semibold text-[#d4af37]">👨 Elion Drake (Adult Gent, Age 32)</span>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold border border-[#d4af37] text-[#d4af37] bg-[#d4af37]/10`}
-            >
-              All 6 Realms
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleQuickDemo('youth')}
-            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-between transition-all cursor-pointer ${
-              darkMode
-                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
-                : 'bg-amber-50 border-[#d4af37]/60 text-[#854d0e] hover:bg-amber-100'
-            }`}
-          >
-            <span className="font-semibold text-[#d4af37]">👦 Leo Star (Youth Shield, Age 14)</span>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-bold border border-[#d4af37] text-[#d4af37] bg-[#d4af37]/20`}
-            >
-              Child Safe
-            </span>
-          </button>
-        </div>
+       
       </div>
 
       {/* GOOGLE OAUTH CONFIGURATION & TEST MODAL */}

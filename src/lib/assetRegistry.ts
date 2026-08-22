@@ -5,16 +5,38 @@ import avatarAlethea from '../assets/avatars/AvatarAlethea.jpg';
 import avatarElion from '../assets/avatars/AvatarElion.jpg';
 import avatarMen from '../assets/avatars/AvatarMen.jpg';
 
+import female1 from '../assets/avatars/female1.jpg';
+import female2 from '../assets/avatars/female2.jpg';
+import female3 from '../assets/avatars/female3.jpg';
+import female4 from '../assets/avatars/female4.jpg';
+import female_13 from '../assets/avatars/female_13.jpg';
+import female_18 from '../assets/avatars/female_18.jpg';
+import female_51 from '../assets/avatars/female_51.jpg';
+import female1_13 from '../assets/avatars/female1_13.jpg';
+import female1_18 from '../assets/avatars/female1_18.jpg';
+import female50 from '../assets/avatars/female50.jpg';
+
+import male1 from '../assets/avatars/male1.jpg';
+import male2 from '../assets/avatars/male2.jpg';
+import male3 from '../assets/avatars/male3.jpg';
+import male4 from '../assets/avatars/male4.jpg';
+import male_13 from '../assets/avatars/male_13.jpg';
+import male_18 from '../assets/avatars/male_18.jpg';
+import male_51 from '../assets/avatars/male_51.jpg';
+import male1_13 from '../assets/avatars/male1_13.jpg';
+import male1_18 from '../assets/avatars/male1_18.jpg';
+import male50 from '../assets/avatars/male50.jpg';
+
 const danielAvatar = avatarElion;
 const elenaAvatar = avatarAlethea;
-const femaleExplorer = avatarAlethea;
-const femaleMystic = avatarAlethea;
-const femaleScholar = avatarAlethea;
-const femaleWayfinder = avatarAlethea;
-const maleChampion = avatarElion;
-const maleExplorer = avatarElion;
-const maleScholar = avatarMen;
-const maleWanderer = avatarMen;
+const femaleExplorer = female_13;
+const femaleMystic = female3;
+const femaleScholar = female1;
+const femaleWayfinder = female2;
+const maleChampion = male1;
+const maleExplorer = male_13;
+const maleScholar = male3;
+const maleWanderer = male2;
 
 // Realm Media & Videos
 import realmAtlantisJpg from '../assets/realms/atlantis/realm_atlantis.jpg';
@@ -62,6 +84,28 @@ export const ASSETS = {
   maleScholar,
   maleWanderer,
 
+  female1,
+  female2,
+  female3,
+  female4,
+  female_13,
+  female_18,
+  female_51,
+  female1_13,
+  female1_18,
+  female50,
+
+  male1,
+  male2,
+  male3,
+  male4,
+  male_13,
+  male_18,
+  male_51,
+  male1_13,
+  male1_18,
+  male50,
+
   // Realm Images
   realmAtlantisJpg,
   dadMomRealmBg,
@@ -100,6 +144,86 @@ const ASSET_LOOKUP_MAP: Record<string, string> = {
   '/src/assets/avatars/AvatarMen.jpg': avatarMen,
   '/assets/avatars/AvatarMen.jpg': avatarMen,
   'AvatarMen.jpg': avatarMen,
+
+  '/src/assets/avatars/female1.jpg': female1,
+  '/assets/avatars/female1.jpg': female1,
+  'female1.jpg': female1,
+
+  '/src/assets/avatars/female2.jpg': female2,
+  '/assets/avatars/female2.jpg': female2,
+  'female2.jpg': female2,
+
+  '/src/assets/avatars/female3.jpg': female3,
+  '/assets/avatars/female3.jpg': female3,
+  'female3.jpg': female3,
+
+  '/src/assets/avatars/female4.jpg': female4,
+  '/assets/avatars/female4.jpg': female4,
+  'female4.jpg': female4,
+
+  '/src/assets/avatars/female_13.jpg': female_13,
+  '/assets/avatars/female_13.jpg': female_13,
+  'female_13.jpg': female_13,
+
+  '/src/assets/avatars/female_18.jpg': female_18,
+  '/assets/avatars/female_18.jpg': female_18,
+  'female_18.jpg': female_18,
+
+  '/src/assets/avatars/female_51.jpg': female_51,
+  '/assets/avatars/female_51.jpg': female_51,
+  'female_51.jpg': female_51,
+
+  '/src/assets/avatars/female1_13.jpg': female1_13,
+  '/assets/avatars/female1_13.jpg': female1_13,
+  'female1_13.jpg': female1_13,
+
+  '/src/assets/avatars/female1_18.jpg': female1_18,
+  '/assets/avatars/female1_18.jpg': female1_18,
+  'female1_18.jpg': female1_18,
+
+  '/src/assets/avatars/female50.jpg': female50,
+  '/assets/avatars/female50.jpg': female50,
+  'female50.jpg': female50,
+
+  '/src/assets/avatars/male1.jpg': male1,
+  '/assets/avatars/male1.jpg': male1,
+  'male1.jpg': male1,
+
+  '/src/assets/avatars/male2.jpg': male2,
+  '/assets/avatars/male2.jpg': male2,
+  'male2.jpg': male2,
+
+  '/src/assets/avatars/male3.jpg': male3,
+  '/assets/avatars/male3.jpg': male3,
+  'male3.jpg': male3,
+
+  '/src/assets/avatars/male4.jpg': male4,
+  '/assets/avatars/male4.jpg': male4,
+  'male4.jpg': male4,
+
+  '/src/assets/avatars/male_13.jpg': male_13,
+  '/assets/avatars/male_13.jpg': male_13,
+  'male_13.jpg': male_13,
+
+  '/src/assets/avatars/male_18.jpg': male_18,
+  '/assets/avatars/male_18.jpg': male_18,
+  'male_18.jpg': male_18,
+
+  '/src/assets/avatars/male_51.jpg': male_51,
+  '/assets/avatars/male_51.jpg': male_51,
+  'male_51.jpg': male_51,
+
+  '/src/assets/avatars/male1_13.jpg': male1_13,
+  '/assets/avatars/male1_13.jpg': male1_13,
+  'male1_13.jpg': male1_13,
+
+  '/src/assets/avatars/male1_18.jpg': male1_18,
+  '/assets/avatars/male1_18.jpg': male1_18,
+  'male1_18.jpg': male1_18,
+
+  '/src/assets/avatars/male50.jpg': male50,
+  '/assets/avatars/male50.jpg': male50,
+  'male50.jpg': male50,
 
   '/src/assets/avatars/elena_character_intro_1786794191159.jpg': elenaAvatar,
   '/assets/avatars/elena_character_intro_1786794191159.jpg': elenaAvatar,
