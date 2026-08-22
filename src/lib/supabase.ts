@@ -93,14 +93,14 @@ export function calculateAge(dobString: string): number {
 
 /**
  * Returns the maximum daily tales limit allowed based on age:
- * - Adults (age >= 18): max 10 tales per day
- * - Minors (age < 18): max 5 tales per day
+ * - Adults (age >= 18): max 5 tales per day
+ * - Minors (age < 18): limit is fixed to 1 tale per day
  */
 export function getMaxAllowedDailyLimit(age?: number): number {
   if (age !== undefined && age < 18) {
-    return 5;
+    return 1;
   }
-  return 10;
+  return 5;
 }
 
 /**
@@ -110,9 +110,12 @@ export function getMaxAllowedDailyLimit(age?: number): number {
 export function getEffectiveDailyLimit(user?: UserProfile | null): number {
   const maxLimit = getMaxAllowedDailyLimit(user?.age);
   if (!user) return maxLimit;
+  if (user.age !== undefined && user.age < 18) {
+    return 1;
+  }
 
   if (typeof user.daily_tale_limit === 'number' && user.daily_tale_limit >= 1) {
-    return Math.min(Math.floor(user.daily_tale_limit), maxLimit);
+    return Math.min(Math.max(1, Math.floor(user.daily_tale_limit)), maxLimit);
   }
   return maxLimit;
 }

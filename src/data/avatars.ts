@@ -76,15 +76,6 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     isYouthRecommended: true,
   },
   {
-    id: 'female_alethea_classic',
-    name: 'Elena',
-    title: 'The Grand Sorceress',
-    role: 'Mage',
-    gender: 'female',
-    url: avatarAlethea,
-    description: 'Master of enchanted tides and kingdom spells.',
-  },
-  {
     id: 'female_guardian',
     name: 'Isolde',
     title: 'The Guardian Lady',
@@ -180,15 +171,6 @@ export const MALE_AVATARS: AvatarOption[] = [
     isYouthRecommended: true,
   },
   {
-    id: 'male_elion_classic',
-    name: 'Daniel',
-    title: 'The High Commander',
-    role: 'Commander',
-    gender: 'male',
-    url: avatarElion,
-    description: 'Tactical strategist leading grand expeditions.',
-  },
-  {
     id: 'male_paladin',
     name: 'Gareth',
     title: 'The Radiant Paladin',
@@ -242,15 +224,6 @@ export const MALE_AVATARS: AvatarOption[] = [
     gender: 'male',
     url: male1_18,
     description: 'Distinguished ambassador uniting distant realms.',
-  },
-  {
-    id: 'male_men_classic',
-    name: 'Alistair',
-    title: 'The Royal Chronicler',
-    role: 'Chronicler',
-    gender: 'male',
-    url: avatarMen,
-    description: 'Dedicated scribe documenting historical epics.',
   },
 ];
 

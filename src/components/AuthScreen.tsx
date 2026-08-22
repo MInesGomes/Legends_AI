@@ -9,6 +9,9 @@ import {
   DEFAULT_YOUTH_MALE_AVATAR,
   AvatarOption,
 } from '../data/avatars';
+import female1 from '../assets/avatars/female1.jpg';
+import male1 from '../assets/avatars/male1.jpg';
+import male1_18 from '../assets/avatars/male1_18.jpg';
 import {
   Sparkles,
   Calendar,
@@ -166,7 +169,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       age: calculatedAge,
       language: lang,
       avatar_url: selectedAvatar,
-      daily_tale_limit: calculatedAge < 18 ? 2 : 5,
+      daily_tale_limit: calculatedAge < 18 ? 1 : 5,
       created_at: new Date().toISOString(),
     };
     onLoginSuccess(newUser);
@@ -183,14 +186,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       age: 30,
       language: currentLang,
       avatar_url: DEFAULT_FEMALE_AVATAR,
-      daily_tale_limit: 10,
+      daily_tale_limit: 5,
       created_at: new Date().toISOString(),
     };
     onLoginSuccess(existingUser);
   };
 
   // Demo instant loggers
-  const handleQuickDemo = (preset: 'female' | 'male' | 'youth') => {
+  const handleQuickDemo = (preset: 'female' | 'male') => {
     if (preset === 'female') {
       onLoginSuccess({
         user_id: 'user_demo_female',
@@ -200,11 +203,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         date_of_birth: '1996-04-12',
         age: 28,
         language: 'EN',
-        avatar_url: FEMALE_AVATARS[0].url,
-        daily_tale_limit: 10,
+        avatar_url: female1,
+        daily_tale_limit: 5,
         created_at: new Date().toISOString(),
       });
-    } else if (preset === 'male') {
+    } else {
       onLoginSuccess({
         user_id: 'user_demo_male',
         name: 'Elion Drake',
@@ -213,20 +216,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         date_of_birth: '1992-11-03',
         age: 32,
         language: 'EN',
-        avatar_url: MALE_AVATARS[1].url,
-        daily_tale_limit: 10,
-        created_at: new Date().toISOString(),
-      });
-    } else {
-      onLoginSuccess({
-        user_id: 'user_demo_youth',
-        name: 'Leo Star',
-        email: 'leo@youth.app',
-        gender: 'male',
-        date_of_birth: '2011-09-10',
-        age: 14,
-        language: 'EN',
-        avatar_url: DEFAULT_YOUTH_MALE_AVATAR,
+        avatar_url: male1,
         daily_tale_limit: 5,
         created_at: new Date().toISOString(),
       });
@@ -245,7 +235,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       age: 29,
       language: currentLang,
       avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-      daily_tale_limit: 10,
+      daily_tale_limit: 5,
       created_at: new Date().toISOString(),
     });
   };
@@ -305,15 +295,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       >
         {/* Brand Header */}
         <div className="text-center mb-6 text-[#d4af37]">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#f3c457] to-[#996515] p-0.5 mx-auto mb-3.5 shadow-lg shadow-[#d4af37]/20 flex items-center justify-center">
-            <div
-              className={`w-full h-full rounded-full flex items-center justify-center ${
-                darkMode ? 'bg-[#121824] text-[#d4af37]' : 'bg-white text-[#d4af37]'
-              }`}
-            >
-              <Sparkles className="w-7 h-7 text-[#d4af37]" />
-            </div>
-          </div>
           <h1
             className={`text-2xl sm:text-3xl font-bold font-cinzel tracking-wide text-[#d4af37]`}
           >
@@ -338,39 +319,37 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading}
-            className={`w-full py-3 px-4 rounded-xl border font-semibold text-sm flex items-center justify-center gap-3 transition-all cursor-pointer shadow-sm ${
-              darkMode
-                ? 'bg-[#1a2333] hover:bg-[#202c40] border-[#d4af37]/60 text-slate-100 hover:border-[#d4af37] active:bg-[#151c28]'
-                : 'bg-white hover:bg-slate-50 border-[#d4af37]/60 text-slate-800 hover:border-[#d4af37] active:bg-slate-100'
-            }`}
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#f3c457] to-[#d4af37] text-slate-950 font-bold text-sm flex items-center justify-center gap-3 transition-all cursor-pointer shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-[0.99] border border-[#f3c457]/40 disabled:opacity-75 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin text-[#d4af37]" />
-                <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>Connecting to Google...</span>
+                <Loader2 className="w-5 h-5 animate-spin text-slate-950" />
+                <span className="text-slate-950 font-bold">Connecting to Google...</span>
               </>
             ) : (
               <>
-                {/* Official Google "G" Icon */}
-                <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.17 0 9.99 0 12s.45 3.83 1.25 5.42l4.03-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>Continue with Google</span>
+                {/* Official Google "G" Icon in a neat white circle badge */}
+                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm flex-shrink-0">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.17 0 9.99 0 12s.45 3.83 1.25 5.42l4.03-3.15z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                    />
+                  </svg>
+                </div>
+                <span className="font-bold text-slate-950">Continue with Google</span>
               </>
             )}
           </button>
@@ -397,41 +376,43 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           </span>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <button
             type="button"
             onClick={() => handleQuickDemo('female')}
-            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
+            className={`w-full py-2 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center gap-3 text-center transition-all cursor-pointer ${
               darkMode
-                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
-                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-black hover:bg-amber-100/50 hover:border-[#d4af37]'
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-slate-300 hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-slate-700 hover:bg-amber-100/50 hover:border-[#d4af37]'
             }`}
           >
-            <span className="font-semibold text-black">👩 Aria Vale (Adult Lady, Age 28)</span>
+            <img
+              src={female1}
+              alt="Aria Vale"
+              className="w-12 h-12 rounded-full object-cover border-2 border-[#d4af37]/80 flex-shrink-0 shadow-sm"
+            />
+            <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+              Aria Vale (Adult Lady, Age 28)
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => handleQuickDemo('male')}
-            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
+            className={`w-full py-2 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center gap-3 text-center transition-all cursor-pointer ${
               darkMode
-                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
-                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-black hover:bg-amber-100/50 hover:border-[#d4af37]'
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-slate-300 hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-slate-700 hover:bg-amber-100/50 hover:border-[#d4af37]'
             }`}
           >
-            <span className="font-semibold text-black">👨 Elion Drake (Adult Gent, Age 32)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleQuickDemo('youth')}
-            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
-              darkMode
-                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
-                : 'bg-amber-50 border-[#d4af37]/60 text-black hover:bg-amber-100'
-            }`}
-          >
-            <span className="font-semibold text-black">👦 Leo Star (Youth Shield, Age 14)</span>
+            <img
+              src={male1}
+              alt="Elion Drake"
+              className="w-12 h-12 rounded-full object-cover border-2 border-[#d4af37]/80 flex-shrink-0 shadow-sm"
+            />
+            <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+              Elion Drake (Adult Gent, Age 32)
+            </span>
           </button>
         </div>
 
@@ -674,13 +655,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         {calculatedAge} years old
                       </strong>
                     </span>
-                    {calculatedAge < 18 && (
-                      <span
-                        className={`font-semibold px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 text-[#d4af37] border-[#d4af37]/60 bg-[#d4af37]/10`}
-                      >
-                        <ShieldCheck className="w-3 h-3 text-[#d4af37]" /> Youth Shield Active
-                      </span>
-                    )}
                   </div>
                 </div>
 
