@@ -193,7 +193,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   // Demo instant loggers
-  const handleQuickDemo = (preset: 'female' | 'male') => {
+  const handleQuickDemo = (preset: 'female' | 'male' | 'youth') => {
     if (preset === 'female') {
       onLoginSuccess({
         user_id: 'user_demo_female',
@@ -207,7 +207,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         daily_tale_limit: 5,
         created_at: new Date().toISOString(),
       });
-    } else {
+    } else if (preset === 'male') {
       onLoginSuccess({
         user_id: 'user_demo_male',
         name: 'Elion Drake',
@@ -217,6 +217,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         age: 32,
         language: 'EN',
         avatar_url: male1,
+        daily_tale_limit: 5,
+        created_at: new Date().toISOString(),
+      });
+    } else {
+      onLoginSuccess({
+        user_id: 'user_demo_youth',
+        name: 'Leo Star',
+        email: 'leo@youth.app',
+        gender: 'male',
+        date_of_birth: '2011-09-10',
+        age: 14,
+        language: 'EN',
+        avatar_url: DEFAULT_YOUTH_MALE_AVATAR,
         daily_tale_limit: 5,
         created_at: new Date().toISOString(),
       });
@@ -414,6 +427,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               Elion Drake (Adult Gent, Age 32)
             </span>
           </button>
+
+           <button
+            type="button"
+            onClick={() => handleQuickDemo('youth')}
+            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
+              darkMode
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-amber-50 border-[#d4af37]/60 text-black hover:bg-amber-100'
+            }`}
+          >
+
+            <img
+              src={male1_18}
+              alt="Leo Star"
+              className="w-12 h-12 rounded-full object-cover border-2 border-[#d4af37]/80 flex-shrink-0 shadow-sm"
+            />
+             <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+               Leo Star (Youth Shield, Age 14
+            </span>
+           </button>
+
         </div>
 
         {/* Divider */}
