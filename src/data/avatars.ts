@@ -1,30 +1,32 @@
-import avatarAlethea from '../assets/avatars/AvatarAlethea.jpg';
-import avatarElion from '../assets/avatars/AvatarElion.jpg';
-import avatarMen from '../assets/avatars/AvatarMen.jpg';
+const AVATAR_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Avatar';
+
+export const avatarAlethea = `${AVATAR_BASE_URL}/AvatarAlethea.jpg`;
+export const avatarElion = `${AVATAR_BASE_URL}/AvatarElion.jpg`;
+export const avatarMen = `${AVATAR_BASE_URL}/AvatarMen.jpg`;
 
 // Female Avatars
-import female1 from '../assets/avatars/female1.jpg';
-import female2 from '../assets/avatars/female2.jpg';
-import female3 from '../assets/avatars/female3.jpg';
-import female4 from '../assets/avatars/female4.jpg';
-import female_13 from '../assets/avatars/female_13.jpg';
-import female_18 from '../assets/avatars/female_18.jpg';
-import female_51 from '../assets/avatars/female_51.jpg';
-import female1_13 from '../assets/avatars/female1_13.jpg';
-import female1_18 from '../assets/avatars/female1_18.jpg';
-import female50 from '../assets/avatars/female50.jpg';
+export const female1 = `${AVATAR_BASE_URL}/female1.jpg`;
+export const female2 = `${AVATAR_BASE_URL}/female2.jpg`;
+export const female3 = `${AVATAR_BASE_URL}/female3.jpg`;
+export const female4 = `${AVATAR_BASE_URL}/female4.jpg`;
+export const female_13 = `${AVATAR_BASE_URL}/female_13.jpg`;
+export const female_18 = `${AVATAR_BASE_URL}/female_18.jpg`;
+export const female_51 = `${AVATAR_BASE_URL}/female_51.jpg`;
+export const female1_13 = `${AVATAR_BASE_URL}/female1_13.jpg`;
+export const female1_18 = `${AVATAR_BASE_URL}/female1_18.jpg`;
+export const female50 = `${AVATAR_BASE_URL}/female50.jpg`;
 
 // Male Avatars
-import male1 from '../assets/avatars/male1.jpg';
-import male2 from '../assets/avatars/male2.jpg';
-import male3 from '../assets/avatars/male3.jpg';
-import male4 from '../assets/avatars/male4.jpg';
-import male_13 from '../assets/avatars/male_13.jpg';
-import male_18 from '../assets/avatars/male_18.jpg';
-import male_51 from '../assets/avatars/male_51.jpg';
-import male1_13 from '../assets/avatars/male1_13.jpg';
-import male1_18 from '../assets/avatars/male1_18.jpg';
-import male50 from '../assets/avatars/male50.jpg';
+export const male1 = `${AVATAR_BASE_URL}/male1.jpg`;
+export const male2 = `${AVATAR_BASE_URL}/male2.jpg`;
+export const male3 = `${AVATAR_BASE_URL}/male3.jpg`;
+export const male4 = `${AVATAR_BASE_URL}/male4.jpg`;
+export const male_13 = `${AVATAR_BASE_URL}/male_13.jpg`;
+export const male_18 = `${AVATAR_BASE_URL}/male_18.jpg`;
+export const male_51 = `${AVATAR_BASE_URL}/male_51.jpg`;
+export const male1_13 = `${AVATAR_BASE_URL}/male1_13.jpg`;
+export const male1_18 = `${AVATAR_BASE_URL}/male1_18.jpg`;
+export const male50 = `${AVATAR_BASE_URL}/male50.jpg`;
 
 export interface AvatarOption {
   id: string;

@@ -91,72 +91,69 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                 onClick={() => handleCardClick(tale)}
                 className="group relative cursor-pointer p-[3px] rounded-[18px] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99]"
               >
-                {/* Inner Card Box with Lighter Ambient Background */}
-                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden bg-slate-900 text-left flex flex-col justify-between">
+                {/* Inner Card Box without background color */}
+                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden bg-transparent text-left flex flex-col justify-between">
                   
-                  {/* Background Image */}
+                  {/* Background Image without filters */}
                   <img
                     src={tale.coverImage}
                     alt={tale.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter brightness-95 group-hover:brightness-100"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     referrerPolicy="no-referrer"
                   />
 
-                  {/* Corner Filigree Flourish Accents (Matching exact reference borders) */}
-                  <div className="absolute top-1.5 left-1.5 pointer-events-none text-[#fce0a2]/80">
+                  {/* Corner Filigree Flourish Accents */}
+                  <div className="absolute top-1.5 left-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M2 10V2h8M2 2l8 8" />
                     </svg>
                   </div>
-                  <div className="absolute top-1.5 right-1.5 pointer-events-none text-[#fce0a2]/80">
+                  <div className="absolute top-1.5 right-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M22 10V2h-8M22 2l-8 8" />
                     </svg>
                   </div>
-                  <div className="absolute bottom-1.5 left-1.5 pointer-events-none text-[#fce0a2]/80 z-10">
+                  <div className="absolute bottom-1.5 left-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] z-10">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M2 14v8h8M2 22l8-8" />
                     </svg>
                   </div>
-                  <div className="absolute bottom-1.5 right-1.5 pointer-events-none text-[#fce0a2]/80 z-10">
+                  <div className="absolute bottom-1.5 right-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] z-10">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M22 14v8h-8M22 22l-8-8" />
                     </svg>
                   </div>
 
-                  {/* Top Read Today Indicator (Skill badge removed as requested) */}
+                  {/* Top Read Today Indicator without blur */}
                   {alreadyReadToday && (
                     <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-950/85 backdrop-blur-md border border-emerald-500/60 text-[10px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/60 text-[10px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
                         Unlocked Today
                       </span>
                     </div>
                   )}
 
-                  {/* Dark Vignette Gradient Overlay at Bottom */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
-
-                  {/* Bottom Gold Title Banner with reduced top padding and increased bottom padding */}
+                  {/* Bottom Gold Title Banner with clear high-contrast text */}
                   <div className="relative z-10 px-4 pt-2 pb-5 sm:pb-6 text-center flex flex-col items-center justify-end">
-                    <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-md">
+                    <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                       {tale.title}
                     </h3>
                     
                     {/* Decorative Gold Filigree Divider with Diamond */}
-                    <div className="w-full max-w-[80%] flex items-center justify-center my-1.5 text-[#d4af37]">
+                    <div className="w-full max-w-[80%] flex items-center justify-center my-1.5 text-[#d4af37] filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                       <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
                       <span className="px-2 text-xs font-serif">❖</span>
                       <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
                     </div>
 
                     {tale.subtitle && (
-                      <p className="text-sm text-slate-200 font-serif-display italic line-clamp-1 mb-1">
+                      <p className="text-sm text-slate-100 font-serif-display italic line-clamp-1 mb-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] font-medium">
                         {tale.subtitle}
                       </p>
                     )}
 
                     {/* Social Stats */}
-                    <div className="flex items-center justify-center gap-4 text-xs text-[#fce0a2] mt-1">
+                    <div className="flex items-center justify-center gap-4 text-xs text-[#fce0a2] mt-1 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                       <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
                       <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
                       <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.commentsCount}</span>
@@ -196,98 +193,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               </span>
             </div>
           </div>
-
         </div>
-
-        {/* Daily Tales Quota & Reading Progress Card (At the bottom of TalesPage) */}
-        {user && (
-          <div className="p-[2.5px] rounded-2xl bg-gradient-to-r from-[#ffe59e]/70 via-[#d4af37] to-[#8c5804]/70 shadow-xl">
-            <div className={`rounded-[14px] p-5 sm:p-6 transition-all ${
-              darkMode ? 'bg-[#121824]/95 text-slate-100' : 'bg-white/95 text-slate-900 shadow-sm'
-            }`}>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                
-                {/* Left: Quota Stats & Description */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center shadow-md">
-                      <div className={`w-full h-full rounded-[10px] flex items-center justify-center ${
-                        darkMode ? 'bg-[#121824] text-[#fce0a2]' : 'bg-white text-[#8a5d12]'
-                      }`}>
-                        <BookOpen className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className={`text-lg sm:text-xl font-bold font-cinzel tracking-wide ${
-                        darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
-                      }`}>
-                        Daily Tales Journey
-                      </h3>
-                      <p className={`text-xs sm:text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                        {Math.max(0, effectiveLimit - todayTalesCount) > 0 ? (
-                          <>
-                            <strong className="text-[#d4af37] font-semibold">
-                              {Math.max(0, effectiveLimit - todayTalesCount)} tale{Math.max(0, effectiveLimit - todayTalesCount) > 1 ? 's' : ''}
-                            </strong> left to explore today
-                          </>
-                        ) : (
-                          <span className="text-emerald-400 font-semibold">
-                            Daily Reading Quota Completed! ✨
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {isUnder18 && (
-                    <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
-                      <ShieldCheck className="w-4 h-4 shrink-0" />
-                      <span>Youth Protection Limit: Under 18 accounts are limited to a max of 5 tales/day.</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Center / Right: Progress Bar & Action */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 min-w-[260px] sm:min-w-[320px]">
-                  
-                  {/* Progress Meter Bar */}
-                  <div className="flex-1 space-y-1.5">
-                    <div className="flex justify-between text-xs font-mono font-bold">
-                      <span className={darkMode ? 'text-slate-300' : 'text-slate-700'}>Today's Tales Read</span>
-                      <span className="text-[#d4af37] text-sm font-extrabold">{todayTalesCount} / {effectiveLimit}</span>
-                    </div>
-                    <div className={`w-full h-3 rounded-full overflow-hidden border ${
-                      darkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-slate-200 border-slate-300'
-                    }`}>
-                      <div
-                        className="h-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] rounded-full transition-all duration-500 shadow-sm"
-                        style={{ width: `${Math.min(100, Math.round((todayTalesCount / effectiveLimit) * 100))}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Configure Goal Button */}
-                  {onOpenProfile && (
-                    <button
-                      onClick={onOpenProfile}
-                      className={`px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap ${
-                        darkMode
-                          ? 'bg-[#1a2332] border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#222e42]'
-                          : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
-                      }`}
-                      title="Adjust daily tale reading limit"
-                    >
-                      <Settings className="w-3.5 h-3.5" />
-                      <span>Set Goal</span>
-                    </button>
-                  )}
-
-                </div>
-
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Daily Tale Limit Reached Warning Modal */}
         {limitModalOpen && (

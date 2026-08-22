@@ -1,31 +1,31 @@
 // Centralized Asset Registry for ES Module asset imports (Bundled & Hashed by Vite)
 
 // Avatars
-import avatarAlethea from '../assets/avatars/AvatarAlethea.jpg';
-import avatarElion from '../assets/avatars/AvatarElion.jpg';
-import avatarMen from '../assets/avatars/AvatarMen.jpg';
-
-import female1 from '../assets/avatars/female1.jpg';
-import female2 from '../assets/avatars/female2.jpg';
-import female3 from '../assets/avatars/female3.jpg';
-import female4 from '../assets/avatars/female4.jpg';
-import female_13 from '../assets/avatars/female_13.jpg';
-import female_18 from '../assets/avatars/female_18.jpg';
-import female_51 from '../assets/avatars/female_51.jpg';
-import female1_13 from '../assets/avatars/female1_13.jpg';
-import female1_18 from '../assets/avatars/female1_18.jpg';
-import female50 from '../assets/avatars/female50.jpg';
-
-import male1 from '../assets/avatars/male1.jpg';
-import male2 from '../assets/avatars/male2.jpg';
-import male3 from '../assets/avatars/male3.jpg';
-import male4 from '../assets/avatars/male4.jpg';
-import male_13 from '../assets/avatars/male_13.jpg';
-import male_18 from '../assets/avatars/male_18.jpg';
-import male_51 from '../assets/avatars/male_51.jpg';
-import male1_13 from '../assets/avatars/male1_13.jpg';
-import male1_18 from '../assets/avatars/male1_18.jpg';
-import male50 from '../assets/avatars/male50.jpg';
+import {
+  avatarAlethea,
+  avatarElion,
+  avatarMen,
+  female1,
+  female2,
+  female3,
+  female4,
+  female_13,
+  female_18,
+  female_51,
+  female1_13,
+  female1_18,
+  female50,
+  male1,
+  male2,
+  male3,
+  male4,
+  male_13,
+  male_18,
+  male_51,
+  male1_13,
+  male1_18,
+  male50,
+} from '../data/avatars';
 
 const danielAvatar = avatarElion;
 const elenaAvatar = avatarAlethea;
@@ -38,12 +38,15 @@ const maleExplorer = male_13;
 const maleScholar = male3;
 const maleWanderer = male2;
 
-// Realm Media & Videos
-import realmAtlantisJpg from '../assets/realms/atlantis/realm_atlantis.jpg';
-import realmAtlantisMp4 from '../assets/realms/atlantis/realm_atlantis.mp4';
-import aletheaMp4 from '../assets/realms/atlantis/0Alethea.mp4';
-import elionMp4 from '../assets/realms/atlantis/0Elion.mp4';
-import act2Mp4 from '../assets/realms/atlantis/Act2.mp4';
+// Realm Media & Videos (Atlantis hosted on Supabase public storage)
+const ATLANTIS_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis';
+
+export const realmAtlantisJpg = `${ATLANTIS_BASE_URL}/realm_atlantis.jpg`;
+export const realmAtlantisMp4 = `${ATLANTIS_BASE_URL}/realm_atlantis.mp4`;
+export const aletheaMp4 = `${ATLANTIS_BASE_URL}/0Alethea.mp4`;
+export const elionMp4 = `${ATLANTIS_BASE_URL}/0Elion.mp4`;
+export const act2Mp4 = `${ATLANTIS_BASE_URL}/act2.mp4`;
+export const realmAtlantisBg = `${ATLANTIS_BASE_URL}/realm_atlantis_bg.png`;
 
 // Dad & Mom
 import dadMomRealmBg from '../assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg';

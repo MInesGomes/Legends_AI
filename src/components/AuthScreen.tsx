@@ -8,10 +8,10 @@ import {
   DEFAULT_MALE_AVATAR,
   DEFAULT_YOUTH_MALE_AVATAR,
   AvatarOption,
+  female1,
+  male1,
+  male1_18,
 } from '../data/avatars';
-import female1 from '../assets/avatars/female1.jpg';
-import male1 from '../assets/avatars/male1.jpg';
-import male1_18 from '../assets/avatars/male1_18.jpg';
 import {
   Sparkles,
   Calendar,

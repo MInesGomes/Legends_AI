@@ -604,7 +604,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             ))}
           </div>
         ) : (
-          <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
+          <div className="relative w-full h-full flex flex-col items-center justify-start pt-[10cm] px-[10px] pb-[10px] sm:p-[10px] bg-slate-950 overflow-hidden">
             {/* Ambient subtle backdrop fill */}
             <img
               src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
@@ -622,7 +622,6 @@ export const ActPage: React.FC<ActPageProps> = ({
                 muted={isMuted}
                 playsInline
                 preload="auto"
-                loop
                 onEnded={() => {
                   setIsVideoFinished(true);
                   if (
@@ -638,7 +637,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     }, 5000);
                   }
                 }}
-                className="w-full h-full object-contain sm:object-cover z-0"
+                className="w-full max-h-full object-contain object-top z-0 [clip-path:inset(0_10cm_0_10cm)] sm:[clip-path:none]"
                 onError={(e) => {
                   const target = e.currentTarget;
                   const fallback = resolveAssetUrl(currentAct.mp4);
@@ -653,7 +652,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               <img
                 src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 alt={currentAct.actTitle}
-                className="w-full h-full object-contain sm:object-cover z-0"
+                className="w-full max-h-full object-contain object-top z-0 [clip-path:inset(0_10cm_0_10cm)] sm:[clip-path:none]"
                 referrerPolicy="no-referrer"
               />
             )}

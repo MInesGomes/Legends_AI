@@ -9,7 +9,6 @@
       "title": "The Heart of Atlantis",
       "subtitle": "The Five Crystals",
       "skill": "Win4All",
-      "mp4": "/src/assets/realms/atlantis/realm_atlantis.mp4",
       "act1": {
         "title": "The Heart of Atlantis",
         "text": "Atlantis was a living kingdom beneath the ocean, powered by the Heart of Atlantis.\nAround the Heart stood five smaller crystals, Their names were:\nPHYSICAL, SOCIAL, EMOTIONAL, INTELLECTUAL, SPIRITUAL."
@@ -17,20 +16,17 @@
       "female_act": {
         "characterName": "Alethea",
         "title": "Alethea, Guardian of Archives",
-        "mp4": "/src/assets/realms/atlantis/0Alethea.mp4",
+        "mp4": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Avatar/Atlantis/0Alethea.mp4",
         "role": "Guardian of the Ancient Archives",
         "description": "Alethea was a guardian of the Ancient Archives.\nShe spent her life studying the discipline of heart, mind, and character.\nShe was Patient, observant, stubbornly compassionate and was neither famous nor powerful.\nShe discovered the first fissure beneath the Heart Chamber.\nTried to inform the council, but no one believe her."
       },
       "male_act": {
         "characterName": "Elion",
         "title": "Elion, the Warrior",
-        "mp4": "/src/assets/realms/atlantis/0Elion.mp4",
-        "role": "Atlantis's Most Celebrated Warrior",
         "description": "Elion was Atlantis’s most celebrated warrior.\nHe had won every major tournament,\nHis name was painted on training halls and carved into medals.\nBut his victories had made him lonely.\nHe trained until his muscles trembled and refused help even when injured.\nIn his dreams he saw Atlantis cracking beneath the sea, crowds running through flooded streets.\nElion woke from another nightmare with a strange blue mark burning across his palm."
       },
       "act2": {
         "title": "The Beginning",
-        "mp4": "/src/assets/realms/atlantis/Act2.mp4",
         "text": "When Alethea discovered the first fissure,\nElion woke from another nightmare with a strange blue mark burning across his palm.\nNeither understood the connection.\nBut the Heart had chosen them because they represented two things Atlantis had forgotten:\n- Knowledge with compassion,\n- Strength with purpose."
       }
     },
@@ -39,9 +35,8 @@
       "id": "atlantis-ch2",
       "title": "The Celebration",
       "skill": "Win4All",
-      "Female_Avatar": "/src/assets/avatars/AvatarAlethea.jpg",
-      "Male_Avatar": "/src/assets/avatars/AvatarElion.jpg",
-      "mp4": "/src/assets/realms/atlantis/realm_atlantis.mp4",
+      "Female_Avatar": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Avatar/AvatarAlethea.jpg",
+      "Male_Avatar": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Avatar/AvatarElion.jpg",
       "text": "The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.\nAlethea watched the blue light spread. For one moment, she believed the crisis was over.\nThen the Heart pulsed. The music stopped. The lights vanished. The eastern dome began to buckle.\nAlethea ran for the emergency controls. Elion reached them first.",
       "dialog": [
         {
