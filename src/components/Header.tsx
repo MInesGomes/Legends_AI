@@ -12,6 +12,7 @@ interface HeaderProps {
   onOpenProfile: () => void;
   deferredPrompt: any;
   onInstallPWA: () => void;
+  isInstalled?: boolean;
 }
 
 // 8-Point 3D Faceted Compass Star with Golden Ring
@@ -108,6 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
   deferredPrompt,
   onInstallPWA,
+  isInstalled = false,
 }) => {
   const [showPwaModal, setShowPwaModal] = useState(false);
 
@@ -182,21 +184,23 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right: Controls (Theme, Language, PWA Install) */}
           <div className="flex items-center gap-2 sm:gap-3">
             
-            {/* PWA / Add to Home Screen Button */}
-            <button
-              id="header-pwa-install-btn"
-              onClick={handlePwaClick}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-sm ${
-                darkMode
-                  ? 'bg-[#d4af37]/15 border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#d4af37]/30 hover:border-[#d4af37]'
-                  : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100 hover:border-[#d4af37]'
-              }`}
-              title="Add app to Home Screen"
-            >
-              <Download className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
-              <span className="hidden sm:inline">Add to Home</span>
-              <span className="sm:hidden">App</span>
-            </button>
+            {/* PWA / Add to Home Screen Button (Hidden once installed) */}
+            {!isInstalled && (
+              <button
+                id="header-pwa-install-btn"
+                onClick={handlePwaClick}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-sm ${
+                  darkMode
+                    ? 'bg-[#d4af37]/15 border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#d4af37]/30 hover:border-[#d4af37]'
+                    : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100 hover:border-[#d4af37]'
+                }`}
+                title="Add app to Home Screen"
+              >
+                <Download className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
+                <span className="hidden sm:inline">Add to Home</span>
+                <span className="sm:hidden">App</span>
+              </button>
+            )}
 
             {/* Theme Toggle Button (Light/Dark pill button matching 1DASHBOARD.png) */}
             <button

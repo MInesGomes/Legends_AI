@@ -59,22 +59,62 @@ export default function App() {
     localStorage.setItem('legends_font_scale', fontScale);
   }, [fontScale]);
 
-  // PWA Install Event
+  // PWA Install Event & State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isIOSStandalone = (window.navigator as any).standalone === true;
+    const isSavedInstalled = localStorage.getItem('pwa_is_installed') === 'true';
+    return isStandalone || isIOSStandalone || isSavedInstalled;
+  });
 
   useEffect(() => {
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+      localStorage.setItem('pwa_is_installed', 'true');
+    };
+
+    const handleDisplayModeChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        setIsInstalled(true);
+        localStorage.setItem('pwa_is_installed', 'true');
+      }
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    if (mediaQuery?.addEventListener) {
+      mediaQuery.addEventListener('change', handleDisplayModeChange);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      if (mediaQuery?.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleDisplayModeChange);
+      }
+    };
   }, []);
 
   const handleInstallPWA = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          setIsInstalled(true);
+          localStorage.setItem('pwa_is_installed', 'true');
+        }
+        setDeferredPrompt(null);
+      });
     }
   };
 
@@ -344,6 +384,7 @@ export default function App() {
           onOpenProfile={() => setShowProfileDrawer(true)}
           deferredPrompt={deferredPrompt}
           onInstallPWA={handleInstallPWA}
+          isInstalled={isInstalled}
         />
       )}
 
