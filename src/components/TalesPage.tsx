@@ -180,14 +180,28 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                   <Plus className="w-8 h-8" />
                 </div>
               </div>
-              <h3 className={`text-xl font-bold font-cinzel ${
+              <h3 className={`text-lg sm:text-xl font-bold font-cinzel ${
                 darkMode ? 'text-[#fce0a2] group-hover:text-white' : 'text-[#8a5d12]'
               }`}>
-                Add Suggestion Tale
+                Tell us your story
               </h3>
-              <p className={`text-sm max-w-xs mt-2 ${darkMode ? 'text-slate-200' : 'text-slate-600'}`}>
-                Teel your story of success, or what are you struggling with, that could inpire a new tale in the realm {realm.title}.
-              </p>
+
+              <div className={`text-xs sm:text-[13px] max-w-xs mt-2.5 space-y-2 text-left ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                <p className="text-center font-medium">
+                  Every legend leaves a mark on <span className="font-semibold text-[#d4af37]">{realm.title}</span>. What is yours?
+                </p>
+                <ul className="space-y-1.5 pt-1 pl-1">
+                  <li className="flex items-start gap-1.5 leading-snug">
+                    <span className="text-[#d4af37] font-bold">•</span>
+                    <span><strong className={darkMode ? 'text-slate-100' : 'text-slate-900'}>Share a triumph:</strong> Write your success tale.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 leading-snug">
+                    <span className="text-[#d4af37] font-bold">•</span>
+                    <span><strong className={darkMode ? 'text-slate-100' : 'text-slate-900'}>Share a challenge:</strong> What are you currently struggling with that could inspire a new saga?</span>
+                  </li>
+                </ul>
+              </div>
+
               <span className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 font-bold text-xs shadow-md group-hover:brightness-110 transition-all">
                 + Suggest a Tale
               </span>
