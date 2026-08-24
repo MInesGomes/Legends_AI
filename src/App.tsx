@@ -181,15 +181,35 @@ export default function App() {
     });
   };
 
-  // Record Chapter View
-  const handleRecordView = (chapterId: string) => {
+  // Record Chapter View (tracks both overall and per-language chapter views)
+  const handleRecordView = (chapterId: string, lang: Language = currentLang) => {
     const userId = dbState.user_profile?.user_id || 'guest';
     setDbState((prev) => {
-      if (prev.chapters_id_Views.includes(chapterId)) return prev;
+      const existingGlobal = prev.chapters_id_Views || [];
+      const newGlobal = existingGlobal.includes(chapterId)
+        ? existingGlobal
+        : [...existingGlobal, chapterId];
+
+      const currentLangViews = prev.language_chapters_viewed?.[lang] || [];
+      const newLangViews = currentLangViews.includes(chapterId)
+        ? currentLangViews
+        : [...currentLangViews, chapterId];
+
+      const updatedLanguageViews: Record<Language, string[]> = {
+        'EN': [],
+        'ES': [],
+        'IT': [],
+        'PT-pt': [],
+        'NL': [],
+        ...(prev.language_chapters_viewed || {}),
+        [lang]: newLangViews,
+      };
+
       syncChapterViewToSupabase(userId, chapterId);
       return {
         ...prev,
-        chapters_id_Views: [...prev.chapters_id_Views, chapterId],
+        chapters_id_Views: newGlobal,
+        language_chapters_viewed: updatedLanguageViews,
       };
     });
   };
@@ -371,6 +391,7 @@ export default function App() {
               onDeleteComment={handleDeleteComment}
               onClose={() => setCurrentPage('tails')}
               onEarnSkillPoint={handleEarnSkillPoint}
+              onRecordView={handleRecordView}
               darkMode={darkMode}
             />
           ) : (
@@ -411,6 +432,7 @@ export default function App() {
         <ProfileDrawer
           user={dbState.user_profile}
           skillsPoints={dbState.user_skills_points}
+          languageChaptersViewed={dbState.language_chapters_viewed}
           likedCount={dbState.chapters_id_Liked.length}
           viewedCount={dbState.chapters_id_Views.length}
           todayTalesCount={todayTalesCount}

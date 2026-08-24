@@ -1,5 +1,13 @@
 export type Language = 'EN' | 'ES' | 'IT' | 'PT-pt' | 'NL';
 
+export const SUPPORTED_LANGUAGES: { code: Language; label: string; flag: string }[] = [
+  { code: 'EN', label: 'English', flag: '🇬🇧' },
+  { code: 'ES', label: 'Español', flag: '🇪🇸' },
+  { code: 'IT', label: 'Italiano', flag: '🇮🇹' },
+  { code: 'PT-pt', label: 'Português', flag: '🇵🇹' },
+  { code: 'NL', label: 'Nederlands', flag: '🇳🇱' },
+];
+
 export type SkillType = 'Leader' | 'Plan' | 'Win4All' | 'Listen' | 'Recharge';
 
 export type ChoiceOptionType = 'Best' | 'Safe' | 'Weak' | 'Harmful';
@@ -123,6 +131,7 @@ export interface DatabaseState {
   user_skills_points: UserSkillsPoints;
   chapters_id_Liked: string[];
   chapters_id_Views: string[];
+  language_chapters_viewed?: Record<Language, string[]>;
   chapters_id_Comments: Record<string, ChapterComment[]>;
   user_tales: Tale[];
   daily_tales_log?: DailyTaleLog[];

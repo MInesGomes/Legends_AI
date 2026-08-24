@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { UserProfile, UserSkillsPoints, Language } from '../types';
+import { UserProfile, UserSkillsPoints, Language, SUPPORTED_LANGUAGES, SkillType } from '../types';
 import { FEMALE_AVATARS, MALE_AVATARS, getAvatarByUrlOrId } from '../data/avatars';
-import { X, Award, LogOut, Sparkles, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award } from 'lucide-react';
 
 interface ProfileDrawerProps {
   user: UserProfile | null;
-  skillsPoints: UserSkillsPoints;
+  skillsPoints?: UserSkillsPoints;
+  languageChaptersViewed?: Record<Language, string[]>;
   likedCount?: number;
   viewedCount?: number;
   todayTalesCount?: number;
@@ -21,6 +22,7 @@ interface ProfileDrawerProps {
 export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   user,
   skillsPoints,
+  languageChaptersViewed,
   currentLang,
   onLanguageChange,
   onUpdateAvatar,
@@ -193,34 +195,122 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
             </div>
           )}
 
-          {/* Skill Points Breakdown */}
+          {/* Languages & Chapters Explored */}
           <div className="space-y-3">
-            <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
-              darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
-            }`}>
-              <Award className="w-4 h-4 text-[#d4af37]" /> Earned Skill Points
-            </h5>
+            <div className="flex items-center justify-between">
+              <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
+                darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+              }`}>
+                <Globe className="w-4 h-4 text-[#d4af37]" /> Languages
+              </h5>
+              <span className={`text-[11px] font-mono font-semibold ${
+                darkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+                Chapters Seen
+              </span>
+            </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {Object.entries(skillsPoints).map(([skillName, points]) => (
-                <div
-                  key={skillName}
-                  className={`p-2.5 rounded-xl border flex items-center justify-between ${
-                    darkMode
-                      ? 'bg-[#182130] border-[#d4af37]/20'
-                      : 'bg-white border-[#d4af37]/30 shadow-sm'
-                  }`}
-                >
-                  <span className={`font-medium ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>{skillName}</span>
-                  <span className={`font-bold font-mono px-2 py-0.5 rounded border ${
-                    darkMode
-                      ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
-                      : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
-                  }`}>
-                    +{points}
-                  </span>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const count = languageChaptersViewed?.[lang.code]?.length || 0;
+                const isCurrent = currentLang === lang.code;
+
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => onLanguageChange(lang.code)}
+                    className={`p-2.5 rounded-xl border flex items-center justify-between transition-all text-left cursor-pointer ${
+                      isCurrent
+                        ? darkMode
+                          ? 'bg-[#1e293b] border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-md'
+                          : 'bg-amber-50 border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
+                        : darkMode
+                          ? 'bg-[#182130] border-[#d4af37]/20 hover:border-[#d4af37]/50 hover:bg-[#1e293b]/70'
+                          : 'bg-white border-[#d4af37]/30 shadow-sm hover:bg-amber-50/50'
+                    }`}
+                    title={`Switch to ${lang.label}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-lg leading-none shrink-0">{lang.flag}</span>
+                      <div className="truncate">
+                        <span className={`font-semibold text-xs block truncate ${
+                          darkMode ? 'text-slate-200' : 'text-slate-800'
+                        }`}>
+                          {lang.label}
+                        </span>
+                        <span className={`text-[10px] font-mono uppercase ${
+                          isCurrent ? 'text-[#d4af37] font-bold' : darkMode ? 'text-slate-400' : 'text-slate-500'
+                        }`}>
+                          {lang.code} {isCurrent ? '• Active' : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      <span className={`font-bold font-mono px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1.5 ${
+                        count > 0
+                          ? darkMode
+                            ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
+                            : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
+                          : darkMode
+                            ? 'text-slate-400 bg-slate-800/60 border-slate-700/60'
+                            : 'text-slate-500 bg-slate-100 border-slate-200'
+                      }`}>
+                        <BookOpen className="w-3.5 h-3.5 text-[#d4af37]" />
+                        <span>{count} {count === 1 ? 'chapter' : 'chapters'}</span>
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Skill Points Progress */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
+                darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+              }`}>
+                <Award className="w-4 h-4 text-[#d4af37]" /> Skills Progress
+              </h5>
+              <span className={`text-[11px] font-mono font-semibold ${
+                darkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+                Total: {Object.values(skillsPoints || {}).reduce((a: number, b: number) => a + (Number(b) || 0), 0)} pts
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
+                const points = skillsPoints?.[skillName] || 0;
+                return (
+                  <div
+                    key={skillName}
+                    className={`p-2.5 rounded-xl border flex items-center justify-between ${
+                      darkMode
+                        ? 'bg-[#182130] border-[#d4af37]/20'
+                        : 'bg-white border-[#d4af37]/30 shadow-sm'
+                    }`}
+                  >
+                    <span className={`font-medium truncate ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      {skillName}
+                    </span>
+                    <span className={`font-bold font-mono px-2 py-0.5 rounded border text-[11px] shrink-0 ml-1.5 ${
+                      points > 0
+                        ? darkMode
+                          ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
+                          : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
+                        : darkMode
+                          ? 'text-slate-400 bg-slate-800/60 border-slate-700/60'
+                          : 'text-slate-500 bg-slate-100 border-slate-200'
+                    }`}>
+                      +{points}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

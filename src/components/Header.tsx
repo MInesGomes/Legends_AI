@@ -1,6 +1,7 @@
-import React from 'react';
-import { Sun, Moon, Download, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sun, Moon, Download, User, Smartphone } from 'lucide-react';
 import { UserProfile, Language } from '../types';
+import { PWAInstallModal } from './PWAInstallModal';
 
 interface HeaderProps {
   user: UserProfile | null;
@@ -108,124 +109,145 @@ export const Header: React.FC<HeaderProps> = ({
   deferredPrompt,
   onInstallPWA,
 }) => {
+  const [showPwaModal, setShowPwaModal] = useState(false);
+
+  const handlePwaClick = () => {
+    if (deferredPrompt) {
+      onInstallPWA();
+    } else {
+      setShowPwaModal(true);
+    }
+  };
+
   return (
-    <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors duration-300 px-4 py-2.5 shadow-sm ${
-      darkMode 
-        ? 'bg-[#121824]/90 text-slate-100' 
-        : 'bg-[#fefdfa]/95 text-slate-900'
-    }`}>
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
-        {/* Left: User Avatar Profile Trigger */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onOpenProfile}
-            className="group relative p-0.5 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#fce0a2] to-[#996515] transition-transform active:scale-95 hover:scale-105 shadow-md"
-            title="View Profile & Skills"
-          >
-            <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ${
-              darkMode ? 'bg-[#121824] border-[#121824]' : 'bg-white border-white'
-            }`}>
-              {user?.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={user.name || 'User'}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <User className="w-5 h-5 text-[#d4af37]" />
-              )}
-            </div>
-            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#d4af37] border-2 ${
-              darkMode ? 'border-[#121824]' : 'border-white'
-            }`} />
-          </button>
+    <>
+      <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors duration-300 px-4 py-2.5 shadow-sm ${
+        darkMode 
+          ? 'bg-[#121824]/90 text-slate-100' 
+          : 'bg-[#fefdfa]/95 text-slate-900'
+      }`}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           
-          {user && (
-            <div className="hidden sm:block">
-              <p className={`text-sm font-semibold font-cinzel leading-none ${
-                darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
-              }`}>{user.name}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Center: Brand Title & Compass Icon (Matching title.png reference exactly) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <CompassStarIcon className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10" />
-          <h1
-            className="font-serif-display text-xl sm:text-2xl md:text-3xl lg:text-[34px] font-bold tracking-normal select-none"
-            style={{
-              background: 'linear-gradient(180deg, #f7e098 0%, #e0aa37 38%, #b97c14 72%, #7f4b02 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 1.5px 2px rgba(110, 68, 8, 0.45))',
-            }}
-          >
-            Learn with legends
-          </h1>
-        </div>
-
-        {/* Right: Controls (Theme, Language, PWA Install) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          
-          {/* PWA Install Button */}
-          {deferredPrompt && (
+          {/* Left: User Avatar Profile Trigger */}
+          <div className="flex items-center gap-3">
             <button
-              onClick={onInstallPWA}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all shadow-sm ${
-                darkMode
-                  ? 'bg-[#d4af37]/15 border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#d4af37]/30'
-                  : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
-              }`}
-              title="Install App"
+              onClick={onOpenProfile}
+              className="group relative p-0.5 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#fce0a2] to-[#996515] transition-transform active:scale-95 hover:scale-105 shadow-md"
+              title="View Profile & Skills"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Install</span>
+              <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ${
+                darkMode ? 'bg-[#121824] border-[#121824]' : 'bg-white border-white'
+              }`}>
+                {user?.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.name || 'User'}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <User className="w-5 h-5 text-[#d4af37]" />
+                )}
+              </div>
+              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#d4af37] border-2 ${
+                darkMode ? 'border-[#121824]' : 'border-white'
+              }`} />
             </button>
-          )}
+            
+            {user && (
+              <div className="hidden sm:block">
+                <p className={`text-sm font-semibold font-cinzel leading-none ${
+                  darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+                }`}>{user.name}</p>
+              </div>
+            )}
+          </div>
 
-          {/* Theme Toggle Button (Light/Dark pill button matching 1DASHBOARD.png) */}
-          <button
-            onClick={onToggleDarkMode}
-            className={`p-2 rounded-full border transition-all active:scale-95 shadow-sm flex items-center justify-center ${
-              darkMode
-                ? 'bg-slate-800/80 border-slate-700/60 text-[#d4af37] hover:bg-slate-700'
-                : 'bg-white border-[#d4af37]/50 text-amber-600 hover:bg-amber-50'
-            }`}
-            title="Toggle theme"
-          >
-            {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500 fill-amber-400" />}
-          </button>
-
-          {/* Language Switcher Dropdown (Pill button with flag matching 1DASHBOARD.png) */}
-          <div className="relative group">
-            <select
-              value={currentLang}
-              onChange={(e) => onLanguageChange(e.target.value as Language)}
-              className={`appearance-none border rounded-full px-3 py-1.5 pr-7 text-xs font-semibold cursor-pointer focus:outline-none shadow-sm ${
-                darkMode
-                  ? 'bg-[#1a2332] text-[#fce0a2] border-[#d4af37]/40 focus:border-[#d4af37]'
-                  : 'bg-white text-[#8a5d12] border-[#d4af37]/50 focus:border-[#d4af37]'
-              }`}
+          {/* Center: Brand Title & Compass Icon (Matching title.png reference exactly) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <CompassStarIcon className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10" />
+            <h1
+              className="font-serif-display text-xl sm:text-2xl md:text-3xl lg:text-[34px] font-bold tracking-normal select-none"
+              style={{
+                background: 'linear-gradient(180deg, #f7e098 0%, #e0aa37 38%, #b97c14 72%, #7f4b02 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                filter: 'drop-shadow(0 1.5px 2px rgba(110, 68, 8, 0.45))',
+              }}
             >
-              <option value="EN">🇬🇧</option>
-              <option value="ES">🇪🇸</option>
-              <option value="IT">🇮🇹</option>
-              <option value="PT-pt">🇵🇹</option>
-              <option value="NL">🇳🇱</option>
-            </select>
-            <div className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] ${
-              darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
-            }`}>
-              ∨
+              Learn with legends
+            </h1>
+          </div>
+
+          {/* Right: Controls (Theme, Language, PWA Install) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            
+            {/* PWA / Add to Home Screen Button */}
+            <button
+              id="header-pwa-install-btn"
+              onClick={handlePwaClick}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-sm ${
+                darkMode
+                  ? 'bg-[#d4af37]/15 border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#d4af37]/30 hover:border-[#d4af37]'
+                  : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100 hover:border-[#d4af37]'
+              }`}
+              title="Add app to Home Screen"
+            >
+              <Download className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
+              <span className="hidden sm:inline">Add to Home</span>
+              <span className="sm:hidden">App</span>
+            </button>
+
+            {/* Theme Toggle Button (Light/Dark pill button matching 1DASHBOARD.png) */}
+            <button
+              onClick={onToggleDarkMode}
+              className={`p-2 rounded-full border transition-all active:scale-95 shadow-sm flex items-center justify-center cursor-pointer ${
+                darkMode
+                  ? 'bg-slate-800/80 border-slate-700/60 text-[#d4af37] hover:bg-slate-700'
+                  : 'bg-white border-[#d4af37]/50 text-amber-600 hover:bg-amber-50'
+              }`}
+              title="Toggle theme"
+            >
+              {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500 fill-amber-400" />}
+            </button>
+
+            {/* Language Switcher Dropdown (Pill button with flag matching 1DASHBOARD.png) */}
+            <div className="relative group">
+              <select
+                value={currentLang}
+                onChange={(e) => onLanguageChange(e.target.value as Language)}
+                className={`appearance-none border rounded-full px-3 py-1.5 pr-7 text-xs font-semibold cursor-pointer focus:outline-none shadow-sm ${
+                  darkMode
+                    ? 'bg-[#1a2332] text-[#fce0a2] border-[#d4af37]/40 focus:border-[#d4af37]'
+                    : 'bg-white text-[#8a5d12] border-[#d4af37]/50 focus:border-[#d4af37]'
+                }`}
+              >
+                <option value="EN">🇬🇧</option>
+                <option value="ES">🇪🇸</option>
+                <option value="IT">🇮🇹</option>
+                <option value="PT-pt">🇵🇹</option>
+                <option value="NL">🇳🇱</option>
+              </select>
+              <div className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] ${
+                darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
+              }`}>
+                ∨
+              </div>
             </div>
+
           </div>
 
         </div>
+      </header>
 
-      </div>
-    </header>
+      {/* PWA Add to Home Screen Modal */}
+      <PWAInstallModal
+        isOpen={showPwaModal}
+        onClose={() => setShowPwaModal(false)}
+        deferredPrompt={deferredPrompt}
+        onInstall={onInstallPWA}
+        darkMode={darkMode}
+      />
+    </>
   );
 };

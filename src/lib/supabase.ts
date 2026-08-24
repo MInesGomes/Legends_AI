@@ -21,6 +21,13 @@ const defaultState: DatabaseState = {
   },
   chapters_id_Liked: ['atlantis-ch1'],
   chapters_id_Views: ['atlantis-ch1', 'atlantis-ch2'],
+  language_chapters_viewed: {
+    'EN': ['atlantis-ch1', 'atlantis-ch2'],
+    'ES': ['atlantis-ch1'],
+    'IT': [],
+    'PT-pt': [],
+    'NL': []
+  },
   chapters_id_Comments: {
     'atlantis-ch1': [
       {
@@ -61,7 +68,20 @@ export function getLocalDb(): DatabaseState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState;
     const parsed = JSON.parse(raw);
-    return { ...defaultState, ...parsed };
+    return {
+      ...defaultState,
+      ...parsed,
+      language_chapters_viewed: {
+        ...defaultState.language_chapters_viewed,
+        ...(parsed.language_chapters_viewed || {
+          'EN': parsed.chapters_id_Views || ['atlantis-ch1', 'atlantis-ch2'],
+          'ES': ['atlantis-ch1'],
+          'IT': [],
+          'PT-pt': [],
+          'NL': []
+        })
+      }
+    };
   } catch {
     return defaultState;
   }

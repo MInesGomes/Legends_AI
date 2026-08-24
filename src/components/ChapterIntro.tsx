@@ -15,7 +15,7 @@ interface FullscreenChapterViewProps {
   commentsMap: Record<string, ChapterComment[]>;
   onClose: () => void;
   onToggleLike: (chapterId: string) => void;
-  onRecordView: (chapterId: string) => void;
+  onRecordView: (chapterId: string, lang?: Language) => void;
   onAddComment: (chapterId: string, text: string) => void;
   onEditComment?: (chapterId: string, commentId: string, text: string) => void;
   onDeleteComment?: (chapterId: string, commentId: string) => void;
@@ -112,12 +112,10 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
   const isLiked = likedChapters.includes(chapterId);
   const isViewed = viewedChapters.includes(chapterId);
 
-  // Track view when opening chapter
+  // Track view when opening chapter or switching language
   useEffect(() => {
-    if (!isViewed) {
-      onRecordView(chapterId);
-    }
-  }, [chapterId]);
+    onRecordView(chapterId, currentLang);
+  }, [chapterId, currentLang]);
 
   // Audio ambience synthesis (Web Audio API)
   useEffect(() => {

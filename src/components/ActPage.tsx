@@ -33,6 +33,7 @@ interface ActPageProps {
   onLanguageChange: (lang: Language) => void;
   onClose: () => void;
   onEarnSkillPoint?: (skill: SkillType) => void;
+  onRecordView?: (chapterId: string, lang: Language) => void;
   commentsMap?: Record<string, ChapterComment[]>;
   onAddComment?: (chapterId: string, text: string) => void;
   onEditComment?: (chapterId: string, commentId: string, newText: string) => void;
@@ -83,6 +84,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   onLanguageChange,
   onClose,
   onEarnSkillPoint,
+  onRecordView,
   commentsMap,
   onAddComment,
   onEditComment,
@@ -123,6 +125,14 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [shuffledOrder, setShuffledOrder] = useState<string[]>([]);
 
   const currentAct = actItems[currentIndex] || actItems[0];
+  const currentChapterId = currentAct.chapterNumber === 2 ? 'atlantis-ch2' : 'atlantis-ch1';
+
+  // Automatically record chapter view for the current language
+  useEffect(() => {
+    if (onRecordView && currentChapterId) {
+      onRecordView(currentChapterId, currentLang);
+    }
+  }, [currentChapterId, currentLang, onRecordView]);
   const hasSequentialImages = !!(currentAct?.images && currentAct.images.length > 0);
 
   const isChoiceOrDialogue = currentAct.type === 'dialogue' || currentAct.type === 'choice';
@@ -160,8 +170,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     return orderedChapterChoices.filter((ch) => !playedChoices.includes(ch.choiceType || ''));
   }, [orderedChapterChoices, playedChoices]);
 
-  // Current Chapter ID and Comments Mapping
-  const currentChapterId = currentAct.chapterNumber === 2 ? 'atlantis-ch2' : 'atlantis-ch1';
+  // Comments Mapping
   const currentComments: ChapterComment[] = useMemo(() => {
     return (commentsMap && commentsMap[currentChapterId]) || [];
   }, [commentsMap, currentChapterId]);
@@ -194,7 +203,7 @@ export const ActPage: React.FC<ActPageProps> = ({
         setHasChosenBest(true);
         setShowCelebration(true);
         if (onEarnSkillPoint) {
-          onEarnSkillPoint('Wisdom');
+          onEarnSkillPoint('Win4All');
         }
       }
       setCurrentIndex(targetActIdx);
