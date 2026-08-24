@@ -92,7 +92,9 @@ export const ActPage: React.FC<ActPageProps> = ({
   darkMode = true,
 }) => {
   const userGender = user?.gender || (user?.avatar_url?.toLowerCase().includes('male') && !user?.avatar_url?.toLowerCase().includes('female') ? 'male' : 'female');
-  const actItems: ActItem[] = getAtlantisActItems(currentLang, userGender);
+  const actItems: ActItem[] = useMemo(() => {
+    return getAtlantisActItems(currentLang, userGender);
+  }, [currentLang, userGender]);
   
   // Find initial index
   const initialIdx = Math.max(
@@ -132,7 +134,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     if (onRecordView && currentChapterId) {
       onRecordView(currentChapterId, currentLang);
     }
-  }, [currentChapterId, currentLang, onRecordView]);
+  }, [currentChapterId, currentLang]);
   const hasSequentialImages = !!(currentAct?.images && currentAct.images.length > 0);
 
   const isChoiceOrDialogue = currentAct.type === 'dialogue' || currentAct.type === 'choice';
@@ -155,7 +157,7 @@ export const ActPage: React.FC<ActPageProps> = ({
       }
       setShuffledOrder(shuffled);
     }
-  }, [chapterChoices, shuffledOrder.length]);
+  }, [chapterChoices.length, shuffledOrder.length]);
 
   const orderedChapterChoices = useMemo(() => {
     if (shuffledOrder.length === 0) return chapterChoices;

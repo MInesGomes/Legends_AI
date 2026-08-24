@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UserProfile, Language, Realm, Tale, DatabaseState, SkillType } from './types';
 import {
   getLocalDb,
@@ -234,16 +234,25 @@ export default function App() {
   };
 
   // Record Chapter View (tracks both overall and per-language chapter views)
-  const handleRecordView = (chapterId: string, lang: Language = currentLang) => {
+  const handleRecordView = useCallback((chapterId: string, lang: Language = currentLang) => {
     const userId = dbState.user_profile?.user_id || 'guest';
     setDbState((prev) => {
       const existingGlobal = prev.chapters_id_Views || [];
-      const newGlobal = existingGlobal.includes(chapterId)
+      const currentLangViews = prev.language_chapters_viewed?.[lang] || [];
+
+      const isGlobalRecorded = existingGlobal.includes(chapterId);
+      const isLangRecorded = currentLangViews.includes(chapterId);
+
+      // Prevent redundant state mutation and infinite re-render loops
+      if (isGlobalRecorded && isLangRecorded) {
+        return prev;
+      }
+
+      const newGlobal = isGlobalRecorded
         ? existingGlobal
         : [...existingGlobal, chapterId];
 
-      const currentLangViews = prev.language_chapters_viewed?.[lang] || [];
-      const newLangViews = currentLangViews.includes(chapterId)
+      const newLangViews = isLangRecorded
         ? currentLangViews
         : [...currentLangViews, chapterId];
 
@@ -264,7 +273,7 @@ export default function App() {
         language_chapters_viewed: updatedLanguageViews,
       };
     });
-  };
+  }, [currentLang, dbState.user_profile?.user_id]);
 
   // Add Comment (up to 10 comments per day limit enforced in drawer)
   const handleAddComment = (chapterId: string, text: string) => {

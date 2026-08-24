@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChapterContent, ChoiceOptionType, SkillType, UserProfile, ChapterComment, Language, Tale } from '../types';
 import { getChapterById } from '../lib/chapterLoader';
 import { CommentsDrawer } from './CommentsDrawer';
@@ -53,29 +53,31 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
   const maxChapters = tale.id === 'tale-job-quest' ? 5 : 2;
 
   // Load chapter data dynamically from JSON for active language
-  const chapterData: ChapterContent = (getChapterById(chapterId, currentLang) || {
-    id: chapterId,
-    taleId: tale.id,
-    chapterNumber: currentChapterNum,
-    title: `Chapter ${currentChapterNum} — Legend Choice`,
-    subtitle: tale.title,
-    skill: tale.skill,
-    bgMedia: { type: 'image', url: tale.coverImage },
-    intro: {
-      female: {
-        characterName: 'Alethea',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-        backgroundStory: 'Alethea guarded the ancient archives.',
-        dialogue: [{ speaker: 'Alethea', text: 'Below the ocean domes, the Five Crystals keep our realm alive.' }]
-      },
-      male: {
-        characterName: 'Elion',
-        avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-        backgroundStory: 'Elion was Atlantis greatest warrior.',
-        dialogue: [{ speaker: 'Elion', text: 'When every light in Atlantis went out, I knew the Heart had summoned us.' }]
+  const chapterData: ChapterContent = useMemo(() => {
+    return (getChapterById(chapterId, currentLang) || {
+      id: chapterId,
+      taleId: tale.id,
+      chapterNumber: currentChapterNum,
+      title: `Chapter ${currentChapterNum} — Legend Choice`,
+      subtitle: tale.title,
+      skill: tale.skill,
+      bgMedia: { type: 'image', url: tale.coverImage },
+      intro: {
+        female: {
+          characterName: 'Alethea',
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
+          backgroundStory: 'Alethea guarded the ancient archives.',
+          dialogue: [{ speaker: 'Alethea', text: 'Below the ocean domes, the Five Crystals keep our realm alive.' }]
+        },
+        male: {
+          characterName: 'Elion',
+          avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
+          backgroundStory: 'Elion was Atlantis greatest warrior.',
+          dialogue: [{ speaker: 'Elion', text: 'When every light in Atlantis went out, I knew the Heart had summoned us.' }]
+        }
       }
-    }
-  }) as any;
+    }) as any;
+  }, [chapterId, currentLang, tale.id, tale.title, tale.skill, tale.coverImage, currentChapterNum]);
 
   // Active skill choice for this chapter (defaults to chapter skill)
   const [selectedSkill, setSelectedSkill] = useState<SkillType>(chapterData.skill || tale.skill);
