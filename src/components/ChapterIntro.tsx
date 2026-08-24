@@ -245,7 +245,13 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
   const genderKey = user?.gender === 'male' ? 'male' : 'female';
   const introData = chapterData.intro[genderKey] || chapterData.intro.female;
 
-  const currentComments = commentsMap[chapterId] || [];
+  // Filter comments to only show those submitted by the current user
+  const currentComments = (commentsMap[chapterId] || []).filter((comment) => {
+    if (!user || user.user_id === 'guest_user' || user.user_id === 'guest') {
+      return !comment.user_id || comment.user_id === 'guest' || comment.user_id === 'guest_user';
+    }
+    return comment.user_id === user.user_id;
+  });
 
   return (
     <div className={`fixed inset-0 z-50 flex flex-col overflow-hidden animate-fadeIn transition-colors duration-300 ${

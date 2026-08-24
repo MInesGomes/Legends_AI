@@ -170,10 +170,16 @@ export const ActPage: React.FC<ActPageProps> = ({
     return orderedChapterChoices.filter((ch) => !playedChoices.includes(ch.choiceType || ''));
   }, [orderedChapterChoices, playedChoices]);
 
-  // Comments Mapping
+  // Comments Mapping: Filter to only show comments submitted by the current user
   const currentComments: ChapterComment[] = useMemo(() => {
-    return (commentsMap && commentsMap[currentChapterId]) || [];
-  }, [commentsMap, currentChapterId]);
+    const allComments = (commentsMap && commentsMap[currentChapterId]) || [];
+    return allComments.filter((c) => {
+      if (!user || user.user_id === 'guest_user' || user.user_id === 'guest') {
+        return !c.user_id || c.user_id === 'guest' || c.user_id === 'guest_user';
+      }
+      return c.user_id === user.user_id;
+    });
+  }, [commentsMap, currentChapterId, user]);
 
   const handleAddComment = (text: string) => {
     if (onAddComment) {

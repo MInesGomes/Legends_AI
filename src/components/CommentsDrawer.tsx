@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChapterComment, UserProfile } from '../types';
 import { getDailyCommentsCount } from '../lib/supabase';
-import { X, Send, MessageSquare, AlertCircle, Edit2, Trash2, Check, RotateCcw } from 'lucide-react';
+import { X, Send, MessageSquare, AlertCircle, Edit2, Trash2, Check, RotateCcw, Lock } from 'lucide-react';
 
 interface CommentsDrawerProps {
   chapterId: string;
@@ -33,6 +33,14 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
   const userId = user?.user_id || 'guest_user';
   const todayCount = getDailyCommentsCount(userId);
   const remainingComments = Math.max(0, 10 - todayCount);
+
+  // Filter comments strictly to only show comments submitted by the current user
+  const userComments = comments.filter((comment) => {
+    if (!user || user.user_id === 'guest_user' || user.user_id === 'guest') {
+      return !comment.user_id || comment.user_id === 'guest' || comment.user_id === 'guest_user';
+    }
+    return comment.user_id === user.user_id;
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,11 +84,17 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
           <div className="flex items-center gap-2">
             <MessageSquare className={`w-5 h-5 ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`} />
             <div>
-              <h3 className={`text-sm font-bold font-cinzel uppercase tracking-wider ${
-                darkMode ? 'gold-gradient-text' : 'text-[#8a5d12]'
-              }`}>
-                Comments
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className={`text-sm font-bold font-cinzel uppercase tracking-wider ${
+                  darkMode ? 'gold-gradient-text' : 'text-[#8a5d12]'
+                }`}>
+                  My Comments
+                </h3>
+                <span className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                  <Lock className="w-2.5 h-2.5" />
+                  Private to you
+                </span>
+              </div>
               <p className={`text-xs line-clamp-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{chapterTitle}</p>
             </div>
           </div>
@@ -109,13 +123,19 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
 
         {/* Comments List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {comments.length === 0 ? (
-            <div className={`text-center py-12 text-xs ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>
-              No comments yet. Be the first to share your thoughts!
+          {userComments.length === 0 ? (
+            <div className={`text-center py-12 px-6 space-y-2 text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              <div className="w-10 h-10 mx-auto rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <MessageSquare className="w-5 h-5 opacity-80" />
+              </div>
+              <p className="font-semibold text-sm">No comments submitted yet</p>
+              <p className="text-[11px] leading-relaxed">
+                Your comments for this chapter will appear here and are only visible to your account.
+              </p>
             </div>
           ) : (
-            comments.map((comment) => {
-              const isOwner = user && (comment.user_id === user.user_id || (!comment.user_id && user.user_id === 'guest_user') || comment.user_id === 'guest');
+            userComments.map((comment) => {
+              const isOwner = true;
               const isEditing = editingCommentId === comment.id;
 
               return (
@@ -136,20 +156,18 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                       <span className={`text-xs font-semibold ${darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'}`}>
                         {comment.user_name}
                       </span>
-                      {isOwner && (
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
-                          darkMode ? 'bg-[#d4af37]/20 text-[#fce0a2] border border-[#d4af37]/40' : 'bg-[#d4af37]/15 text-[#8a5d12] border border-[#d4af37]/40'
-                        }`}>
-                          You
-                        </span>
-                      )}
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
+                        darkMode ? 'bg-[#d4af37]/20 text-[#fce0a2] border border-[#d4af37]/40' : 'bg-[#d4af37]/15 text-[#8a5d12] border border-[#d4af37]/40'
+                      }`}>
+                        You
+                      </span>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <span className={`text-[10px] font-mono ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                         {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      {isOwner && !isEditing && (
+                      {!isEditing && (
                         <div className="flex items-center gap-1 ml-1">
                           <button
                             onClick={() => handleStartEdit(comment)}

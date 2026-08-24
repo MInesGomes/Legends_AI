@@ -426,6 +426,7 @@ export default function App() {
             dailyLogs={dbState.daily_tales_log}
             todayTalesCount={todayTalesCount}
             todayTalesList={todayTalesList}
+            commentsMap={dbState.chapters_id_Comments}
             onOpenProfile={() => setShowProfileDrawer(true)}
             onBack={() => setCurrentPage('dashboard')}
             onSelectTale={handleSelectTale}

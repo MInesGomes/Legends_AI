@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Realm, Tale, UserProfile, DailyTaleLog } from '../types';
+import { Realm, Tale, UserProfile, DailyTaleLog, ChapterComment } from '../types';
 import { AddTaleModal } from './AddTaleModal';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit, hasReachedDailyTaleLimit } from '../lib/supabase';
 import { ArrowLeft, Plus, Eye, Heart, MessageSquare, Sparkles, BookOpen, ShieldCheck, Settings, X, Clock, Lock } from 'lucide-react';
@@ -11,6 +11,7 @@ interface TalesPageProps {
   dailyLogs?: DailyTaleLog[];
   todayTalesCount?: number;
   todayTalesList?: string[];
+  commentsMap?: Record<string, ChapterComment[]>;
   onOpenProfile?: () => void;
   onBack: () => void;
   onSelectTale: (tale: Tale) => void;
@@ -25,6 +26,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
   dailyLogs = [],
   todayTalesCount = 0,
   todayTalesList = [],
+  commentsMap = {},
   onOpenProfile,
   onBack,
   onSelectTale,
@@ -64,6 +66,24 @@ export const TalesPage: React.FC<TalesPageProps> = ({
     const isAuthor = t.authorId ? t.authorId === currentUserId : true;
     return isAuthor;
   });
+
+  // Calculate user-submitted comments for this tale
+  const getTaleUserCommentsCount = (t: Tale) => {
+    if (!commentsMap) return 0;
+    const chapterPrefix = t.id === 'tale-job-quest' ? 'jobquest-ch' : t.id === 'tale-startup-winner' ? 'work-ch' : 'atlantis-ch';
+    let total = 0;
+    Object.entries(commentsMap).forEach(([chId, comms]) => {
+      if ((chId.startsWith(chapterPrefix) || chId.includes(t.id)) && Array.isArray(comms)) {
+        total += (comms as ChapterComment[]).filter((c) => {
+          if (!user || user.user_id === 'guest_user' || user.user_id === 'guest') {
+            return !c.user_id || c.user_id === 'guest' || c.user_id === 'guest_user';
+          }
+          return c.user_id === user.user_id;
+        }).length;
+      }
+    });
+    return total;
+  };
 
   const handleCardClick = (tale: Tale) => {
     // Check if the user is allowed to read this tale
@@ -200,7 +220,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     <div className="flex items-center justify-center gap-4 text-xs text-[#fce0a2] mt-1 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                       <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
                       <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
-                      <span className="flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.commentsCount}</span>
+                      <span className="flex items-center gap-1" title="Your comments on this tale"><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {getTaleUserCommentsCount(tale)}</span>
                     </div>
                   </div>
 
@@ -227,25 +247,15 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               <h3 className={`text-lg sm:text-xl font-bold font-cinzel ${
                 darkMode ? 'text-[#fce0a2] group-hover:text-white' : 'text-[#8a5d12]'
               }`}>
-                Tell us your story
+                 We want to hear your story! 
               </h3>
 
               <div className={`text-xs sm:text-[13px] max-w-xs mt-2.5 space-y-2 text-left ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 <p className="text-center font-medium">
-                  Every legend leaves a mark on <span className="font-semibold text-[#d4af37]">{realm.title}</span>. What is yours?
+                Tell us about a recent triumph, a funny mishap, or an unexpected adventure that stayed with you.
+                <br/>Every legend leaves a mark on the <span className="font-semibold text-[#d4af37]">{realm.title}</span> Realm. What is yours?
                 </p>
-                <ul className="space-y-1.5 pt-1 pl-1">
-                  <li className="flex items-start gap-1.5 leading-snug">
-                    <span className="text-[#d4af37] font-bold">•</span>
-                    <span><strong className={darkMode ? 'text-slate-100' : 'text-slate-900'}>Share a triumph:</strong> Write your success tale.</span>
-                  </li>
-                  <li className="flex items-start gap-1.5 leading-snug">
-                    <span className="text-[#d4af37] font-bold">•</span>
-                    <span><strong className={darkMode ? 'text-slate-100' : 'text-slate-900'}>Share a challenge:</strong> What are you currently struggling with that could inspire a new saga?</span>
-                  </li>
-                </ul>
               </div>
-
               <span className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 font-bold text-xs shadow-md group-hover:brightness-110 transition-all">
                 + Suggest a Tale
               </span>
