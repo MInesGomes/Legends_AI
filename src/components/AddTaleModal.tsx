@@ -151,7 +151,7 @@ export const AddTaleModal: React.FC<AddTaleModalProps> = ({ realm, onClose, onSu
               </label>
               <span className={`text-[11px] font-mono ${
                 storyContent.length > MAX_CHARS
-                  ? 'text-rose-500 font-bold'
+                  ? 'text-zinc-400 font-bold'
                   : darkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
                 {storyContent.length} / {MAX_CHARS}
@@ -173,8 +173,8 @@ export const AddTaleModal: React.FC<AddTaleModalProps> = ({ realm, onClose, onSu
           </div>
 
           {storyContent.length >= MAX_CHARS && (
-            <div className="flex items-center gap-1.5 text-xs text-rose-500 font-medium">
-              <AlertCircle className="w-4 h-4" /> Maximum character limit reached (1000 chars).
+            <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
+              <AlertCircle className="w-4 h-4 text-zinc-400" /> Maximum character limit reached (1000 chars).
             </div>
           )}
 

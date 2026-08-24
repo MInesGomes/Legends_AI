@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Language, UserProfile, SkillType } from '../types';
+import { Language, UserProfile, SkillType, ChapterComment } from '../types';
 import { ActItem, getAtlantisActItems } from '../lib/atlantisData';
 import { ASSETS, resolveAssetUrl } from '../lib/assetRegistry';
+import { CommentsDrawer } from './CommentsDrawer';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -32,6 +33,10 @@ interface ActPageProps {
   onLanguageChange: (lang: Language) => void;
   onClose: () => void;
   onEarnSkillPoint?: (skill: SkillType) => void;
+  commentsMap?: Record<string, ChapterComment[]>;
+  onAddComment?: (chapterId: string, text: string) => void;
+  onEditComment?: (chapterId: string, commentId: string, newText: string) => void;
+  onDeleteComment?: (chapterId: string, commentId: string) => void;
   darkMode?: boolean;
 }
 
@@ -78,6 +83,10 @@ export const ActPage: React.FC<ActPageProps> = ({
   onLanguageChange,
   onClose,
   onEarnSkillPoint,
+  commentsMap,
+  onAddComment,
+  onEditComment,
+  onDeleteComment,
   darkMode = true,
 }) => {
   const userGender = user?.gender || (user?.avatar_url?.toLowerCase().includes('male') && !user?.avatar_url?.toLowerCase().includes('female') ? 'male' : 'female');
@@ -91,6 +100,9 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const [currentIndex, setCurrentIndex] = useState<number>(initialIdx >= 0 ? initialIdx : 0);
   const [isMuted, setIsMuted] = useState(true);
+
+  // Comments drawer state
+  const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
 
   // Progressive sentence state for narrative acts (appears 1 sentence at a time)
   const [visibleSentenceCount, setVisibleSentenceCount] = useState<number>(1);
@@ -147,6 +159,30 @@ export const ActPage: React.FC<ActPageProps> = ({
   const unplayedChoices = useMemo(() => {
     return orderedChapterChoices.filter((ch) => !playedChoices.includes(ch.choiceType || ''));
   }, [orderedChapterChoices, playedChoices]);
+
+  // Current Chapter ID and Comments Mapping
+  const currentChapterId = currentAct.chapterNumber === 2 ? 'atlantis-ch2' : 'atlantis-ch1';
+  const currentComments: ChapterComment[] = useMemo(() => {
+    return (commentsMap && commentsMap[currentChapterId]) || [];
+  }, [commentsMap, currentChapterId]);
+
+  const handleAddComment = (text: string) => {
+    if (onAddComment) {
+      onAddComment(currentChapterId, text);
+    }
+  };
+
+  const handleEditComment = (commentId: string, newText: string) => {
+    if (onEditComment) {
+      onEditComment(currentChapterId, commentId, newText);
+    }
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    if (onDeleteComment) {
+      onDeleteComment(currentChapterId, commentId);
+    }
+  };
 
   const handleSelectChoice = (choiceKey: string) => {
     const targetActIdx = actItems.findIndex(
@@ -299,6 +335,23 @@ export const ActPage: React.FC<ActPageProps> = ({
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Do not intercept if user is typing in an input, textarea, or contentEditable element
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          target.getAttribute('role') === 'textbox')
+      ) {
+        return;
+      }
+
+      // Do not intercept hotkeys if Comments Drawer is open
+      if (showCommentsDrawer) {
+        return;
+      }
+
       if (e.key === 'ArrowLeft') {
         goToPrev();
       } else if (e.key === 'ArrowRight') {
@@ -321,7 +374,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, actItems.length, currentAct, dialogueStep, visibleSentenceCount, sentences.length]);
+  }, [currentIndex, actItems.length, currentAct, dialogueStep, visibleSentenceCount, sentences.length, showCommentsDrawer]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -380,6 +433,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     setSelectedSentenceIdx(null);
     setDialogueStep(0);
     setIsSpeakingText(false);
+    setIsVideoFinished(false);
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});
@@ -390,7 +444,15 @@ export const ActPage: React.FC<ActPageProps> = ({
     if (dialogueScrollContainerRef.current) {
       dialogueScrollContainerRef.current.scrollTop = 0;
     }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
   };
+
+  // Replay act from the beginning whenever user changes language
+  useEffect(() => {
+    handleReplay();
+  }, [currentLang]);
 
   const renderCompletionControls = (isLightBg: boolean = false) => {
     if (!isActFinished) return null;
@@ -402,25 +464,29 @@ export const ActPage: React.FC<ActPageProps> = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className={`w-full flex flex-nowrap items-center justify-between gap-1 sm:gap-2 pt-2 pb-1.5 px-1.5 sm:px-3 border-t mt-2 rounded-2xl shadow-md overflow-hidden ${
+        className={`w-full flex flex-wrap sm:flex-nowrap items-center justify-between gap-1 sm:gap-2 pt-2 pb-1.5 px-1.5 sm:px-3 border-t mt-2 rounded-2xl shadow-md overflow-hidden pointer-events-auto ${
           isLightBg
             ? 'bg-slate-100 border-[#d4af37]/40 text-black'
             : 'bg-black/80 border-[#d4af37]/40 text-white'
         }`}
       >
-        {/* Left: Replay Button */}
+        {/* Left: Write a comment Button */}
         <button
-          id="act-replay-btn"
+          id="act-write-comment-btn"
           onClick={(e) => {
             e.stopPropagation();
-            handleReplay();
+            setShowCommentsDrawer(true);
           }}
           className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-black text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
-          title="Replay from beginning"
+          title="Write a comment"
         >
-          <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37]" />
-          <span className="hidden sm:inline">Replay {nextIsNewChapter || isLastAct ? 'Chapter' : 'Act'}</span>
-          <span className="sm:hidden">Replay</span>
+          <MessageSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37]" />
+          <span>Write a comment</span>
+          {currentComments.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#d4af37]/30 text-amber-200 font-mono font-bold">
+              {currentComments.length}
+            </span>
+          )}
         </button>
 
         {/* Center: Language Selector (Always visible at the bottom) */}
@@ -435,13 +501,14 @@ export const ActPage: React.FC<ActPageProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   onLanguageChange(lang.code);
+                  handleReplay();
                 }}
                 className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold transition-all cursor-pointer flex items-center gap-0.5 sm:gap-1 shrink-0 ${
                   isSelected
                     ? 'bg-[#d4af37] text-slate-950 font-bold shadow scale-105'
                     : 'text-slate-200 hover:text-white hover:bg-white/20'
                 }`}
-                title={`Switch to ${lang.label}`}
+                title={`Switch to ${lang.label} & replay`}
               >
                 <span className="text-xs sm:text-sm leading-none">{lang.flag}</span>
                 <span className="uppercase font-mono font-bold text-[9px] sm:text-xs leading-none">{shortCode}</span>
@@ -505,7 +572,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                   isActive ? 'text-amber-300 font-bold' : 'text-white font-normal'
                 }`}
               >
-                <p className={`tracking-normal leading-snug m-0 p-0 text-center ${isActive ? 'text-amber-300 font-bold' : 'text-white'}`}>
+                <p className={`tracking-normal leading-snug m-0 p-0 text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] ${isActive ? 'text-amber-300 font-bold' : 'text-white'}`}>
                   {line}
                 </p>
               </motion.div>
@@ -526,7 +593,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="flex items-center justify-center gap-2 m-0 p-0 text-white text-center"
+                className="flex items-center justify-center gap-2 m-0 p-0 text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]"
               >
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#d4af37] flex-shrink-0 shadow-[0_0_6px_#d4af37]" />
                 <span className="font-semibold text-white">{bulletContent}</span>
@@ -540,7 +607,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="tracking-normal leading-normal m-0 p-0 text-white text-center"
+              className="tracking-normal leading-normal m-0 p-0 text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]"
             >
               {line}
             </motion.p>
@@ -557,7 +624,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   return (
     <div
       id="act-fullscreen-page"
-      className="fixed inset-0 z-50 w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between select-none"
+      className="fixed inset-0 z-50 w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 flex flex-col justify-between select-none"
     >
       {/* 1. FULLSCREEN MEDIA CONTAINER (Video Box / Sequential Scene Images) */}
       <div
@@ -604,7 +671,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             ))}
           </div>
         ) : (
-          <div className="relative w-full h-full flex flex-col items-center justify-start pt-[10cm] px-[10px] pb-[10px] sm:p-[10px] bg-slate-950 overflow-hidden">
+          <div className="relative w-full h-full flex flex-col items-center justify-start pt-[40px] sm:pt-0 bg-slate-950">
             {/* Ambient subtle backdrop fill */}
             <img
               src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
@@ -637,7 +704,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     }, 5000);
                   }
                 }}
-                className="w-full max-h-full object-contain object-top z-0 [clip-path:inset(0_10cm_0_10cm)] sm:[clip-path:none]"
+                className="w-full max-h-full object-contain object-top z-0"
                 onError={(e) => {
                   const target = e.currentTarget;
                   const fallback = resolveAssetUrl(currentAct.mp4);
@@ -652,7 +719,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               <img
                 src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 alt={currentAct.actTitle}
-                className="w-full max-h-full object-contain object-top z-0 [clip-path:inset(0_10cm_0_10cm)] sm:[clip-path:none]"
+                className="w-full max-h-full object-contain object-top z-0"
                 referrerPolicy="no-referrer"
               />
             )}
@@ -691,8 +758,23 @@ export const ActPage: React.FC<ActPageProps> = ({
         </div>
       </div>
 
-      {/* 4. TOP RIGHT: AUTOPLAY TOGGLE, SOUND TOGGLE & LANGUAGE SELECTOR */}
+      {/* 4. TOP RIGHT: COMMENTS, AUTOPLAY TOGGLE, SOUND TOGGLE & LANGUAGE SELECTOR */}
       <div className="flex absolute top-2.5 right-2.5 sm:top-6 sm:right-6 z-30 items-center gap-2 sm:gap-3">
+        {/* Comments Drawer Button */}
+        <button
+          id="act-top-comments-btn"
+          onClick={() => setShowCommentsDrawer(true)}
+          className="p-1.5 sm:p-3 rounded-full border sm:border-2 border-[#d4af37]/70 bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center relative"
+          title="Open Comments / Write a comment"
+        >
+          <MessageSquare className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#d4af37]" />
+          {currentComments.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-[#d4af37] text-slate-950 text-[9px] sm:text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center shadow">
+              {currentComments.length}
+            </span>
+          )}
+        </button>
+
         {/* Autoplay Toggle Button (|| to stop automatic, > to start automatic) */}
         <button
           id="act-autoplay-toggle"
@@ -1045,7 +1127,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           </div>
         ) : (
           /* B. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
-          <div className="w-full bg-[#313030] text-white rounded-t-3xl shadow-[0_-10px_35px_rgba(0,0,0,0.6)] backdrop-blur-md animate-fadeIn m-0 p-0">
+          <div className="w-full bg-transparent text-white animate-fadeIn m-0 p-0">
             <div
               ref={narrativeBoxRef}
               onClick={() => {
@@ -1053,10 +1135,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                   setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
                 }
               }}
-              className="max-h-[46vh] sm:max-h-[44vh] overflow-y-auto scroll-smooth p-0 m-0 cursor-pointer select-none"
+              className="max-h-[46vh] sm:max-h-[44vh] overflow-y-auto scroll-smooth p-0 m-0 cursor-pointer select-none bg-transparent"
             >
               {/* Formatted Text (Appearing 1 sentence at a time) */}
-              <div className="p-0 m-0">
+              <div className="p-0 m-0 bg-transparent">
                 {renderFormattedText()}
               </div>
 
@@ -1071,7 +1153,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     }}
                     aria-label="Next Sentence"
                     title="Reveal Next Sentence"
-                    className="p-2 rounded-full border-2 border-[#d4af37] bg-[#313030] text-[#d4af37] hover:bg-black/60 shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                    className="p-2 rounded-full border-2 border-[#d4af37] bg-black/60 text-[#d4af37] hover:bg-black/90 shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
                   >
                     <ChevronDown className="w-5 h-5 text-[#d4af37]" />
                   </button>
@@ -1132,6 +1214,21 @@ export const ActPage: React.FC<ActPageProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* COMMENTS DRAWER OVERLAY */}
+      {showCommentsDrawer && (
+        <CommentsDrawer
+          chapterId={currentChapterId}
+          chapterTitle={currentAct.chapterTitle || 'The Heart of Atlantis'}
+          comments={currentComments}
+          user={user}
+          onClose={() => setShowCommentsDrawer(false)}
+          onAddComment={handleAddComment}
+          onEditComment={handleEditComment}
+          onDeleteComment={handleDeleteComment}
+          darkMode={darkMode}
+        />
+      )}
 
     </div>
   );

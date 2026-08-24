@@ -163,7 +163,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                           <button
                             onClick={() => handleDelete(comment.id)}
                             title="Delete comment"
-                            className="p-1 rounded text-rose-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+                            className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/40 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -177,6 +177,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                       <textarea
                         value={editInputText}
                         onChange={(e) => setEditInputText(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
                         rows={2}
                         className={`w-full text-xs rounded-lg p-2 border focus:outline-none focus:border-[#d4af37] ${
                           darkMode
@@ -225,6 +226,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
                 placeholder="Leave a comment..."
                 className={`flex-1 border border-slate-300 focus:border-[#d4af37] rounded-xl px-3.5 py-2.5 text-xs focus:outline-none ${
                   darkMode ? 'bg-[#121824] text-slate-100 placeholder-slate-500' : 'bg-[#fbf9f4] text-slate-900 placeholder-slate-400'
@@ -239,8 +241,8 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
               </button>
             </form>
           ) : (
-            <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-800 font-semibold">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="flex items-center gap-2 p-3 bg-zinc-800 border border-zinc-600 rounded-xl text-xs text-zinc-300 font-semibold">
+              <AlertCircle className="w-4 h-4 text-zinc-400 shrink-0" />
               <span>You have reached your limit of 10 comments for today. Come back tomorrow!</span>
             </div>
           )}

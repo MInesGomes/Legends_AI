@@ -229,8 +229,8 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
             onClick={onSignOut}
             className={`w-full py-3 border rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 mt-6 cursor-pointer ${
               darkMode
-                ? 'bg-rose-950/60 border-rose-500/40 text-rose-300 hover:bg-rose-900/60'
-                : 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100'
+                      ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
+                      : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
             }`}
           >
             <LogOut className="w-4 h-4" /> Sign Out

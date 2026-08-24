@@ -365,6 +365,10 @@ export default function App() {
               user={dbState.user_profile}
               currentLang={currentLang}
               onLanguageChange={handleLanguageChange}
+              commentsMap={dbState.chapters_id_Comments}
+              onAddComment={handleAddComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
               onClose={() => setCurrentPage('tails')}
               onEarnSkillPoint={handleEarnSkillPoint}
               darkMode={darkMode}
