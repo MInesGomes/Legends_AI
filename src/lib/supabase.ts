@@ -326,6 +326,9 @@ export async function syncTaleToSupabase(tale: Tale): Promise<void> {
       comments_count: tale.commentsCount,
       is_custom_user_tale: tale.isCustomUserTale,
       story_content: tale.storyContent || '',
+      author_id: tale.authorId,
+      author_name: tale.authorName,
+      is_approved: tale.isApproved ?? false,
     });
   } catch (e) {
     console.warn('Supabase tale sync fallback:', e);

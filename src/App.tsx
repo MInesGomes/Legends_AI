@@ -160,6 +160,11 @@ export default function App() {
   const handleSelectRealm = (realm: Realm) => {
     setActiveRealm(realm);
     setCurrentPage('tails');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
   };
 
   // Handle Tale Selection -> Fullscreen Chapter and record to daily_tales_log
@@ -198,13 +203,20 @@ export default function App() {
     });
   };
 
-  // Add Custom User Tale
+  // Add Custom User Tale (defaults to isApproved: false, hidden from all other users)
   const handleSubmitNewTale = (newTale: Tale) => {
+    const taleWithAuthorAndApproval: Tale = {
+      ...newTale,
+      authorId: newTale.authorId || dbState.user_profile?.user_id || 'guest',
+      authorName: newTale.authorName || dbState.user_profile?.name || 'Traveler',
+      isApproved: newTale.isApproved ?? false,
+    };
+
     setDbState((prev) => ({
       ...prev,
-      user_tales: [newTale, ...prev.user_tales],
+      user_tales: [taleWithAuthorAndApproval, ...prev.user_tales],
     }));
-    syncTaleToSupabase(newTale);
+    syncTaleToSupabase(taleWithAuthorAndApproval);
   };
 
   // Toggle Chapter Like

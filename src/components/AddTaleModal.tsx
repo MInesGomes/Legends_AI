@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Realm, SkillType, Tale } from '../types';
-import { X, Plus, Sparkles, Feather, AlertCircle } from 'lucide-react';
+import { Realm, SkillType, Tale, UserProfile } from '../types';
+import { X, Plus, Sparkles, Feather, AlertCircle, ShieldCheck, Lock } from 'lucide-react';
 
 interface AddTaleModalProps {
   realm: Realm;
+  user?: UserProfile | null;
   onClose: () => void;
   onSubmitTale: (newTale: Tale) => void;
   darkMode?: boolean;
 }
 
-export const AddTaleModal: React.FC<AddTaleModalProps> = ({ realm, onClose, onSubmitTale, darkMode = false }) => {
+export const AddTaleModal: React.FC<AddTaleModalProps> = ({ realm, user, onClose, onSubmitTale, darkMode = false }) => {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [skill, setSkill] = useState<SkillType>('Win4All');
@@ -33,6 +34,10 @@ export const AddTaleModal: React.FC<AddTaleModalProps> = ({ realm, onClose, onSu
       commentsCount: 0,
       isCustomUserTale: true,
       storyContent: storyContent.trim(),
+      authorId: user?.user_id || 'guest',
+      authorName: user?.name || 'Traveler',
+      isApproved: false, // Hidden from all other users until approved by moderators
+      createdAt: new Date().toISOString(),
     };
 
     onSubmitTale(newTale);
@@ -177,6 +182,19 @@ export const AddTaleModal: React.FC<AddTaleModalProps> = ({ realm, onClose, onSu
               <AlertCircle className="w-4 h-4 text-zinc-400" /> Maximum character limit reached (1000 chars).
             </div>
           )}
+
+          {/* Privacy & Moderation Approval Notice */}
+          <div className={`p-3 rounded-xl border flex items-start gap-2.5 text-xs ${
+            darkMode
+              ? 'bg-[#182130] border-[#d4af37]/30 text-slate-300'
+              : 'bg-amber-50/80 border-amber-300/60 text-slate-700'
+          }`}>
+            <ShieldCheck className={`w-4 h-4 mt-0.5 flex-shrink-0 ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`} />
+            <div className="leading-relaxed">
+              <span className="font-bold text-[#d4af37]">Approval Review: </span>
+              Your submitted tale will be saved to your realm library under review. It remains strictly private to you and hidden from all other travelers until it is reviewed and approved.
+            </div>
+          </div>
 
           <div className="pt-2 flex gap-3">
             <button

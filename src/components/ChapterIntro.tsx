@@ -351,11 +351,24 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
             {ch1Tab === 'chronicle' ? (
               /* PAGE 1: CHRONICLE TYPEWRITER STORY */
               <div className="space-y-6 animate-fadeIn">
+                {tale.isCustomUserTale && !tale.isApproved && (
+                  <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs shadow-md ${
+                    darkMode ? 'bg-amber-950/70 border-amber-500/50 text-amber-200' : 'bg-amber-50 border-amber-300 text-amber-900'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                      <span className="font-bold">Author Preview (Under Review):</span>
+                      <span>This custom tale is only visible to you. It will be public to all travelers once approved.</span>
+                    </div>
+                  </div>
+                )}
+                
                 <ChapterTypewriterStory
                   taleTitle={tale.title}
                   chapterTitle={chapterData.title}
                   realmName={tale.realmId === 'realm-work' ? 'Work Realm' : 'Realm'}
                   imageUrl={chapterData.bgMedia?.url || tale.coverImage}
+                  customStoryText={tale.storyContent}
                   darkMode={darkMode}
                 />
 

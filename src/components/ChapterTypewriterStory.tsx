@@ -7,6 +7,7 @@ interface ChapterTypewriterStoryProps {
   chapterTitle: string;
   realmName?: string;
   imageUrl?: string;
+  customStoryText?: string;
   darkMode?: boolean;
 }
 
@@ -22,10 +23,13 @@ export const ChapterTypewriterStory: React.FC<ChapterTypewriterStoryProps> = ({
   chapterTitle,
   realmName = "Work Realm",
   imageUrl,
+  customStoryText,
   darkMode = true,
 }) => {
-  // Join the whole story with double newlines
-  const fullText = STORY_PARAGRAPHS.join("\n\n");
+  // Use custom story text if available, else standard chronicle paragraphs
+  const fullText = customStoryText && customStoryText.trim().length > 0
+    ? customStoryText.trim()
+    : STORY_PARAGRAPHS.join("\n\n");
 
   const [displayedLength, setDisplayedLength] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);

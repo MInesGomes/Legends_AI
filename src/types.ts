@@ -54,6 +54,10 @@ export interface Tale {
   commentsCount: number;
   isCustomUserTale?: boolean;
   storyContent?: string;
+  authorId?: string;
+  authorName?: string;
+  isApproved?: boolean;
+  createdAt?: string;
 }
 
 export interface DialogueLine {
