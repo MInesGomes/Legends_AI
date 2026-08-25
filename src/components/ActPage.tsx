@@ -688,7 +688,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             ))}
           </div>
         ) : (
-          <div className="relative w-full h-full flex flex-col items-center justify-start pt-[40px] sm:pt-0 bg-slate-950">
+          <div className="relative w-full h-full flex flex-col items-center justify-start sm:justify-center landscape:justify-center pt-[40px] sm:pt-0 landscape:pt-0 bg-slate-950">
             {/* Ambient subtle backdrop fill */}
             <img
               src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
@@ -721,7 +721,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     }, 5000);
                   }
                 }}
-                className="w-full max-h-full object-contain object-top z-0"
+                className="w-full h-[75vh] max-h-[75vh] object-cover object-center sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
                 onError={(e) => {
                   const target = e.currentTarget;
                   const fallback = resolveAssetUrl(currentAct.mp4);
@@ -736,7 +736,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               <img
                 src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 alt={currentAct.actTitle}
-                className="w-full max-h-full object-contain object-top z-0"
+                className="w-full h-[75vh] max-h-[75vh] object-cover object-center sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
                 referrerPolicy="no-referrer"
               />
             )}
@@ -1144,7 +1144,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           </div>
         ) : (
           /* B. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
-          <div className="w-full bg-transparent text-white animate-fadeIn m-0 p-0">
+          <div className="w-full bg-[#020618]/10 text-white animate-fadeIn m-0 p-0">
             <div
               ref={narrativeBoxRef}
               onClick={() => {

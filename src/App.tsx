@@ -425,6 +425,10 @@ export default function App() {
             todayTalesCount={todayTalesCount}
             onOpenProfile={() => setShowProfileDrawer(true)}
             onSelectRealm={handleSelectRealm}
+            commentsMap={dbState.chapters_id_Comments}
+            onAddComment={handleAddComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
             darkMode={darkMode}
           />
         ) : currentPage === 'tails' && activeRealm ? (

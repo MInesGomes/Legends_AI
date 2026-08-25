@@ -260,22 +260,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
       darkMode ? 'bg-[#0f141c] text-slate-100' : 'bg-[#fbf9f4] text-slate-900'
     }`}>
       
-      {/* Background Image/Media with Adaptive Overlay */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <img
-          src={chapterData.bgMedia?.url || tale.coverImage}
-          alt={chapterData.title}
-          className={`w-full h-full object-cover object-center ${
-            darkMode ? 'filter brightness-[0.5] contrast-110 scale-105' : 'filter brightness-[0.8] opacity-35 scale-105'
-          } transition-transform duration-700`}
-          referrerPolicy="no-referrer"
-        />
-        <div className={`absolute inset-0 ${
-          darkMode
-            ? 'bg-gradient-to-b from-[#18202f]/85 via-[#101726]/60 to-[#18202f]/95'
-            : 'bg-gradient-to-b from-[#fcfbf9]/85 via-[#fcfbf9]/50 to-[#fcfbf9]/95'
-        }`} />
-      </div>
+  
 
       {/* TOP HEADER BAR */}
       <header className={`relative z-20 backdrop-blur-md border-b px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl transition-colors ${

@@ -1,14 +1,19 @@
-import React from 'react';
-import { Realm, UserProfile } from '../types';
+import React, { useState } from 'react';
+import { ChapterComment, Realm, UserProfile } from '../types';
 import { REALMS } from '../data/realmsAndTales';
-import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2, MessageSquare } from 'lucide-react';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit } from '../lib/supabase';
+import { CommentsDrawer } from './CommentsDrawer';
 
 interface DashboardProps {
   user: UserProfile | null;
   todayTalesCount?: number;
   onOpenProfile?: () => void;
   onSelectRealm: (realm: Realm) => void;
+  commentsMap?: Record<string, ChapterComment[]>;
+  onAddComment?: (chapterId: string, text: string) => void;
+  onEditComment?: (chapterId: string, commentId: string, newText: string) => void;
+  onDeleteComment?: (chapterId: string, commentId: string) => void;
   darkMode?: boolean;
 }
 
@@ -157,8 +162,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   todayTalesCount = 0,
   onOpenProfile,
   onSelectRealm,
+  commentsMap,
+  onAddComment,
+  onEditComment,
+  onDeleteComment,
   darkMode = false,
 }) => {
+  const [showCommentsDrawer, setShowCommentsDrawer] = useState(false);
+  const feedbackComments = commentsMap?.['dashboard_feedback'] || [];
+
   const userAge = user?.age ?? 20; // Default adult if missing
   const isUnder18 = userAge < 18;
   const effectiveLimit = getEffectiveDailyLimit(user);
@@ -304,8 +316,45 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ))}
         </div>
 
+        {/* Feedback Action Section at Bottom of Dashboard */}
+        <div className="flex flex-col items-center justify-center gap-2 pt-6 pb-2">
+          <button
+            id="dashboard-feedback-btn"
+            type="button"
+            onClick={() => setShowCommentsDrawer(true)}
+            className={`group relative flex items-center gap-2.5 px-6 py-2.5 rounded-full border-2 transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97] shadow-lg cursor-pointer ${
+              darkMode
+                ? 'bg-gradient-to-r from-[#1b2536] via-[#101726] to-[#1b2536] border-[#d4af37] text-[#fce0a2] hover:border-[#fce0a2] hover:shadow-[0_4px_25px_rgba(212,175,55,0.3)] shadow-[0_4px_16px_rgba(0,0,0,0.4)]'
+                : 'bg-gradient-to-r from-[#fff9eb] via-[#fff4d6] to-[#fff9eb] border-[#b8860b] text-[#78350f] hover:border-[#78350f] hover:shadow-[0_4px_25px_rgba(184,134,11,0.25)] shadow-[0_4px_16px_rgba(184,134,11,0.15)]'
+            }`}
+          >
+            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center shrink-0">
+              <div className={`w-full h-full rounded-full flex items-center justify-center ${
+                darkMode ? 'bg-[#101726]' : 'bg-white'
+              }`}>
+                <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
+              </div>
+            </div>
+            <span className="text-xs sm:text-sm font-bold font-cinzel tracking-wider uppercase">
+              Feedback &amp; Comments
+            </span>
+            {feedbackComments.length > 0 && (
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                darkMode
+                  ? 'bg-[#d4af37]/20 border-[#d4af37]/60 text-[#fce0a2]'
+                  : 'bg-[#b8860b]/20 border-[#b8860b]/60 text-[#78350f]'
+              }`}>
+                {feedbackComments.length}
+              </span>
+            )}
+          </button>
+          <span className={`text-[11px] font-sans ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            Share your thoughts, suggestions, or feedback
+          </span>
+        </div>
+
         {/* Footer Subtitle */}
-        <div className="text-center pt-8 pb-4 border-t border-[#d4af37]/20 flex items-center justify-center gap-3">
+        <div className="text-center pt-6 pb-4 border-t border-[#d4af37]/20 flex items-center justify-center gap-3">
           <span className="text-[#d4af37] text-xs font-serif">--✦--</span>
           <p className={`text-base sm:text-lg font-cinzel tracking-wider font-semibold ${
             darkMode ? 'text-[#fce0a2]/90' : 'text-[#8a5d12]'
@@ -316,6 +365,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
       </div>
+
+      {/* Feedback Comments Drawer */}
+      {showCommentsDrawer && (
+        <CommentsDrawer
+          chapterId="dashboard_feedback"
+          chapterTitle="Dashboard & App Feedback"
+          comments={feedbackComments}
+          user={user}
+          onClose={() => setShowCommentsDrawer(false)}
+          onAddComment={(text) => onAddComment?.('dashboard_feedback', text)}
+          onEditComment={(commentId, newText) => onEditComment?.('dashboard_feedback', commentId, newText)}
+          onDeleteComment={(commentId) => onDeleteComment?.('dashboard_feedback', commentId)}
+          darkMode={darkMode}
+        />
+      )}
     </div>
   );
 };
