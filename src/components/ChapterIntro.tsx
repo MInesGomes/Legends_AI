@@ -90,7 +90,7 @@ export const FullscreenChapterView: React.FC<FullscreenChapterViewProps> = ({
   }, [chapterData.skill, currentChapterNum]);
 
   // Sound / Audio Ambience state
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
 
   // Selected option for Chapter 2+ ('Best' | 'Safe' | 'Weak' | 'Harmful')
   const [selectedChoice, setSelectedChoice] = useState<ChoiceOptionType | null>(null);

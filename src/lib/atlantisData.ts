@@ -11,6 +11,7 @@ export interface ActItem {
   subtitle: string;
   actTitle: string;
   mp4: string;
+  vtt?: string;
   posterImage: string;
   text?: string;
   images?: string[];
@@ -58,7 +59,8 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           chapterTitle: ch.title,
           subtitle: ch.subtitle,
           actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
-          mp4: ASSETS.realmAtlantisMp4,
+          mp4: resolveAssetUrl(ch.act1.mp4, ASSETS.realmAtlantisMp4),
+          vtt: resolveAssetUrl(ch.act1.vtt, ASSETS.introVtt),
           posterImage: DEFAULT_BG,
           text: ch.act1.text,
           femaleAvatar: chapterFemaleAvatar,

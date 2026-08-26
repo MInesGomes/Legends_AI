@@ -42,7 +42,8 @@ const maleWanderer = male2;
 const ATLANTIS_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis';
 
 export const realmAtlantisJpg = `${ATLANTIS_BASE_URL}/realm_atlantis.jpg`;
-export const realmAtlantisMp4 = `${ATLANTIS_BASE_URL}/realm_atlantis.mp4`;
+export const realmAtlantisMp4 = `${ATLANTIS_BASE_URL}/intro.mp4`;
+export const introVtt = `${ATLANTIS_BASE_URL}/intro1.vtt`;
 export const aletheaMp4 = `${ATLANTIS_BASE_URL}/0Alethea.mp4`;
 export const elionMp4 = `${ATLANTIS_BASE_URL}/0Elion.mp4`;
 export const act2Mp4 = `${ATLANTIS_BASE_URL}/act2.mp4`;
@@ -129,6 +130,7 @@ export const ASSETS = {
 
   // Videos
   realmAtlantisMp4,
+  introVtt,
   aletheaMp4,
   elionMp4,
   act2Mp4,

@@ -103,7 +103,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   );
 
   const [currentIndex, setCurrentIndex] = useState<number>(initialIdx >= 0 ? initialIdx : 0);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
 
   // Comments drawer state
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
@@ -495,10 +495,11 @@ export const ActPage: React.FC<ActPageProps> = ({
             setShowCommentsDrawer(true);
           }}
           className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-black text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
-          title="Write a comment"
+          title="Comment"
         >
           <MessageSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#d4af37]" />
-          <span>Write a comment</span>
+          <span className="sm:hidden">Comment</span>
+          <span className="hidden sm:inline">Write a comment</span>
           {currentComments.length > 0 && (
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#d4af37]/30 text-amber-200 font-mono font-bold">
               {currentComments.length}
@@ -542,10 +543,10 @@ export const ActPage: React.FC<ActPageProps> = ({
               e.stopPropagation();
               goToNext();
             }}
-            className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+            className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1 sm:py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs md:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+            title="Next"
           >
             <span className="hidden sm:inline">Next {nextIsNewChapter ? 'Chapter' : 'Act'}</span>
-            <span className="sm:hidden">Next</span>
             <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         ) : (
@@ -705,7 +706,16 @@ export const ActPage: React.FC<ActPageProps> = ({
                 poster={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 muted={isMuted}
                 playsInline
+                crossOrigin="anonymous"
                 preload="auto"
+                onLoadedMetadata={(e) => {
+                  const video = e.currentTarget;
+                  if (video.textTracks && video.textTracks.length > 0) {
+                    for (let i = 0; i < video.textTracks.length; i++) {
+                      video.textTracks[i].mode = 'showing';
+                    }
+                  }
+                }}
                 onEnded={() => {
                   setIsVideoFinished(true);
                   if (
@@ -721,7 +731,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     }, 5000);
                   }
                 }}
-                className="w-full h-[75vh] max-h-[75vh] object-cover object-center sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
+                className="w-[calc(100%+40px)] max-w-[calc(100%+40px)] -mx-[20px] h-auto max-h-[75vh] object-cover object-center sm:mx-0 sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:mx-0 landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
                 onError={(e) => {
                   const target = e.currentTarget;
                   const fallback = resolveAssetUrl(currentAct.mp4);
@@ -731,12 +741,22 @@ export const ActPage: React.FC<ActPageProps> = ({
                     target.style.display = 'none';
                   }
                 }}
-              />
+              >
+                {(currentAct.vtt || (currentAct.mp4 && currentAct.mp4.toLowerCase().includes('intro.mp4'))) && (
+                  <track
+                    kind="subtitles"
+                    src={resolveAssetUrl(currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/Intro.vtt')}
+                    srcLang="en"
+                    label="English"
+                    default
+                  />
+                )}
+              </video>
             ) : (
               <img
                 src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 alt={currentAct.actTitle}
-                className="w-full h-[75vh] max-h-[75vh] object-cover object-center sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
+                className="w-[calc(100%+40px)] max-w-[calc(100%+40px)] -mx-[20px] h-auto max-h-[75vh] object-cover object-center sm:mx-0 sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:mx-0 landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
                 referrerPolicy="no-referrer"
               />
             )}
@@ -1144,7 +1164,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           </div>
         ) : (
           /* B. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
-          <div className="w-full bg-[#020618]/10 text-white animate-fadeIn m-0 p-0">
+          <div className="w-full bg-[#020618]/80 backdrop-blur-sm text-white animate-fadeIn m-0 p-2 sm:px-6 sm:py-2">
             <div
               ref={narrativeBoxRef}
               onClick={() => {
@@ -1152,7 +1172,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                   setVisibleSentenceCount((prev) => Math.min(sentences.length, prev + 1));
                 }
               }}
-              className="max-h-[46vh] sm:max-h-[44vh] overflow-y-auto scroll-smooth p-0 m-0 cursor-pointer select-none bg-transparent"
+              className="max-h-[46vh] sm:max-h-[4.5rem] md:max-h-[4.8rem] landscape:max-h-[4.5rem] overflow-y-auto scroll-smooth p-0 m-0 cursor-pointer select-none bg-transparent"
             >
               {/* Formatted Text (Appearing 1 sentence at a time) */}
               <div className="p-0 m-0 bg-transparent">
@@ -1170,9 +1190,9 @@ export const ActPage: React.FC<ActPageProps> = ({
                     }}
                     aria-label="Next Sentence"
                     title="Reveal Next Sentence"
-                    className="p-2 rounded-full border-2 border-[#d4af37] bg-black/60 text-[#d4af37] hover:bg-black/90 shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
+                    className="p-1.5 sm:p-1 rounded-full border-2 border-[#d4af37] bg-black/60 text-[#d4af37] hover:bg-black/90 shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer animate-bounce"
                   >
-                    <ChevronDown className="w-5 h-5 text-[#d4af37]" />
+                    <ChevronDown className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-[#d4af37]" />
                   </button>
                 </div>
               )}

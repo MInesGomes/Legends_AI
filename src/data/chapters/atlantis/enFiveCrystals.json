@@ -11,6 +11,8 @@
       "skill": "Win4All",
       "act1": {
         "title": "The Heart of Atlantis",
+        "mp4": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro.mp4",
+        "vtt": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/Intro.vtt",
         "text": "Atlantis was a living kingdom beneath the ocean, powered by the Heart of Atlantis.\nThe Heart did not fail because of war. It failed because people stopped guarding the Five Crystals form the founding era.\nAt first, the change was subtle.\n\n- People became dependent on machines and forgot how to repair them.\n- Citizens stopped visiting neighbours and withdrew behind privacy barriers.\n- Families avoided difficult conversations and pretended everything was fine.\n- Scholars cared more about winning arguments than finding truth.\n- People asked the Heart for prosperity and protection, but rarely for love or purpose.\n\nNo one noticed—or no one cared. But the Heart noticed.\nAtlantis was dying… and almost no one could see it happening."
       },
       "female_act": {
