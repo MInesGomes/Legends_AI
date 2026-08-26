@@ -13,6 +13,7 @@ export interface ActItem {
   mp4: string;
   audio?: string;
   audio_es?: string;
+  audio_nl?: string;
   vtt?: string;
   vtt_es?: string;
   posterImage: string;
@@ -55,12 +56,15 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
       // Act 1 Narrative
       if (ch.act1) {
         const isSpanish = lang === 'ES';
+        const isDutch = lang === 'NL';
         const primaryVtt = isSpanish
           ? (ch.act1.vtt_es || ASSETS.introEsVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
           : resolveAssetUrl(ch.act1.vtt, ASSETS.introVtt);
 
         const primaryAudio = isSpanish
           ? (ch.act1.audio_es || ASSETS.introEsMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3')
+          : isDutch
+          ? (ch.act1.audio_nl || ASSETS.introNlMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.mp3')
           : resolveAssetUrl(ch.act1.audio, ASSETS.introEnMp3);
 
         items.push({
@@ -74,6 +78,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           mp4: resolveAssetUrl(ch.act1.mp4, ASSETS.realmAtlantisMp4),
           audio: primaryAudio,
           audio_es: resolveAssetUrl(ch.act1.audio_es, ASSETS.introEsMp3),
+          audio_nl: resolveAssetUrl(ch.act1.audio_nl, ASSETS.introNlMp3),
           vtt: primaryVtt,
           vtt_es: resolveAssetUrl(ch.act1.vtt_es, ASSETS.introEsVtt),
           posterImage: DEFAULT_BG,

@@ -283,6 +283,8 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const actAudioUrl = currentLang === 'ES'
     ? (currentAct.audio_es || (currentAct.audio && currentAct.audio.includes('es') ? currentAct.audio : (isIntroVideo ? (ASSETS.introEsMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3') : undefined)))
+    : currentLang === 'NL'
+    ? (currentAct.audio_nl || (currentAct.audio && currentAct.audio.includes('nl') ? currentAct.audio : (isIntroVideo ? (ASSETS.introNlMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.mp3') : undefined)))
     : (currentAct.audio || (isIntroVideo ? (ASSETS.introEnMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3') : undefined));
 
   // Parse sentences for the current act
@@ -363,15 +365,6 @@ export const ActPage: React.FC<ActPageProps> = ({
       audioRef.current.muted = isMuted;
     }
   }, [isMuted]);
-
-  // Ensure subtitle text track is active and displaying when language or act changes
-  useEffect(() => {
-    if (videoRef.current && videoRef.current.textTracks) {
-      for (let i = 0; i < videoRef.current.textTracks.length; i++) {
-        videoRef.current.textTracks[i].mode = 'showing';
-      }
-    }
-  }, [currentLang, currentIndex, currentAct]);
 
   // Load and parse VTT subtitles dynamically for rock-solid cross-browser subtitle support
   useEffect(() => {
@@ -889,14 +882,6 @@ export const ActPage: React.FC<ActPageProps> = ({
                     audioRef.current.currentTime = e.currentTarget.currentTime;
                   }
                 }}
-                onLoadedMetadata={(e) => {
-                  const video = e.currentTarget;
-                  if (video.textTracks && video.textTracks.length > 0) {
-                    for (let i = 0; i < video.textTracks.length; i++) {
-                      video.textTracks[i].mode = 'showing';
-                    }
-                  }
-                }}
                 onEnded={() => {
                   setIsVideoFinished(true);
                   setActiveSubtitle('');
@@ -927,22 +912,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     target.style.display = 'none';
                   }
                 }}
-              >
-                {(currentAct.vtt || (currentAct.mp4 && currentAct.mp4.toLowerCase().includes('intro.mp4'))) && (
-                  <track
-                    key={`track-${currentLang}-${currentAct.id}`}
-                    kind="subtitles"
-                    src={resolveAssetUrl(
-                      currentLang === 'ES'
-                        ? (currentAct.vtt_es || (currentAct.vtt && currentAct.vtt.includes('es') ? currentAct.vtt : ASSETS.introEsVtt) || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
-                        : (currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro.vtt')
-                    )}
-                    srcLang={currentLang === 'ES' ? 'es' : 'en'}
-                    label={currentLang === 'ES' ? 'Español' : 'English'}
-                    default
-                  />
-                )}
-              </video>
+              />
             ) : (
               <img
                 src={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
@@ -968,18 +938,6 @@ export const ActPage: React.FC<ActPageProps> = ({
                   }
                 }}
               />
-            )}
-
-            {/* Custom Real-Time Subtitles Overlay (Guaranteed to appear on all devices and iframes) */}
-            {activeSubtitle && (
-              <div
-                id="act-video-subtitle-overlay"
-                className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 z-20 w-[94%] max-w-2xl px-2 text-center pointer-events-none transition-all duration-150 animate-fadeIn"
-              >
-                <span className="inline-block px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg bg-[#020618]/90 text-[#fce0a2] border border-[#d4af37]/60 text-xs sm:text-sm md:text-base font-semibold shadow-2xl backdrop-blur-md leading-relaxed tracking-wide">
-                  {activeSubtitle}
-                </span>
-              </div>
             )}
 
             {/* Play / Pause Indicator Badge overlay on top of video box when stopped/paused */}
@@ -1383,8 +1341,34 @@ export const ActPage: React.FC<ActPageProps> = ({
             </div>
 
           </div>
-        ) : !hasVttFile ? (
-          /* B. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
+        ) : hasVttFile ? (
+          /* B. VIDEO SUBTITLES BOX (Fullscreen Width at Bottom) */
+          <div className="w-full bg-[#020618]/90 backdrop-blur-md border-t border-[#d4af37]/30 text-white animate-fadeIn m-0 p-2.5 sm:px-6 sm:py-3 shadow-2xl">
+            <div className="min-h-[2.75rem] sm:min-h-[3.25rem] flex items-center justify-center text-center px-2 py-0.5">
+              {activeSubtitle ? (
+                <motion.p
+                  key={activeSubtitle}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="font-sans text-sm sm:text-base md:text-lg font-medium text-amber-200 leading-relaxed tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-center max-w-4xl"
+                >
+                  {activeSubtitle}
+                </motion.p>
+              ) : (
+                <p className="font-sans text-xs sm:text-sm text-slate-400 italic text-center">
+                  {isVideoFinished
+                    ? (currentLang === 'ES' ? 'Capítulo completado' : 'Chapter completed')
+                    : currentAct.actTitle}
+                </p>
+              )}
+            </div>
+
+            {/* Bottom Replay & Languages Selector bar when Video Act Finishes */}
+            {renderCompletionControls(false)}
+          </div>
+        ) : (
+          /* C. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
           <div className="w-full bg-[#020618]/80 backdrop-blur-sm text-white animate-fadeIn m-0 p-2 sm:px-6 sm:py-2">
             <div
               ref={narrativeBoxRef}
@@ -1422,13 +1406,6 @@ export const ActPage: React.FC<ActPageProps> = ({
               {renderCompletionControls(false)}
             </div>
           </div>
-        ) : (
-          /* When there's a VTT file, the text box below is hidden. Completion controls appear cleanly when finished. */
-          isVideoFinished ? (
-            <div className="w-full px-2 sm:px-6 pb-2 animate-fadeIn">
-              {renderCompletionControls(false)}
-            </div>
-          ) : null
         )}
       </motion.div>
 
