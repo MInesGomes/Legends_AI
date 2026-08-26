@@ -382,7 +382,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     );
     const rawVttUrl = currentLang === 'ES'
       ? (currentAct.vtt_es || (currentAct.vtt && currentAct.vtt.includes('es') ? currentAct.vtt : ASSETS.introEsVtt) || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
-      : (currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro.vtt');
+      : (currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.vtt');
 
     if (currentAct.vtt || isIntroVideo) {
       const fetchUrl = resolveAssetUrl(rawVttUrl);
