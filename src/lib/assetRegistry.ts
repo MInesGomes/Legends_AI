@@ -42,7 +42,9 @@ const maleWanderer = male2;
 const ATLANTIS_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis';
 
 export const realmAtlantisJpg = `${ATLANTIS_BASE_URL}/realm_atlantis.jpg`;
-export const realmAtlantisMp4 = `${ATLANTIS_BASE_URL}/intro.mp4`;
+export const realmAtlantisMp4 = `${ATLANTIS_BASE_URL}/intro_no_voice.mp4`;
+export const introNoVoiceMp4 = `${ATLANTIS_BASE_URL}/intro_no_voice.mp4`;
+export const introEnMp3 = `${ATLANTIS_BASE_URL}/intro_en.mp3`;
 export const introVtt = `${ATLANTIS_BASE_URL}/intro.vtt`;
 export const introEsVtt = `${ATLANTIS_BASE_URL}/intro_es.vtt`;
 export const aletheaMp4 = `${ATLANTIS_BASE_URL}/0Alethea.mp4`;
@@ -129,8 +131,10 @@ export const ASSETS = {
   taleOneHart,
   talePridePrejudice,
 
-  // Videos
+  // Videos & Audio
   realmAtlantisMp4,
+  introNoVoiceMp4,
+  introEnMp3,
   introVtt,
   introEsVtt,
   aletheaMp4,
@@ -139,6 +143,15 @@ export const ASSETS = {
 };
 
 const ASSET_LOOKUP_MAP: Record<string, string> = {
+  // Audio lookups
+  '/src/assets/realms/atlantis/intro_en.mp3': introEnMp3,
+  '/assets/realms/atlantis/intro_en.mp3': introEnMp3,
+  'intro_en.mp3': introEnMp3,
+  '/src/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
+  '/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
+  'intro_no_voice.mp4': introNoVoiceMp4,
+  'intro_no_voice.mp3': introNoVoiceMp4,
+
   // Subtitle lookups
   '/src/assets/realms/atlantis/intro.vtt': introVtt,
   '/assets/realms/atlantis/intro.vtt': introVtt,

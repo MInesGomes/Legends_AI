@@ -11,6 +11,7 @@ export interface ActItem {
   subtitle: string;
   actTitle: string;
   mp4: string;
+  audio?: string;
   vtt?: string;
   vtt_es?: string;
   posterImage: string;
@@ -66,6 +67,7 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           subtitle: ch.subtitle,
           actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
           mp4: resolveAssetUrl(ch.act1.mp4, ASSETS.realmAtlantisMp4),
+          audio: resolveAssetUrl(ch.act1.audio || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3', ASSETS.introEnMp3),
           vtt: primaryVtt,
           vtt_es: resolveAssetUrl(ch.act1.vtt_es, ASSETS.introEsVtt),
           posterImage: DEFAULT_BG,

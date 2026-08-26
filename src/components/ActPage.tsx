@@ -269,9 +269,19 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(!actItems[initialIdx >= 0 ? initialIdx : 0]?.mp4 || hasSequentialImages);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const dialogueScrollContainerRef = useRef<HTMLDivElement>(null);
   const dialogueEndRef = useRef<HTMLDivElement>(null);
   const narrativeBoxRef = useRef<HTMLDivElement>(null);
+
+  const actAudioUrl = currentAct.audio || (
+    currentAct.mp4 && (
+      currentAct.mp4.toLowerCase().includes('intro.mp4') ||
+      currentAct.mp4.toLowerCase().includes('intro_no_voice.mp4')
+    )
+      ? (ASSETS.introEnMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3')
+      : undefined
+  );
 
   // Parse sentences for the current act
   const sentences = useMemo(() => {
@@ -301,6 +311,15 @@ export const ActPage: React.FC<ActPageProps> = ({
       }
     }
 
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      if (isAutoPlay && actAudioUrl) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
+    }
+
     if (narrativeBoxRef.current) {
       narrativeBoxRef.current.scrollTop = 0;
     }
@@ -312,7 +331,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
   }, [currentIndex]);
 
-  // Synchronize video play / pause state whenever isAutoPlay changes
+  // Synchronize video & audio play / pause state whenever isAutoPlay changes
   useEffect(() => {
     if (videoRef.current) {
       if (isAutoPlay) {
@@ -321,12 +340,25 @@ export const ActPage: React.FC<ActPageProps> = ({
         videoRef.current.pause();
       }
     }
-  }, [isAutoPlay]);
+    if (audioRef.current && actAudioUrl) {
+      if (isAutoPlay) {
+        if (videoRef.current) {
+          audioRef.current.currentTime = videoRef.current.currentTime;
+        }
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isAutoPlay, actAudioUrl]);
 
-  // Synchronize video mute state with audio toggle
+  // Synchronize video and audio mute state with sound toggle
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = isMuted;
+    }
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
     }
   }, [isMuted]);
 
@@ -344,7 +376,10 @@ export const ActPage: React.FC<ActPageProps> = ({
     let isMounted = true;
     setActiveSubtitle('');
 
-    const isIntroVideo = currentAct.mp4 && currentAct.mp4.toLowerCase().includes('intro.mp4');
+    const isIntroVideo = currentAct.mp4 && (
+      currentAct.mp4.toLowerCase().includes('intro.mp4') ||
+      currentAct.mp4.toLowerCase().includes('intro_no_voice.mp4')
+    );
     const rawVttUrl = currentLang === 'ES'
       ? (currentAct.vtt_es || (currentAct.vtt && currentAct.vtt.includes('es') ? currentAct.vtt : ASSETS.introEsVtt) || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
       : (currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro.vtt');
@@ -376,6 +411,11 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const handleVideoTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const curr = e.currentTarget.currentTime;
+    // Synchronize audio playback precisely with video if it drifts
+    if (audioRef.current && !audioRef.current.paused && Math.abs(audioRef.current.currentTime - curr) > 0.3) {
+      audioRef.current.currentTime = curr;
+    }
+
     if (!subtitles || subtitles.length === 0) {
       if (activeSubtitle) setActiveSubtitle('');
       return;
@@ -535,7 +575,17 @@ export const ActPage: React.FC<ActPageProps> = ({
     ? selectedSentenceIdx
     : Math.min(visibleSentenceCount - 1, Math.max(0, sentences.length - 1));
 
+  const hasVttFile = Boolean(
+    currentAct.vtt ||
+    currentAct.vtt_es ||
+    (currentAct.mp4 && currentAct.mp4.toLowerCase().includes('intro.mp4')) ||
+    (subtitles && subtitles.length > 0)
+  );
+
   const isActFinished = useMemo(() => {
+    if (hasVttFile) {
+      return isVideoFinished;
+    }
     if (currentAct.type === 'narrative' || currentAct.type === 'character') {
       return visibleSentenceCount >= sentences.length && sentences.length > 0;
     }
@@ -543,7 +593,7 @@ export const ActPage: React.FC<ActPageProps> = ({
       return !currentAct.dialogue || dialogueStep >= currentAct.dialogue.length - 1;
     }
     return false;
-  }, [currentAct.type, currentAct.dialogue, visibleSentenceCount, sentences.length, dialogueStep]);
+  }, [hasVttFile, isVideoFinished, currentAct.type, currentAct.dialogue, visibleSentenceCount, sentences.length, dialogueStep]);
 
   const nextItem = actItems[currentIndex + 1];
   const nextIsNewChapter = nextItem && nextItem.chapterNumber !== currentAct.chapterNumber;
@@ -558,6 +608,14 @@ export const ActPage: React.FC<ActPageProps> = ({
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});
+    }
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      if (isAutoPlay && actAudioUrl) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
     }
     if (narrativeBoxRef.current) {
       narrativeBoxRef.current.scrollTop = 0;
@@ -813,6 +871,22 @@ export const ActPage: React.FC<ActPageProps> = ({
                 crossOrigin="anonymous"
                 preload="auto"
                 onTimeUpdate={handleVideoTimeUpdate}
+                onPlay={(e) => {
+                  if (audioRef.current && actAudioUrl) {
+                    audioRef.current.currentTime = e.currentTarget.currentTime;
+                    audioRef.current.play().catch(() => {});
+                  }
+                }}
+                onPause={() => {
+                  if (audioRef.current) {
+                    audioRef.current.pause();
+                  }
+                }}
+                onSeeked={(e) => {
+                  if (audioRef.current) {
+                    audioRef.current.currentTime = e.currentTarget.currentTime;
+                  }
+                }}
                 onLoadedMetadata={(e) => {
                   const video = e.currentTarget;
                   if (video.textTracks && video.textTracks.length > 0) {
@@ -824,6 +898,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                 onEnded={() => {
                   setIsVideoFinished(true);
                   setActiveSubtitle('');
+                  if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                  }
                   if (
                     isAutoPlay &&
                     currentIndex < actItems.length - 1 &&
@@ -869,6 +947,24 @@ export const ActPage: React.FC<ActPageProps> = ({
                 alt={currentAct.actTitle}
                 className="w-[calc(100%+40px)] max-w-[calc(100%+40px)] -mx-[20px] h-auto max-h-[75vh] object-cover object-center sm:mx-0 sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:mx-0 landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
                 referrerPolicy="no-referrer"
+              />
+            )}
+
+            {/* Synchronized Audio Track */}
+            {actAudioUrl && (
+              <audio
+                id="act-background-audio"
+                ref={audioRef}
+                key={`audio-${currentAct.id}-${actAudioUrl}`}
+                src={resolveAssetUrl(actAudioUrl)}
+                muted={isMuted}
+                preload="auto"
+                playsInline
+                onEnded={() => {
+                  if (audioRef.current) {
+                    audioRef.current.currentTime = 0;
+                  }
+                }}
               />
             )}
 
@@ -1285,7 +1381,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             </div>
 
           </div>
-        ) : (
+        ) : !hasVttFile ? (
           /* B. NARRATIVE / CHARACTER ACT MODE (Fullscreen Width at Bottom, 1 Sentence at a Time) */
           <div className="w-full bg-[#020618]/80 backdrop-blur-sm text-white animate-fadeIn m-0 p-2 sm:px-6 sm:py-2">
             <div
@@ -1324,6 +1420,13 @@ export const ActPage: React.FC<ActPageProps> = ({
               {renderCompletionControls(false)}
             </div>
           </div>
+        ) : (
+          /* When there's a VTT file, the text box below is hidden. Completion controls appear cleanly when finished. */
+          isVideoFinished ? (
+            <div className="w-full px-2 sm:px-6 pb-2 animate-fadeIn">
+              {renderCompletionControls(false)}
+            </div>
+          ) : null
         )}
       </motion.div>
 
