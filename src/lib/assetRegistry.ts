@@ -45,6 +45,7 @@ export const realmAtlantisJpg = `${ATLANTIS_BASE_URL}/realm_atlantis.jpg`;
 export const realmAtlantisMp4 = `${ATLANTIS_BASE_URL}/intro_no_voice.mp4`;
 export const introNoVoiceMp4 = `${ATLANTIS_BASE_URL}/intro_no_voice.mp4`;
 export const introEnMp3 = `${ATLANTIS_BASE_URL}/intro_en.mp3`;
+export const introEsMp3 = `${ATLANTIS_BASE_URL}/intro_es.mp3`;
 export const introVtt = `${ATLANTIS_BASE_URL}/intro_en.vtt`;
 export const introEsVtt = `${ATLANTIS_BASE_URL}/intro_es.vtt`;
 export const aletheaMp4 = `${ATLANTIS_BASE_URL}/0Alethea.mp4`;
@@ -135,6 +136,7 @@ export const ASSETS = {
   realmAtlantisMp4,
   introNoVoiceMp4,
   introEnMp3,
+  introEsMp3,
   introVtt,
   introEsVtt,
   aletheaMp4,
@@ -147,6 +149,9 @@ const ASSET_LOOKUP_MAP: Record<string, string> = {
   '/src/assets/realms/atlantis/intro_en.mp3': introEnMp3,
   '/assets/realms/atlantis/intro_en.mp3': introEnMp3,
   'intro_en.mp3': introEnMp3,
+  '/src/assets/realms/atlantis/intro_es.mp3': introEsMp3,
+  '/assets/realms/atlantis/intro_es.mp3': introEsMp3,
+  'intro_es.mp3': introEsMp3,
   '/src/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
   '/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
   'intro_no_voice.mp4': introNoVoiceMp4,

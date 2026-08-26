@@ -274,14 +274,16 @@ export const ActPage: React.FC<ActPageProps> = ({
   const dialogueEndRef = useRef<HTMLDivElement>(null);
   const narrativeBoxRef = useRef<HTMLDivElement>(null);
 
-  const actAudioUrl = currentAct.audio || (
+  const isIntroVideo = Boolean(
     currentAct.mp4 && (
       currentAct.mp4.toLowerCase().includes('intro.mp4') ||
       currentAct.mp4.toLowerCase().includes('intro_no_voice.mp4')
     )
-      ? (ASSETS.introEnMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3')
-      : undefined
   );
+
+  const actAudioUrl = currentLang === 'ES'
+    ? (currentAct.audio_es || (currentAct.audio && currentAct.audio.includes('es') ? currentAct.audio : (isIntroVideo ? (ASSETS.introEsMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3') : undefined)))
+    : (currentAct.audio || (isIntroVideo ? (ASSETS.introEnMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3') : undefined));
 
   // Parse sentences for the current act
   const sentences = useMemo(() => {

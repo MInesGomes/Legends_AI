@@ -12,6 +12,7 @@ export interface ActItem {
   actTitle: string;
   mp4: string;
   audio?: string;
+  audio_es?: string;
   vtt?: string;
   vtt_es?: string;
   posterImage: string;
@@ -58,6 +59,10 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           ? (ch.act1.vtt_es || ASSETS.introEsVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
           : resolveAssetUrl(ch.act1.vtt, ASSETS.introVtt);
 
+        const primaryAudio = isSpanish
+          ? (ch.act1.audio_es || ASSETS.introEsMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3')
+          : resolveAssetUrl(ch.act1.audio, ASSETS.introEnMp3);
+
         items.push({
           id: 'atlantis-ch1-act1',
           chapterNumber: 1,
@@ -67,7 +72,8 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           subtitle: ch.subtitle,
           actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
           mp4: resolveAssetUrl(ch.act1.mp4, ASSETS.realmAtlantisMp4),
-          audio: resolveAssetUrl(ch.act1.audio || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3', ASSETS.introEnMp3),
+          audio: primaryAudio,
+          audio_es: resolveAssetUrl(ch.act1.audio_es, ASSETS.introEsMp3),
           vtt: primaryVtt,
           vtt_es: resolveAssetUrl(ch.act1.vtt_es, ASSETS.introEsVtt),
           posterImage: DEFAULT_BG,
