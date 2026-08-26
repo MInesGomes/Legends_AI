@@ -228,39 +228,6 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               </div>
             );
           })}
-
-          {/* ADD BUTTON CARD (Matching Dashboard & Tales style) */}
-          <div
-            onClick={() => setShowAddModal(true)}
-            className="p-[3px] rounded-[18px] bg-gradient-to-b from-[#f3e5ab]/60 via-[#d4af37]/40 to-[#8a5d12]/60 hover:from-[#f3e5ab] hover:to-[#8a5d12] shadow-xl transition-all duration-300 group cursor-pointer"
-          >
-            <div className={`relative h-72 sm:h-80 rounded-[15px] p-6 flex flex-col items-center justify-center text-center transition-colors ${
-              darkMode ? 'bg-[#202b3d]/95 text-slate-100' : 'bg-white/95 text-slate-900'
-            }`}>
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 mb-3 group-hover:scale-110 transition-transform shadow-lg">
-                <div className={`w-full h-full rounded-full flex items-center justify-center text-[#d4af37] ${
-                  darkMode ? 'bg-[#202b3d]' : 'bg-white'
-                }`}>
-                  <Plus className="w-8 h-8" />
-                </div>
-              </div>
-              <h3 className={`text-lg sm:text-xl font-bold font-cinzel ${
-                darkMode ? 'text-[#fce0a2] group-hover:text-white' : 'text-[#8a5d12]'
-              }`}>
-                 We want to hear your story! 
-              </h3>
-
-              <div className={`text-xs sm:text-[13px] max-w-xs mt-2.5 space-y-2 text-left ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                <p className="text-center font-medium">
-                Tell us about a recent triumph, a funny mishap, or an unexpected adventure that stayed with you.
-                <br/>Every legend leaves a mark on the <span className="font-semibold text-[#d4af37]">{realm.title}</span> Realm. What is yours?
-                </p>
-              </div>
-              <span className="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-900 font-bold text-xs shadow-md group-hover:brightness-110 transition-all">
-                + Suggest a Tale
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Daily Tale Limit Reached Warning Modal */}
