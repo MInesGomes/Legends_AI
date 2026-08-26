@@ -49,6 +49,49 @@ const LANGUAGES: { code: Language; label: string; flag: string }[] = [
   { code: 'NL', label: 'Nederlands', flag: '🇳🇱' },
 ];
 
+interface SubtitleCue {
+  start: number;
+  end: number;
+  text: string;
+}
+
+function parseVttToCues(vttText: string): SubtitleCue[] {
+  const parseTime = (t: string): number => {
+    const parts = t.trim().split(':');
+    if (parts.length === 3) {
+      return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2].replace(',', '.'));
+    } else if (parts.length === 2) {
+      return parseFloat(parts[0]) * 60 + parseFloat(parts[1].replace(',', '.'));
+    }
+    return 0;
+  };
+
+  const regex = /(\d{1,2}:\d{2}:\d{2}[\.,]\d{2,3}|\d{1,2}:\d{2}[\.,]\d{2,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[\.,]\d{2,3}|\d{1,2}:\d{2}[\.,]\d{2,3})/g;
+  const cues: SubtitleCue[] = [];
+  const matches: { start: number; end: number; index: number; length: number }[] = [];
+  let match;
+  while ((match = regex.exec(vttText)) !== null) {
+    matches.push({
+      start: parseTime(match[1]),
+      end: parseTime(match[2]),
+      index: match.index,
+      length: match[0].length,
+    });
+  }
+
+  for (let i = 0; i < matches.length; i++) {
+    const current = matches[i];
+    const textStart = current.index + current.length;
+    const textEnd = i + 1 < matches.length ? matches[i + 1].index : vttText.length;
+    let cueText = vttText.substring(textStart, textEnd).trim();
+    cueText = cueText.replace(/\s*\d+$/, '').trim();
+    if (cueText) {
+      cues.push({ start: current.start, end: current.end, text: cueText });
+    }
+  }
+  return cues;
+}
+
 const CHOICE_FEEDBACK: Record<string, { summary: string; explanation: string; icon: string; tag: string }> = {
   Best: {
     tag: 'Optimal Choice',
@@ -125,6 +168,10 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
   const [showOtherOptions, setShowOtherOptions] = useState<boolean>(false);
   const [shuffledOrder, setShuffledOrder] = useState<string[]>([]);
+
+  // Real-time parsed subtitles and active subtitle cue text
+  const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
+  const [activeSubtitle, setActiveSubtitle] = useState<string>('');
 
   const currentAct = actItems[currentIndex] || actItems[0];
   const currentChapterId = currentAct.chapterNumber === 2 ? 'atlantis-ch2' : 'atlantis-ch1';
@@ -282,6 +329,63 @@ export const ActPage: React.FC<ActPageProps> = ({
       videoRef.current.muted = isMuted;
     }
   }, [isMuted]);
+
+  // Ensure subtitle text track is active and displaying when language or act changes
+  useEffect(() => {
+    if (videoRef.current && videoRef.current.textTracks) {
+      for (let i = 0; i < videoRef.current.textTracks.length; i++) {
+        videoRef.current.textTracks[i].mode = 'showing';
+      }
+    }
+  }, [currentLang, currentIndex, currentAct]);
+
+  // Load and parse VTT subtitles dynamically for rock-solid cross-browser subtitle support
+  useEffect(() => {
+    let isMounted = true;
+    setActiveSubtitle('');
+
+    const isIntroVideo = currentAct.mp4 && currentAct.mp4.toLowerCase().includes('intro.mp4');
+    const rawVttUrl = currentLang === 'ES'
+      ? (currentAct.vtt_es || (currentAct.vtt && currentAct.vtt.includes('es') ? currentAct.vtt : ASSETS.introEsVtt) || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
+      : (currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro.vtt');
+
+    if (currentAct.vtt || isIntroVideo) {
+      const fetchUrl = resolveAssetUrl(rawVttUrl);
+      fetch(fetchUrl)
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+          return res.text();
+        })
+        .then((text) => {
+          if (!isMounted) return;
+          const parsed = parseVttToCues(text);
+          setSubtitles(parsed);
+        })
+        .catch((err) => {
+          console.warn('Could not load VTT file:', err);
+          if (isMounted) setSubtitles([]);
+        });
+    } else {
+      setSubtitles([]);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentAct, currentLang]);
+
+  const handleVideoTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const curr = e.currentTarget.currentTime;
+    if (!subtitles || subtitles.length === 0) {
+      if (activeSubtitle) setActiveSubtitle('');
+      return;
+    }
+    const matchingCue = subtitles.find((c) => curr >= c.start && curr <= c.end);
+    const newText = matchingCue ? matchingCue.text : '';
+    if (newText !== activeSubtitle) {
+      setActiveSubtitle(newText);
+    }
+  };
 
   // Progressive timer: automatically reveals 1 sentence at a time when Autoplay is enabled
   useEffect(() => {
@@ -701,13 +805,14 @@ export const ActPage: React.FC<ActPageProps> = ({
               <video
                 id="act-fullscreen-video"
                 ref={videoRef}
-                key={currentAct.mp4}
+                key={`${currentAct.mp4}-${currentLang}`}
                 src={resolveAssetUrl(currentAct.mp4)}
                 poster={resolveAssetUrl(currentAct.posterImage, ASSETS.realmAtlantisJpg)}
                 muted={isMuted}
                 playsInline
                 crossOrigin="anonymous"
                 preload="auto"
+                onTimeUpdate={handleVideoTimeUpdate}
                 onLoadedMetadata={(e) => {
                   const video = e.currentTarget;
                   if (video.textTracks && video.textTracks.length > 0) {
@@ -718,6 +823,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 }}
                 onEnded={() => {
                   setIsVideoFinished(true);
+                  setActiveSubtitle('');
                   if (
                     isAutoPlay &&
                     currentIndex < actItems.length - 1 &&
@@ -744,10 +850,15 @@ export const ActPage: React.FC<ActPageProps> = ({
               >
                 {(currentAct.vtt || (currentAct.mp4 && currentAct.mp4.toLowerCase().includes('intro.mp4'))) && (
                   <track
+                    key={`track-${currentLang}-${currentAct.id}`}
                     kind="subtitles"
-                    src={resolveAssetUrl(currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/Intro.vtt')}
-                    srcLang="en"
-                    label="English"
+                    src={resolveAssetUrl(
+                      currentLang === 'ES'
+                        ? (currentAct.vtt_es || (currentAct.vtt && currentAct.vtt.includes('es') ? currentAct.vtt : ASSETS.introEsVtt) || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
+                        : (currentAct.vtt || ASSETS.introVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro.vtt')
+                    )}
+                    srcLang={currentLang === 'ES' ? 'es' : 'en'}
+                    label={currentLang === 'ES' ? 'Español' : 'English'}
                     default
                   />
                 )}
@@ -759,6 +870,18 @@ export const ActPage: React.FC<ActPageProps> = ({
                 className="w-[calc(100%+40px)] max-w-[calc(100%+40px)] -mx-[20px] h-auto max-h-[75vh] object-cover object-center sm:mx-0 sm:h-full sm:max-h-full sm:w-auto sm:max-w-full sm:object-contain sm:object-top landscape:mx-0 landscape:h-full landscape:max-h-full landscape:w-auto landscape:max-w-full landscape:object-contain landscape:object-top z-0"
                 referrerPolicy="no-referrer"
               />
+            )}
+
+            {/* Custom Real-Time Subtitles Overlay (Guaranteed to appear on all devices and iframes) */}
+            {activeSubtitle && (
+              <div
+                id="act-video-subtitle-overlay"
+                className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 z-20 w-[94%] max-w-2xl px-2 text-center pointer-events-none transition-all duration-150 animate-fadeIn"
+              >
+                <span className="inline-block px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg bg-[#020618]/90 text-[#fce0a2] border border-[#d4af37]/60 text-xs sm:text-sm md:text-base font-semibold shadow-2xl backdrop-blur-md leading-relaxed tracking-wide">
+                  {activeSubtitle}
+                </span>
+              </div>
             )}
 
             {/* Play / Pause Indicator Badge overlay on top of video box when stopped/paused */}

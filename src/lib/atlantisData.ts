@@ -12,6 +12,7 @@ export interface ActItem {
   actTitle: string;
   mp4: string;
   vtt?: string;
+  vtt_es?: string;
   posterImage: string;
   text?: string;
   images?: string[];
@@ -51,6 +52,11 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
     if (ch.chapter === 1) {
       // Act 1 Narrative
       if (ch.act1) {
+        const isSpanish = lang === 'ES';
+        const primaryVtt = isSpanish
+          ? (ch.act1.vtt_es || ASSETS.introEsVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
+          : resolveAssetUrl(ch.act1.vtt, ASSETS.introVtt);
+
         items.push({
           id: 'atlantis-ch1-act1',
           chapterNumber: 1,
@@ -60,7 +66,8 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           subtitle: ch.subtitle,
           actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
           mp4: resolveAssetUrl(ch.act1.mp4, ASSETS.realmAtlantisMp4),
-          vtt: resolveAssetUrl(ch.act1.vtt, ASSETS.introVtt),
+          vtt: primaryVtt,
+          vtt_es: resolveAssetUrl(ch.act1.vtt_es, ASSETS.introEsVtt),
           posterImage: DEFAULT_BG,
           text: ch.act1.text,
           femaleAvatar: chapterFemaleAvatar,
