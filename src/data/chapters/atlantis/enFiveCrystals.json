@@ -11,11 +11,15 @@
       "skill": "Win4All",
       "act1": {
         "title": "The Heart of Atlantis",
-        "audio": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3",
-        "audio_es": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3",
-        "audio_nl": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.mp3",
-        "vtt": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.vtt",
-        "vtt_es": "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt",
+        "audio": "intro_en.mp3",
+        "audio_es": "intro_es.mp3",
+        "audio_nl": "intro_nl.mp3",
+        "vtt": "intro_en.vtt",
+        "vtt_en": "intro_en.vtt",
+        "vtt_es": "intro_es.vtt",
+        "vtt_nl": "intro_nl.vtt",
+        "vtt_it": "intro_it.vtt",
+        "vtt_pt": "intro_pt.vtt",
         "text": "Atlantis was a living kingdom beneath the ocean, powered by the Heart of Atlantis.\nThe Heart did not fail because of war. It failed because people stopped guarding the Five Crystals form the founding era.\nAt first, the change was subtle.\n\n- People became dependent on machines and forgot how to repair them.\n- Citizens stopped visiting neighbours and withdrew behind privacy barriers.\n- Families avoided difficult conversations and pretended everything was fine.\n- Scholars cared more about winning arguments than finding truth.\n- People asked the Heart for prosperity and protection, but rarely for love or purpose.\n\nNo one noticed—or no one cared. But the Heart noticed.\nAtlantis was dying… and almost no one could see it happening."
       },
       "female_act": {

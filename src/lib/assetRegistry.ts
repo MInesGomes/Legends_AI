@@ -39,20 +39,27 @@ const maleScholar = male3;
 const maleWanderer = male2;
 
 // Realm Media & Videos (Atlantis hosted on Supabase public storage)
-const ATLANTIS_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis';
+export const ATLANTIS_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis';
+export const ATLANTIS_CH1_INTRO_BASE = `${ATLANTIS_BASE_URL}/5crystals/Chapter1/0intro`;
+export const ATLANTIS_CH1_INTRO_VVT_BASE = `${ATLANTIS_CH1_INTRO_BASE}/vvt`;
 
 export const realmAtlantisJpg = `${ATLANTIS_BASE_URL}/realm_atlantis.jpg`;
-export const realmAtlantisMp4 = `${ATLANTIS_BASE_URL}/intro_no_voice.mp4`;
-export const introNoVoiceMp4 = `${ATLANTIS_BASE_URL}/intro_no_voice.mp4`;
-export const introEnMp3 = `${ATLANTIS_BASE_URL}/intro_en.mp3`;
-export const introEsMp3 = `${ATLANTIS_BASE_URL}/intro_es.mp3`;
-export const introNlMp3 = `${ATLANTIS_BASE_URL}/intro_nl.mp3`;
-export const introVtt = `${ATLANTIS_BASE_URL}/intro_en.vtt`;
-export const introEsVtt = `${ATLANTIS_BASE_URL}/intro_es.vtt`;
+export const introNoVoiceMp4 = `${ATLANTIS_CH1_INTRO_BASE}/intro_no_voice.mp4`;
+export const realmAtlantisMp4 = introNoVoiceMp4;
+export const introEnMp3 = `${ATLANTIS_CH1_INTRO_BASE}/intro_en.mp3`;
+export const introEsMp3 = `${ATLANTIS_CH1_INTRO_BASE}/intro_es.mp3`;
+export const introNlMp3 = `${ATLANTIS_CH1_INTRO_BASE}/intro_nl.mp3`;
+export const introEnVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_en.vtt`;
+export const introEsVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_es.vtt`;
+export const introNlVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_nl.vtt`;
+export const introItVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_it.vtt`;
+export const introPtVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_pt.vtt`;
+export const introVtt = introEnVtt;
 export const aletheaMp4 = `${ATLANTIS_BASE_URL}/0Alethea.mp4`;
 export const elionMp4 = `${ATLANTIS_BASE_URL}/0Elion.mp4`;
 export const act2Mp4 = `${ATLANTIS_BASE_URL}/act2.mp4`;
 export const realmAtlantisBg = `${ATLANTIS_BASE_URL}/realm_atlantis_bg.png`;
+export const fiveCrystalsJpg = `${ATLANTIS_BASE_URL}/5crystals.jpg`;
 
 // Dad & Mom
 import dadMomRealmBg from '../assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg';
@@ -117,6 +124,8 @@ export const ASSETS = {
 
   // Realm Images
   realmAtlantisJpg,
+  realmAtlantisBg,
+  fiveCrystalsJpg,
   dadMomRealmBg,
   eldoradoRealmBg,
   futureLandRealmBg,
@@ -140,7 +149,11 @@ export const ASSETS = {
   introEsMp3,
   introNlMp3,
   introVtt,
+  introEnVtt,
   introEsVtt,
+  introNlVtt,
+  introItVtt,
+  introPtVtt,
   aletheaMp4,
   elionMp4,
   act2Mp4,
@@ -151,27 +164,68 @@ const ASSET_LOOKUP_MAP: Record<string, string> = {
   '/src/assets/realms/atlantis/intro_en.mp3': introEnMp3,
   '/assets/realms/atlantis/intro_en.mp3': introEnMp3,
   'intro_en.mp3': introEnMp3,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3': introEnMp3,
+
   '/src/assets/realms/atlantis/intro_es.mp3': introEsMp3,
   '/assets/realms/atlantis/intro_es.mp3': introEsMp3,
   'intro_es.mp3': introEsMp3,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3': introEsMp3,
+
   '/src/assets/realms/atlantis/intro_nl.mp3': introNlMp3,
   '/assets/realms/atlantis/intro_nl.mp3': introNlMp3,
   'intro_nl.mp3': introNlMp3,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.mp3': introNlMp3,
+
   '/src/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
   '/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
   'intro_no_voice.mp4': introNoVoiceMp4,
   'intro_no_voice.mp3': introNoVoiceMp4,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_no_voice.mp4': introNoVoiceMp4,
 
   // Subtitle lookups
-  '/src/assets/realms/atlantis/intro.vtt': introVtt,
-  '/assets/realms/atlantis/intro.vtt': introVtt,
-  'intro.vtt': introVtt,
-  'Intro.vtt': introVtt,
+  '/src/assets/realms/atlantis/intro.vtt': introEnVtt,
+  '/assets/realms/atlantis/intro.vtt': introEnVtt,
+  'intro.vtt': introEnVtt,
+  'Intro.vtt': introEnVtt,
+  '/src/assets/realms/atlantis/vtt/intro_en.vtt': introEnVtt,
+  '/assets/realms/atlantis/vtt/intro_en.vtt': introEnVtt,
+  'intro_en.vtt': introEnVtt,
+  'intro_EN.vtt': introEnVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_en.vtt': introEnVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.vtt': introEnVtt,
 
   '/src/assets/realms/atlantis/intro_es.vtt': introEsVtt,
   '/assets/realms/atlantis/intro_es.vtt': introEsVtt,
   'intro_es.vtt': introEsVtt,
   'Intro_es.vtt': introEsVtt,
+  '/src/assets/realms/atlantis/vtt/intro_es.vtt': introEsVtt,
+  '/assets/realms/atlantis/vtt/intro_es.vtt': introEsVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_es.vtt': introEsVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt': introEsVtt,
+
+  '/src/assets/realms/atlantis/intro_nl.vtt': introNlVtt,
+  '/assets/realms/atlantis/intro_nl.vtt': introNlVtt,
+  'intro_nl.vtt': introNlVtt,
+  '/src/assets/realms/atlantis/vtt/intro_nl.vtt': introNlVtt,
+  '/assets/realms/atlantis/vtt/intro_nl.vtt': introNlVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_nl.vtt': introNlVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.vtt': introNlVtt,
+
+  '/src/assets/realms/atlantis/intro_it.vtt': introItVtt,
+  '/assets/realms/atlantis/intro_it.vtt': introItVtt,
+  'intro_it.vtt': introItVtt,
+  '/src/assets/realms/atlantis/vtt/intro_it.vtt': introItVtt,
+  '/assets/realms/atlantis/vtt/intro_it.vtt': introItVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_it.vtt': introItVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_it.vtt': introItVtt,
+
+  '/src/assets/realms/atlantis/intro_pt.vtt': introPtVtt,
+  '/assets/realms/atlantis/intro_pt.vtt': introPtVtt,
+  'intro_pt.vtt': introPtVtt,
+  '/src/assets/realms/atlantis/vtt/intro_pt.vtt': introPtVtt,
+  '/assets/realms/atlantis/vtt/intro_pt.vtt': introPtVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_pt.vtt': introPtVtt,
+  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_pt.vtt': introPtVtt,
   // Avatar lookups
   '/src/assets/avatars/AvatarAlethea.jpg': avatarAlethea,
   '/assets/avatars/AvatarAlethea.jpg': avatarAlethea,

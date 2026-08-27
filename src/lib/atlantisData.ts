@@ -15,7 +15,11 @@ export interface ActItem {
   audio_es?: string;
   audio_nl?: string;
   vtt?: string;
+  vtt_en?: string;
   vtt_es?: string;
+  vtt_nl?: string;
+  vtt_it?: string;
+  vtt_pt?: string;
   posterImage: string;
   text?: string;
   images?: string[];
@@ -55,16 +59,26 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
     if (ch.chapter === 1) {
       // Act 1 Narrative
       if (ch.act1) {
-        const isSpanish = lang === 'ES';
-        const isDutch = lang === 'NL';
-        const primaryVtt = isSpanish
-          ? (ch.act1.vtt_es || ASSETS.introEsVtt || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt')
-          : resolveAssetUrl(ch.act1.vtt, ASSETS.introVtt);
+        const vttEnUrl = ch.act1.vtt_en || ch.act1.vtt || ASSETS.introEnVtt;
+        const vttEsUrl = ch.act1.vtt_es || ASSETS.introEsVtt;
+        const vttNlUrl = ch.act1.vtt_nl || ASSETS.introNlVtt;
+        const vttItUrl = ch.act1.vtt_it || ASSETS.introItVtt;
+        const vttPtUrl = ch.act1.vtt_pt || ASSETS.introPtVtt;
 
-        const primaryAudio = isSpanish
-          ? (ch.act1.audio_es || ASSETS.introEsMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3')
-          : isDutch
-          ? (ch.act1.audio_nl || ASSETS.introNlMp3 || 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.mp3')
+        const primaryVtt = lang === 'ES'
+          ? resolveAssetUrl(vttEsUrl, ASSETS.introEsVtt)
+          : lang === 'NL'
+          ? resolveAssetUrl(vttNlUrl, ASSETS.introNlVtt)
+          : lang === 'IT'
+          ? resolveAssetUrl(vttItUrl, ASSETS.introItVtt)
+          : lang === 'PT-pt'
+          ? resolveAssetUrl(vttPtUrl, ASSETS.introPtVtt)
+          : resolveAssetUrl(vttEnUrl, ASSETS.introEnVtt);
+
+        const primaryAudio = lang === 'ES'
+          ? resolveAssetUrl(ch.act1.audio_es, ASSETS.introEsMp3)
+          : lang === 'NL'
+          ? resolveAssetUrl(ch.act1.audio_nl, ASSETS.introNlMp3)
           : resolveAssetUrl(ch.act1.audio, ASSETS.introEnMp3);
 
         items.push({
@@ -80,7 +94,11 @@ export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' 
           audio_es: resolveAssetUrl(ch.act1.audio_es, ASSETS.introEsMp3),
           audio_nl: resolveAssetUrl(ch.act1.audio_nl, ASSETS.introNlMp3),
           vtt: primaryVtt,
-          vtt_es: resolveAssetUrl(ch.act1.vtt_es, ASSETS.introEsVtt),
+          vtt_en: resolveAssetUrl(vttEnUrl, ASSETS.introEnVtt),
+          vtt_es: resolveAssetUrl(vttEsUrl, ASSETS.introEsVtt),
+          vtt_nl: resolveAssetUrl(vttNlUrl, ASSETS.introNlVtt),
+          vtt_it: resolveAssetUrl(vttItUrl, ASSETS.introItVtt),
+          vtt_pt: resolveAssetUrl(vttPtUrl, ASSETS.introPtVtt),
           posterImage: DEFAULT_BG,
           text: ch.act1.text,
           femaleAvatar: chapterFemaleAvatar,
