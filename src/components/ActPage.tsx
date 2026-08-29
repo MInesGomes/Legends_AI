@@ -7,8 +7,6 @@ import {
   getActMp3Url,
   getActVttCandidateUrls,
   realmAtlantisJpg,
-  avatarAlethea,
-  avatarElion,
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
@@ -141,7 +139,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   const currentAct = actItems[currentIndex] || actItems[0];
   const currentChapterId = `atlantis-ch${currentAct.chapterNumber}`;
 
-  // Synchronize audio and VTT language whenever currentLang changes from parent
+  // Synchronize audio and VTT language initially from currentLang
   useEffect(() => {
     setSelectedAudioLang(currentLang);
     setSelectedVttLang(currentLang);
@@ -164,7 +162,7 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
 
-  // MP3 Audio Track URL
+  // MP3 Audio Track URL based on upper button selected language
   const actAudioUrl = useMemo(() => {
     return getActMp3Url(currentAct.actData, selectedAudioLang);
   }, [currentAct.actData, selectedAudioLang]);
@@ -180,7 +178,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     });
   }, [commentsMap, currentChapterId, user]);
 
-  // Reset state when switching act index or language
+  // Reset state when switching act index or audio language
   useEffect(() => {
     setCandidateVideoIdx(0);
     setIsMediaNotFound(false);
@@ -206,7 +204,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
   }, [currentIndex, selectedAudioLang]);
 
-  // Fetch VTT subtitles from candidate URLs with automatic fallback
+  // Fetch VTT subtitles from candidate URLs when selectedVttLang changes (lower button)
   useEffect(() => {
     let isMounted = true;
     setActiveSubtitle('');
@@ -228,7 +226,7 @@ export const ActPage: React.FC<ActPageProps> = ({
             }
           }
         } catch {
-          // Try next candidate
+          // Try next candidate URL
         }
       }
       if (isMounted) {
@@ -254,7 +252,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
     if (audioRef.current && actAudioUrl) {
       if (isAutoPlay) {
-        if (videoRef.current) {
+        if (videoRef.current && !isNaN(videoRef.current.currentTime)) {
           audioRef.current.currentTime = videoRef.current.currentTime;
         }
         audioRef.current.play().catch(() => {});
@@ -270,9 +268,8 @@ export const ActPage: React.FC<ActPageProps> = ({
     if (audioRef.current) audioRef.current.muted = isMuted;
   }, [isMuted]);
 
-  const handleVideoTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const curr = e.currentTarget.currentTime;
-    if (audioRef.current && !audioRef.current.paused && Math.abs(audioRef.current.currentTime - curr) > 0.3) {
+  const handleTimeUpdate = (curr: number) => {
+    if (audioRef.current && videoRef.current && !audioRef.current.paused && Math.abs(audioRef.current.currentTime - curr) > 0.3) {
       audioRef.current.currentTime = curr;
     }
 
@@ -325,33 +322,27 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const isLastAct = currentIndex >= actItems.length - 1;
 
-  // Language selectors handlers
+  // Upper button: MP3 Audio language handler
   const handleAudioLanguageSelected = (newLang: Language) => {
     setSelectedAudioLang(newLang);
     setIsAutoPlay(true);
     setIsVideoFinished(false);
+    if (onLanguageChange) {
+      onLanguageChange(newLang);
+    }
+    const currentPlayhead = videoRef.current ? videoRef.current.currentTime : (audioRef.current ? audioRef.current.currentTime : 0);
     if (videoRef.current) {
-      videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});
     }
     if (audioRef.current) {
-      audioRef.current.currentTime = 0;
+      audioRef.current.currentTime = currentPlayhead;
       audioRef.current.play().catch(() => {});
     }
   };
 
+  // Lower button: VTT Subtitles language handler
   const handleVttLanguageSelected = (newLang: Language) => {
     setSelectedVttLang(newLang);
-    setIsAutoPlay(true);
-    setIsVideoFinished(false);
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {});
-    }
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
-    }
   };
 
   return (
@@ -390,7 +381,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               playsInline
               crossOrigin="anonymous"
               preload="auto"
-              onTimeUpdate={handleVideoTimeUpdate}
+              onTimeUpdate={(e) => handleTimeUpdate(e.currentTarget.currentTime)}
               onPlay={(e) => {
                 if (audioRef.current && actAudioUrl) {
                   audioRef.current.currentTime = e.currentTarget.currentTime;
@@ -443,9 +434,18 @@ export const ActPage: React.FC<ActPageProps> = ({
               muted={isMuted}
               preload="auto"
               playsInline
+              onTimeUpdate={(e) => {
+                if (isMediaNotFound || !videoRef.current) {
+                  handleTimeUpdate(e.currentTarget.currentTime);
+                }
+              }}
               onEnded={() => {
                 if (audioRef.current) {
                   audioRef.current.currentTime = 0;
+                }
+                if (isMediaNotFound) {
+                  setIsVideoFinished(true);
+                  setActiveSubtitle('');
                 }
               }}
             />

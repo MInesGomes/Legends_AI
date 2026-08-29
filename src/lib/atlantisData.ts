@@ -6,9 +6,6 @@ import {
   getActMp3Url,
   getActVttUrl,
   realmAtlantisJpg,
-  avatarAlethea,
-  avatarElion,
-  avatarMen
 } from './assetRegistry';
 
 export interface ActItem {
@@ -83,10 +80,7 @@ export function getAtlantisActItems(
       vtt_pt: getActVttUrl(actDef, 'PT-pt'),
       posterImage: realmAtlantisJpg,
       characterName: actDef.characterName,
-      role: actDef.role,
       gender: actDef.gender,
-      femaleAvatar: avatarAlethea,
-      maleAvatar: avatarElion,
       actData: actDef,
     };
   });
