@@ -6,7 +6,6 @@ import {
   getActMp4CandidateUrls,
   getActMp3Url,
   getActVttCandidateUrls,
-  realmAtlantisJpg,
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
@@ -363,12 +362,6 @@ export const ActPage: React.FC<ActPageProps> = ({
       >
         <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950">
           {/* Ambient backdrop poster */}
-          <img
-            src={realmAtlantisJpg}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-30 scale-110 -z-20 pointer-events-none"
-            referrerPolicy="no-referrer"
-          />
 
           {!isMediaNotFound ? (
             <video
@@ -376,7 +369,6 @@ export const ActPage: React.FC<ActPageProps> = ({
               ref={videoRef}
               key={`${currentAct.id}-${currentVideoUrl}`}
               src={currentVideoUrl}
-              poster={realmAtlantisJpg}
               muted={isMuted}
               playsInline
               crossOrigin="anonymous"
