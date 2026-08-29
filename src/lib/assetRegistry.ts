@@ -1,442 +1,208 @@
-// Centralized Asset Registry for ES Module asset imports (Bundled & Hashed by Vite)
-
-// Avatars
-import {
-  avatarAlethea,
-  avatarElion,
-  avatarMen,
-  female1,
-  female2,
-  female3,
-  female4,
-  female_13,
-  female_18,
-  female_51,
-  female1_13,
-  female1_18,
-  female50,
-  male1,
-  male2,
-  male3,
-  male4,
-  male_13,
-  male_18,
-  male_51,
-  male1_13,
-  male1_18,
-  male50,
-} from '../data/avatars';
-
-const danielAvatar = avatarElion;
-const elenaAvatar = avatarAlethea;
-const femaleExplorer = female_13;
-const femaleMystic = female3;
-const femaleScholar = female1;
-const femaleWayfinder = female2;
-const maleChampion = male1;
-const maleExplorer = male_13;
-const maleScholar = male3;
-const maleWanderer = male2;
-
-// Realm Media & Videos (Atlantis hosted on Supabase public storage)
-export const ATLANTIS_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis';
-export const ATLANTIS_CH1_INTRO_BASE = `${ATLANTIS_BASE_URL}/5crystals/Chapter1/0intro`;
-export const ATLANTIS_CH1_INTRO_VVT_BASE = `${ATLANTIS_CH1_INTRO_BASE}/vvt`;
-
-export const realmAtlantisJpg = `${ATLANTIS_BASE_URL}/realm_atlantis.jpg`;
-export const introNoVoiceMp4 = `${ATLANTIS_CH1_INTRO_BASE}/intro_no_voice.mp4`;
-export const realmAtlantisMp4 = introNoVoiceMp4;
-export const introEnMp3 = `${ATLANTIS_CH1_INTRO_BASE}/intro_en.mp3`;
-export const introEsMp3 = `${ATLANTIS_CH1_INTRO_BASE}/intro_es.mp3`;
-export const introNlMp3 = `${ATLANTIS_CH1_INTRO_BASE}/intro_nl.mp3`;
-export const introEnVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_en.vtt`;
-export const introEsVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_es.vtt`;
-export const introNlVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_nl.vtt`;
-export const introItVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_it.vtt`;
-export const introPtVtt = `${ATLANTIS_CH1_INTRO_VVT_BASE}/intro_pt.vtt`;
-export const introVtt = introEnVtt;
-export const aletheaMp4 = `${ATLANTIS_BASE_URL}/0Alethea.mp4`;
-export const elionMp4 = `${ATLANTIS_BASE_URL}/0Elion.mp4`;
-export const act2Mp4 = `${ATLANTIS_BASE_URL}/act2.mp4`;
-export const realmAtlantisBg = `${ATLANTIS_BASE_URL}/realm_atlantis_bg.png`;
-export const fiveCrystalsJpg = `${ATLANTIS_BASE_URL}/5crystals.jpg`;
-
-// Dad & Mom
-import dadMomRealmBg from '../assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg';
-import taleBaby from '../assets/realms/dad_mom/tale_baby_1786619486118.jpg';
-import taleChild from '../assets/realms/dad_mom/tale_child_1786619497253.jpg';
-import taleTeens from '../assets/realms/dad_mom/tale_teens_1786619511039.jpg';
-
-// Eldorado & Future Land
-import eldoradoRealmBg from '../assets/realms/eldorado/eldorado_realm_bg_1786616150490.jpg';
-import futureLandRealmBg from '../assets/realms/future_land/future_land_realm_bg_1786616159214.jpg';
-
-// Marriage
-import marriageJpeg from '../assets/realms/marriage/marriage.jpeg';
-import taleOneHart from '../assets/realms/marriage/tale_one_hart_1786619538922.jpg';
-import talePridePrejudice from '../assets/realms/marriage/tale_pride_prejudice_1786619522458.jpg';
-
-// Work Realm
-import workRealmBg from '../assets/realms/work/work_realm_bg_1786616108471.jpg';
-import jobQuestCh1 from '../assets/realms/work/job_quest_ch1_1786784386457.jpg';
-import jobQuestCover from '../assets/realms/work/job_quest_cover_1786731085641.jpg';
-import officeStartupScene from '../assets/realms/work/office_startup_scene_1786656202157.jpg';
-import taleJobQuest from '../assets/realms/work/tale_job_quest_1786619559433.jpg';
-import taleStartupWinner from '../assets/realms/work/tale_startup_winner_1786619547804.jpg';
-
-export const ASSETS = {
-  // Avatars
-  avatarAlethea,
-  avatarElion,
-  avatarMen,
-  danielAvatar,
-  elenaAvatar,
-  femaleExplorer,
-  femaleMystic,
-  femaleScholar,
-  femaleWayfinder,
-  maleChampion,
-  maleExplorer,
-  maleScholar,
-  maleWanderer,
-
-  female1,
-  female2,
-  female3,
-  female4,
-  female_13,
-  female_18,
-  female_51,
-  female1_13,
-  female1_18,
-  female50,
-
-  male1,
-  male2,
-  male3,
-  male4,
-  male_13,
-  male_18,
-  male_51,
-  male1_13,
-  male1_18,
-  male50,
-
-  // Realm Images
-  realmAtlantisJpg,
-  realmAtlantisBg,
-  fiveCrystalsJpg,
-  dadMomRealmBg,
-  eldoradoRealmBg,
-  futureLandRealmBg,
-  marriageJpeg,
-  workRealmBg,
-  jobQuestCh1,
-  jobQuestCover,
-  officeStartupScene,
-  taleJobQuest,
-  taleStartupWinner,
-  taleBaby,
-  taleChild,
-  taleTeens,
-  taleOneHart,
-  talePridePrejudice,
-
-  // Videos & Audio
-  realmAtlantisMp4,
-  introNoVoiceMp4,
-  introEnMp3,
-  introEsMp3,
-  introNlMp3,
-  introVtt,
-  introEnVtt,
-  introEsVtt,
-  introNlVtt,
-  introItVtt,
-  introPtVtt,
-  aletheaMp4,
-  elionMp4,
-  act2Mp4,
-};
-
-const ASSET_LOOKUP_MAP: Record<string, string> = {
-  // Audio lookups
-  '/src/assets/realms/atlantis/intro_en.mp3': introEnMp3,
-  '/assets/realms/atlantis/intro_en.mp3': introEnMp3,
-  'intro_en.mp3': introEnMp3,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.mp3': introEnMp3,
-
-  '/src/assets/realms/atlantis/intro_es.mp3': introEsMp3,
-  '/assets/realms/atlantis/intro_es.mp3': introEsMp3,
-  'intro_es.mp3': introEsMp3,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.mp3': introEsMp3,
-
-  '/src/assets/realms/atlantis/intro_nl.mp3': introNlMp3,
-  '/assets/realms/atlantis/intro_nl.mp3': introNlMp3,
-  'intro_nl.mp3': introNlMp3,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.mp3': introNlMp3,
-
-  '/src/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
-  '/assets/realms/atlantis/intro_no_voice.mp4': introNoVoiceMp4,
-  'intro_no_voice.mp4': introNoVoiceMp4,
-  'intro_no_voice.mp3': introNoVoiceMp4,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_no_voice.mp4': introNoVoiceMp4,
-
-  // Subtitle lookups
-  '/src/assets/realms/atlantis/intro.vtt': introEnVtt,
-  '/assets/realms/atlantis/intro.vtt': introEnVtt,
-  'intro.vtt': introEnVtt,
-  'Intro.vtt': introEnVtt,
-  '/src/assets/realms/atlantis/vtt/intro_en.vtt': introEnVtt,
-  '/assets/realms/atlantis/vtt/intro_en.vtt': introEnVtt,
-  'intro_en.vtt': introEnVtt,
-  'intro_EN.vtt': introEnVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_en.vtt': introEnVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_en.vtt': introEnVtt,
-
-  '/src/assets/realms/atlantis/intro_es.vtt': introEsVtt,
-  '/assets/realms/atlantis/intro_es.vtt': introEsVtt,
-  'intro_es.vtt': introEsVtt,
-  'Intro_es.vtt': introEsVtt,
-  '/src/assets/realms/atlantis/vtt/intro_es.vtt': introEsVtt,
-  '/assets/realms/atlantis/vtt/intro_es.vtt': introEsVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_es.vtt': introEsVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_es.vtt': introEsVtt,
-
-  '/src/assets/realms/atlantis/intro_nl.vtt': introNlVtt,
-  '/assets/realms/atlantis/intro_nl.vtt': introNlVtt,
-  'intro_nl.vtt': introNlVtt,
-  '/src/assets/realms/atlantis/vtt/intro_nl.vtt': introNlVtt,
-  '/assets/realms/atlantis/vtt/intro_nl.vtt': introNlVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_nl.vtt': introNlVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_nl.vtt': introNlVtt,
-
-  '/src/assets/realms/atlantis/intro_it.vtt': introItVtt,
-  '/assets/realms/atlantis/intro_it.vtt': introItVtt,
-  'intro_it.vtt': introItVtt,
-  '/src/assets/realms/atlantis/vtt/intro_it.vtt': introItVtt,
-  '/assets/realms/atlantis/vtt/intro_it.vtt': introItVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_it.vtt': introItVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_it.vtt': introItVtt,
-
-  '/src/assets/realms/atlantis/intro_pt.vtt': introPtVtt,
-  '/assets/realms/atlantis/intro_pt.vtt': introPtVtt,
-  'intro_pt.vtt': introPtVtt,
-  '/src/assets/realms/atlantis/vtt/intro_pt.vtt': introPtVtt,
-  '/assets/realms/atlantis/vtt/intro_pt.vtt': introPtVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/vtt/intro_pt.vtt': introPtVtt,
-  'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/intro_pt.vtt': introPtVtt,
-  // Avatar lookups
-  '/src/assets/avatars/AvatarAlethea.jpg': avatarAlethea,
-  '/assets/avatars/AvatarAlethea.jpg': avatarAlethea,
-  'AvatarAlethea.jpg': avatarAlethea,
-
-  '/src/assets/avatars/AvatarElion.jpg': avatarElion,
-  '/assets/avatars/AvatarElion.jpg': avatarElion,
-  'AvatarElion.jpg': avatarElion,
-
-  '/src/assets/avatars/AvatarMen.jpg': avatarMen,
-  '/assets/avatars/AvatarMen.jpg': avatarMen,
-  'AvatarMen.jpg': avatarMen,
-
-  '/src/assets/avatars/female1.jpg': female1,
-  '/assets/avatars/female1.jpg': female1,
-  'female1.jpg': female1,
-
-  '/src/assets/avatars/female2.jpg': female2,
-  '/assets/avatars/female2.jpg': female2,
-  'female2.jpg': female2,
-
-  '/src/assets/avatars/female3.jpg': female3,
-  '/assets/avatars/female3.jpg': female3,
-  'female3.jpg': female3,
-
-  '/src/assets/avatars/female4.jpg': female4,
-  '/assets/avatars/female4.jpg': female4,
-  'female4.jpg': female4,
-
-  '/src/assets/avatars/female_13.jpg': female_13,
-  '/assets/avatars/female_13.jpg': female_13,
-  'female_13.jpg': female_13,
-
-  '/src/assets/avatars/female_18.jpg': female_18,
-  '/assets/avatars/female_18.jpg': female_18,
-  'female_18.jpg': female_18,
-
-  '/src/assets/avatars/female_51.jpg': female_51,
-  '/assets/avatars/female_51.jpg': female_51,
-  'female_51.jpg': female_51,
-
-  '/src/assets/avatars/female1_13.jpg': female1_13,
-  '/assets/avatars/female1_13.jpg': female1_13,
-  'female1_13.jpg': female1_13,
-
-  '/src/assets/avatars/female1_18.jpg': female1_18,
-  '/assets/avatars/female1_18.jpg': female1_18,
-  'female1_18.jpg': female1_18,
-
-  '/src/assets/avatars/female50.jpg': female50,
-  '/assets/avatars/female50.jpg': female50,
-  'female50.jpg': female50,
-
-  '/src/assets/avatars/male1.jpg': male1,
-  '/assets/avatars/male1.jpg': male1,
-  'male1.jpg': male1,
-
-  '/src/assets/avatars/male2.jpg': male2,
-  '/assets/avatars/male2.jpg': male2,
-  'male2.jpg': male2,
-
-  '/src/assets/avatars/male3.jpg': male3,
-  '/assets/avatars/male3.jpg': male3,
-  'male3.jpg': male3,
-
-  '/src/assets/avatars/male4.jpg': male4,
-  '/assets/avatars/male4.jpg': male4,
-  'male4.jpg': male4,
-
-  '/src/assets/avatars/male_13.jpg': male_13,
-  '/assets/avatars/male_13.jpg': male_13,
-  'male_13.jpg': male_13,
-
-  '/src/assets/avatars/male_18.jpg': male_18,
-  '/assets/avatars/male_18.jpg': male_18,
-  'male_18.jpg': male_18,
-
-  '/src/assets/avatars/male_51.jpg': male_51,
-  '/assets/avatars/male_51.jpg': male_51,
-  'male_51.jpg': male_51,
-
-  '/src/assets/avatars/male1_13.jpg': male1_13,
-  '/assets/avatars/male1_13.jpg': male1_13,
-  'male1_13.jpg': male1_13,
-
-  '/src/assets/avatars/male1_18.jpg': male1_18,
-  '/assets/avatars/male1_18.jpg': male1_18,
-  'male1_18.jpg': male1_18,
-
-  '/src/assets/avatars/male50.jpg': male50,
-  '/assets/avatars/male50.jpg': male50,
-  'male50.jpg': male50,
-
-  '/src/assets/avatars/elena_character_intro_1786794191159.jpg': elenaAvatar,
-  '/assets/avatars/elena_character_intro_1786794191159.jpg': elenaAvatar,
-  'elena_character_intro_1786794191159.jpg': elenaAvatar,
-
-  '/src/assets/avatars/daniel_character_intro_1786794200296.jpg': danielAvatar,
-  '/assets/avatars/daniel_character_intro_1786794200296.jpg': danielAvatar,
-  'daniel_character_intro_1786794200296.jpg': danielAvatar,
-
-  '/src/assets/avatars/female_scholar_1786725027022.jpg': femaleScholar,
-  '/assets/avatars/female_scholar_1786725027022.jpg': femaleScholar,
-  'female_scholar_1786725027022.jpg': femaleScholar,
-
-  '/src/assets/avatars/male_champion_1786725076356.jpg': maleChampion,
-  '/assets/avatars/male_champion_1786725076356.jpg': maleChampion,
-  'male_champion_1786725076356.jpg': maleChampion,
-
-  '/src/assets/avatars/female_wayfinder_1786725010669.jpg': femaleWayfinder,
-  '/assets/avatars/female_wayfinder_1786725010669.jpg': femaleWayfinder,
-
-  '/src/assets/avatars/female_mystic_1786725039652.jpg': femaleMystic,
-  '/assets/avatars/female_mystic_1786725039652.jpg': femaleMystic,
-
-  '/src/assets/avatars/female_explorer_1786725050427.jpg': femaleExplorer,
-  '/assets/avatars/female_explorer_1786725050427.jpg': femaleExplorer,
-
-  '/src/assets/avatars/male_wanderer_1786725060485.jpg': maleWanderer,
-  '/assets/avatars/male_wanderer_1786725060485.jpg': maleWanderer,
-
-  '/src/assets/avatars/male_scholar_1786725087685.jpg': maleScholar,
-  '/assets/avatars/male_scholar_1786725087685.jpg': maleScholar,
-
-  '/src/assets/avatars/male_explorer_1786725100677.jpg': maleExplorer,
-  '/assets/avatars/male_explorer_1786725100677.jpg': maleExplorer,
-
-  // Video lookups
-  '/src/assets/realms/atlantis/realm_atlantis.mp4': realmAtlantisMp4,
-  '/assets/realms/atlantis/realm_atlantis.mp4': realmAtlantisMp4,
-  'realm_atlantis.mp4': realmAtlantisMp4,
-
-  '/src/assets/realms/atlantis/0Alethea.mp4': aletheaMp4,
-  '/assets/realms/atlantis/0Alethea.mp4': aletheaMp4,
-  '0Alethea.mp4': aletheaMp4,
-
-  '/src/assets/realms/atlantis/0Elion.mp4': elionMp4,
-  '/assets/realms/atlantis/0Elion.mp4': elionMp4,
-  '0Elion.mp4': elionMp4,
-
-  '/src/assets/realms/atlantis/Act2.mp4': act2Mp4,
-  '/assets/realms/atlantis/Act2.mp4': act2Mp4,
-  'Act2.mp4': act2Mp4,
-
-  // Atlantis Images
-  '/src/assets/realms/atlantis/realm_atlantis.jpg': realmAtlantisJpg,
-  '/assets/realms/atlantis/realm_atlantis.jpg': realmAtlantisJpg,
-  'realm_atlantis.jpg': realmAtlantisJpg,
-
-  // Work Realm Images
-  '/src/assets/realms/work/job_quest_ch1_1786784386457.jpg': jobQuestCh1,
-  '/assets/realms/work/job_quest_ch1_1786784386457.jpg': jobQuestCh1,
-
-  '/src/assets/realms/work/job_quest_cover_1786731085641.jpg': jobQuestCover,
-  '/assets/realms/work/job_quest_cover_1786731085641.jpg': jobQuestCover,
-
-  '/src/assets/realms/work/work_realm_bg_1786616108471.jpg': workRealmBg,
-  '/assets/realms/work/work_realm_bg_1786616108471.jpg': workRealmBg,
-
-  '/src/assets/realms/work/office_startup_scene_1786656202157.jpg': officeStartupScene,
-  '/assets/realms/work/office_startup_scene_1786656202157.jpg': officeStartupScene,
-
-  '/src/assets/realms/work/tale_job_quest_1786619559433.jpg': taleJobQuest,
-  '/assets/realms/work/tale_job_quest_1786619559433.jpg': taleJobQuest,
-
-  '/src/assets/realms/work/tale_startup_winner_1786619547804.jpg': taleStartupWinner,
-  '/assets/realms/work/tale_startup_winner_1786619547804.jpg': taleStartupWinner,
-
-  // Dad & Mom
-  '/src/assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg': dadMomRealmBg,
-  '/assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg': dadMomRealmBg,
-
-  '/src/assets/realms/dad_mom/tale_baby_1786619486118.jpg': taleBaby,
-  '/assets/realms/dad_mom/tale_baby_1786619486118.jpg': taleBaby,
-
-  '/src/assets/realms/dad_mom/tale_child_1786619497253.jpg': taleChild,
-  '/assets/realms/dad_mom/tale_child_1786619497253.jpg': taleChild,
-
-  '/src/assets/realms/dad_mom/tale_teens_1786619511039.jpg': taleTeens,
-  '/assets/realms/dad_mom/tale_teens_1786619511039.jpg': taleTeens,
-
-  // Marriage
-  '/src/assets/realms/marriage/marriage.jpeg': marriageJpeg,
-  '/assets/realms/marriage/marriage.jpeg': marriageJpeg,
-
-  '/src/assets/realms/marriage/tale_one_hart_1786619538922.jpg': taleOneHart,
-  '/assets/realms/marriage/tale_one_hart_1786619538922.jpg': taleOneHart,
-
-  '/src/assets/realms/marriage/tale_pride_prejudice_1786619522458.jpg': talePridePrejudice,
-  '/assets/realms/marriage/tale_pride_prejudice_1786619522458.jpg': talePridePrejudice,
-
-  // Eldorado & Future Land
-  '/src/assets/realms/eldorado/eldorado_realm_bg_1786616150490.jpg': eldoradoRealmBg,
-  '/assets/realms/eldorado/eldorado_realm_bg_1786616150490.jpg': eldoradoRealmBg,
-
-  '/src/assets/realms/future_land/future_land_realm_bg_1786616159214.jpg': futureLandRealmBg,
-  '/assets/realms/future_land/future_land_realm_bg_1786616159214.jpg': futureLandRealmBg,
-};
+import { Language } from '../types';
+
+export interface Act {
+  chapter: number; // e.g. values 0, 1, 2
+  act: string; // e.g. values female_act, male_act, act1, act2
+  folderPath: string; // e.g. "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter"
+  title?: string;
+  characterName?: string;
+  role?: string;
+  gender?: 'female' | 'male';
+  type?: 'narrative' | 'character' | 'dialogue' | 'choice';
+}
+
+export const ATLANTIS_FOLDER_PATH = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter';
+
+export const SUPABASE_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub';
+
+// Core Avatars and Realm Images
+export const realmAtlantisJpg = `${SUPABASE_BASE_URL}/Atlantis/5crystals/chapter0/realm_atlantis.jpg`;
+export const fiveCrystalsJpg = `${SUPABASE_BASE_URL}/Atlantis/5crystals/chapter0/5crystals.jpg`;
+export const avatarAlethea = `${SUPABASE_BASE_URL}/Avatar/Atlantis/0Alethea.jpg`;
+export const avatarElion = `${SUPABASE_BASE_URL}/Avatar/Atlantis/0Elion.jpg`;
+export const avatarMen = `${SUPABASE_BASE_URL}/Avatar/Atlantis/AvatarMen.jpg`;
+export const elenaAvatar = avatarAlethea;
+export const danielAvatar = avatarElion;
 
 /**
- * Resolves any asset path string (hardcoded or from JSON) to the Vite-bundled asset URL.
+ * Normalizes Language code ('EN' | 'ES' | 'IT' | 'PT-pt' | 'NL') to lowercase string ('en', 'es', 'it', 'pt', 'nl')
  */
-export function resolveAssetUrl(path: string | undefined | null, fallback: string = ''): string {
-  if (!path) return fallback;
-  if (ASSET_LOOKUP_MAP[path]) {
-    return ASSET_LOOKUP_MAP[path];
+export function normalizeLangCode(lang: Language | string = 'EN'): string {
+  const l = String(lang).toLowerCase();
+  if (l.includes('es')) return 'es';
+  if (l.includes('nl')) return 'nl';
+  if (l.includes('it')) return 'it';
+  if (l.includes('pt')) return 'pt';
+  return 'en';
+}
+
+/**
+ * Constructs the base folder path for an Act.
+ * e.g. folderPath + chapter + "/" + act
+ * => "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter0/female_act"
+ */
+export function getActBaseFolder(act: Act): string {
+  const folder = act.folderPath.replace(/\/+$/, '');
+  const actName = act.act.replace(/^\/+|\/+$/g, '');
+  return `${folder}${act.chapter}/${actName}`;
+}
+
+/**
+ * Constructs MP3 URL for an Act and Language.
+ * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".mp3"
+ * => ".../chapter0/female_act/female_act_en.mp3"
+ */
+export function getActMp3Url(act: Act, lang: Language | string = 'EN'): string {
+  const base = getActBaseFolder(act);
+  const langCode = normalizeLangCode(lang);
+  return `${base}/${act.act}_${langCode}.mp3`;
+}
+
+/**
+ * Constructs MP4 video URL for an Act.
+ * e.g. folderPath + chapter + "/" + act + "/" + act + ".mp4"
+ * => ".../chapter0/female_act/female_act.mp4"
+ */
+export function getActMp4Url(act: Act): string {
+  const base = getActBaseFolder(act);
+  // Special case for 0intro if stored as intro_no_voice.mp4
+  if (act.act === '0intro' || act.act === 'intro') {
+    return `${base}/intro_no_voice.mp4`;
   }
-  // Try matching just the filename if full path didn't hit
-  const filename = path.split('/').pop();
-  if (filename && ASSET_LOOKUP_MAP[filename]) {
-    return ASSET_LOOKUP_MAP[filename];
+  return `${base}/${act.act}.mp4`;
+}
+
+/**
+ * Candidate MP4 URLs for playback resilience
+ */
+export function getActMp4CandidateUrls(act: Act): string[] {
+  const base = getActBaseFolder(act);
+  const candidates = [
+    `${base}/${act.act}.mp4`,
+    `${base}/${act.act}_en.mp4`,
+  ];
+  if (act.act === '0intro' || act.act === 'intro') {
+    candidates.unshift(`${base}/intro_no_voice.mp4`);
   }
-  return path;
+  if (act.act === 'act1') {
+    candidates.push(`${base}/intro_no_voice.mp4`);
+  }
+  return Array.from(new Set(candidates));
+}
+
+/**
+ * Constructs VTT subtitle URL for an Act and Language.
+ * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".vtt"
+ * => ".../chapter0/female_act/female_act_en.vtt"
+ */
+export function getActVttUrl(act: Act, lang: Language | string = 'EN'): string {
+  const base = getActBaseFolder(act);
+  const langCode = normalizeLangCode(lang);
+  return `${base}/${act.act}_${langCode}.vtt`;
+}
+
+/**
+ * Candidate VTT URLs for subtitle fetching resilience
+ * (checks direct root, /vtt/ folder, and /vvt/ folder)
+ */
+export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN'): string[] {
+  const base = getActBaseFolder(act);
+  const langCode = normalizeLangCode(lang);
+  const actName = act.act;
+
+  const candidates = [
+    `${base}/${actName}_${langCode}.vtt`,
+    `${base}/vtt/${actName}_${langCode}.vtt`,
+    `${base}/vvt/${actName}_${langCode}.vtt`,
+  ];
+
+  if (actName === '0intro' || actName === 'intro') {
+    candidates.push(`${base}/vtt/intro_${langCode}.vtt`);
+    candidates.push(`${base}/vvt/intro_${langCode}.vtt`);
+    candidates.push(`${base}/intro_${langCode}.vtt`);
+  }
+
+  return Array.from(new Set(candidates));
+}
+
+/**
+ * Default list of Atlantis story acts
+ */
+export const ATLANTIS_STORY_ACTS: Act[] = [
+  {
+    chapter: 0,
+    act: 'act1',
+    folderPath: ATLANTIS_FOLDER_PATH,
+    title: 'The Heart of Atlantis',
+    type: 'narrative',
+  },
+  {
+    chapter: 0,
+    act: 'female_act',
+    folderPath: ATLANTIS_FOLDER_PATH,
+    title: 'Alethea, Guardian of Archives',
+    characterName: 'Alethea',
+    role: 'Guardian of the Ancient Archives',
+    gender: 'female',
+    type: 'character',
+  },
+  {
+    chapter: 0,
+    act: 'male_act',
+    folderPath: ATLANTIS_FOLDER_PATH,
+    title: 'Elion, Keeper of Machines',
+    characterName: 'Elion',
+    role: 'Keeper of Machines & Deep Aqueducts',
+    gender: 'male',
+    type: 'character',
+  },
+  {
+    chapter: 0,
+    act: 'act2',
+    folderPath: ATLANTIS_FOLDER_PATH,
+    title: 'The First Crystal Awakens',
+    type: 'narrative',
+  },
+  {
+    chapter: 1,
+    act: 'act1',
+    folderPath: ATLANTIS_FOLDER_PATH,
+    title: 'Chapter 1: The Deep Awakening',
+    type: 'narrative',
+  },
+  {
+    chapter: 1,
+    act: 'female_act',
+    folderPath: ATLANTIS_FOLDER_PATH,
+    title: 'Chapter 1: Alethea’s Counsel',
+    characterName: 'Alethea',
+    role: 'Guardian of the Ancient Archives',
+    gender: 'female',
+    type: 'character',
+  },
+  {
+    chapter: 1,
+    act: 'male_act',
+    folderPath: ATLANTIS_FOLDER_PATH,
+    title: 'Chapter 1: Elion’s Workshop',
+    characterName: 'Elion',
+    role: 'Keeper of Machines & Deep Aqueducts',
+    gender: 'male',
+    type: 'character',
+  },
+];
+
+export const ASSETS = {
+  realmAtlantisJpg,
+  fiveCrystalsJpg,
+  avatarAlethea,
+  avatarElion,
+  avatarMen,
+  elenaAvatar,
+  danielAvatar,
+};
+
+export function resolveAssetUrl(url?: string | null, fallback: string = realmAtlantisJpg): string {
+  if (!url) return fallback;
+  return url;
 }

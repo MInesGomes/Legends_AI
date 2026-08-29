@@ -1,11 +1,20 @@
-import enData from '../data/chapters/atlantis/enFiveCrystals.json';
 import { Language } from '../types';
-import { ASSETS, resolveAssetUrl } from './assetRegistry';
+import {
+  Act,
+  ATLANTIS_STORY_ACTS,
+  getActMp4Url,
+  getActMp3Url,
+  getActVttUrl,
+  realmAtlantisJpg,
+  avatarAlethea,
+  avatarElion,
+  avatarMen
+} from './assetRegistry';
 
 export interface ActItem {
   id: string;
   chapterNumber: number;
-  actKey: string; // e.g. 'ch1-act1', 'ch1-female', 'ch1-male', 'ch1-act2', 'ch2-act1', 'ch2-dialog', 'ch2-choice-best', etc.
+  actKey: string;
   type: 'narrative' | 'character' | 'dialogue' | 'choice';
   chapterTitle: string;
   subtitle: string;
@@ -14,6 +23,8 @@ export interface ActItem {
   audio?: string;
   audio_es?: string;
   audio_nl?: string;
+  audio_it?: string;
+  audio_pt?: string;
   vtt?: string;
   vtt_en?: string;
   vtt_es?: string;
@@ -22,220 +33,61 @@ export interface ActItem {
   vtt_pt?: string;
   posterImage: string;
   text?: string;
-  images?: string[];
   characterName?: string;
   role?: string;
-  avatarUrl?: string;
   gender?: 'female' | 'male';
-  sceneNarrative?: string;
-  dialogue?: Array<{
-    voice?: string;
-    speaker: string;
-    text: string;
-  }>;
-  choiceType?: 'Best' | 'Safe' | 'Weak' | 'Harmful';
-  choiceTitle?: string;
   femaleAvatar?: string;
   maleAvatar?: string;
+  actData: Act;
 }
 
-const DEFAULT_BG = ASSETS.realmAtlantisJpg;
-const FEMALE_AVATAR = ASSETS.avatarAlethea;
-const MALE_AVATAR = ASSETS.avatarElion;
+export function getAtlantisActItems(
+  lang: Language = 'EN',
+  userGender: 'female' | 'male' | string = 'female',
+  customActs: Act[] = ATLANTIS_STORY_ACTS
+): ActItem[] {
+  const isMaleUser =
+    userGender === 'male' ||
+    (typeof userGender === 'string' &&
+      userGender.toLowerCase().includes('male') &&
+      !userGender.toLowerCase().includes('female'));
 
-export function getAtlantisActItems(lang: Language = 'EN', userGender: 'female' | 'male' | string = 'female'): ActItem[] {
-  const data = enData; // Primary source
-  const items: ActItem[] = [];
+  return customActs.map((actDef, idx) => {
+    const actId = `atlantis-ch${actDef.chapter}-${actDef.act}-${idx}`;
+    const mp4Url = getActMp4Url(actDef);
+    const audioUrl = getActMp3Url(actDef, lang);
+    const vttUrl = getActVttUrl(actDef, lang);
 
-  if (!data || !data.chapters) return items;
+    const chapterTitle = `Chapter ${actDef.chapter}: Atlantis`;
+    const subtitle = 'The Five Crystals';
 
-  const isMaleUser = userGender === 'male' || (typeof userGender === 'string' && userGender.toLowerCase().includes('male') && !userGender.toLowerCase().includes('female'));
-
-  data.chapters.forEach((ch: any) => {
-    const chapterFemaleAvatar = resolveAssetUrl(ch.Female_Avatar, FEMALE_AVATAR);
-    const chapterMaleAvatar = resolveAssetUrl(ch.Male_Avatar, MALE_AVATAR);
-
-    // 1. Chapter 1
-    if (ch.chapter === 1) {
-      // Act 1 Narrative
-      if (ch.act1) {
-        const vttEnUrl = ch.act1.vtt_en || ch.act1.vtt || ASSETS.introEnVtt;
-        const vttEsUrl = ch.act1.vtt_es || ASSETS.introEsVtt;
-        const vttNlUrl = ch.act1.vtt_nl || ASSETS.introNlVtt;
-        const vttItUrl = ch.act1.vtt_it || ASSETS.introItVtt;
-        const vttPtUrl = ch.act1.vtt_pt || ASSETS.introPtVtt;
-
-        const primaryVtt = lang === 'ES'
-          ? resolveAssetUrl(vttEsUrl, ASSETS.introEsVtt)
-          : lang === 'NL'
-          ? resolveAssetUrl(vttNlUrl, ASSETS.introNlVtt)
-          : lang === 'IT'
-          ? resolveAssetUrl(vttItUrl, ASSETS.introItVtt)
-          : lang === 'PT-pt'
-          ? resolveAssetUrl(vttPtUrl, ASSETS.introPtVtt)
-          : resolveAssetUrl(vttEnUrl, ASSETS.introEnVtt);
-
-        const primaryAudio = lang === 'ES'
-          ? resolveAssetUrl(ch.act1.audio_es, ASSETS.introEsMp3)
-          : lang === 'NL'
-          ? resolveAssetUrl(ch.act1.audio_nl, ASSETS.introNlMp3)
-          : resolveAssetUrl(ch.act1.audio, ASSETS.introEnMp3);
-
-        items.push({
-          id: 'atlantis-ch1-act1',
-          chapterNumber: 1,
-          actKey: 'ch1-act1',
-          type: 'narrative',
-          chapterTitle: ch.title,
-          subtitle: ch.subtitle,
-          actTitle: ch.act1.title || 'The Heart of Atlantis & The Five Crystals',
-          mp4: resolveAssetUrl(ch.act1.mp4, ASSETS.realmAtlantisMp4),
-          audio: primaryAudio,
-          audio_es: resolveAssetUrl(ch.act1.audio_es, ASSETS.introEsMp3),
-          audio_nl: resolveAssetUrl(ch.act1.audio_nl, ASSETS.introNlMp3),
-          vtt: primaryVtt,
-          vtt_en: resolveAssetUrl(vttEnUrl, ASSETS.introEnVtt),
-          vtt_es: resolveAssetUrl(vttEsUrl, ASSETS.introEsVtt),
-          vtt_nl: resolveAssetUrl(vttNlUrl, ASSETS.introNlVtt),
-          vtt_it: resolveAssetUrl(vttItUrl, ASSETS.introItVtt),
-          vtt_pt: resolveAssetUrl(vttPtUrl, ASSETS.introPtVtt),
-          posterImage: DEFAULT_BG,
-          text: ch.act1.text,
-          femaleAvatar: chapterFemaleAvatar,
-          maleAvatar: chapterMaleAvatar
-        });
-      }
-
-      const femaleActItem: ActItem | null = ch.female_act ? {
-        id: 'atlantis-ch1-female',
-        chapterNumber: 1,
-        actKey: 'ch1-female',
-        type: 'character',
-        chapterTitle: ch.title,
-        subtitle: ch.subtitle,
-        actTitle: ch.female_act.title || `Alethea — ${ch.female_act.role || 'Guardian of the Ancient Archives'}`,
-        mp4: resolveAssetUrl(ch.female_act.mp4, ASSETS.aletheaMp4),
-        posterImage: DEFAULT_BG,
-        text: ch.female_act.description,
-        characterName: ch.female_act.characterName || 'Alethea',
-        role: ch.female_act.role || 'Guardian of the Ancient Archives',
-        avatarUrl: chapterFemaleAvatar,
-        gender: 'female',
-        femaleAvatar: chapterFemaleAvatar,
-        maleAvatar: chapterMaleAvatar
-      } : null;
-
-      const maleActItem: ActItem | null = ch.male_act ? {
-        id: 'atlantis-ch1-male',
-        chapterNumber: 1,
-        actKey: 'ch1-male',
-        type: 'character',
-        chapterTitle: ch.title,
-        subtitle: ch.subtitle,
-        actTitle: ch.male_act.title || `Elion — ${ch.male_act.role || "Atlantis's Most Celebrated Warrior"}`,
-        mp4: resolveAssetUrl(ch.male_act.mp4, ASSETS.elionMp4),
-        posterImage: DEFAULT_BG,
-        text: ch.male_act.description,
-        characterName: ch.male_act.characterName || 'Elion',
-        role: ch.male_act.role || "Atlantis's Most Celebrated Warrior",
-        avatarUrl: chapterMaleAvatar,
-        gender: 'male',
-        femaleAvatar: chapterFemaleAvatar,
-        maleAvatar: chapterMaleAvatar
-      } : null;
-
-      // If user is male, show male_act first; if female, show female_act first
-      if (isMaleUser) {
-        if (maleActItem) items.push(maleActItem);
-        if (femaleActItem) items.push(femaleActItem);
-      } else {
-        if (femaleActItem) items.push(femaleActItem);
-        if (maleActItem) items.push(maleActItem);
-      }
-
-      // Act 2 Narrative (The Beginning)
-      if (ch.act2) {
-        items.push({
-          id: 'atlantis-ch1-act2',
-          chapterNumber: 1,
-          actKey: 'ch1-act2',
-          type: 'narrative',
-          chapterTitle: ch.title,
-          subtitle: ch.subtitle,
-          actTitle: ch.act2.title || 'The Beginning',
-          mp4: resolveAssetUrl(ch.mp4, ASSETS.act2Mp4),
-          posterImage: (ch.act2.images && ch.act2.images[0]) || DEFAULT_BG,
-          images: ch.act2.images,
-          text: ch.act2.text,
-          femaleAvatar: chapterFemaleAvatar,
-          maleAvatar: chapterMaleAvatar
-        });
-      }
-    }
-
-    // 2. Chapter 2
-    if (ch.chapter === 2) {
-      // Act 1 Narrative (The Celebration and the Darkness)
-      if (ch.act1 || ch.text) {
-        items.push({
-          id: 'atlantis-ch2-act1',
-          chapterNumber: 2,
-          actKey: 'ch2-act1',
-          type: 'narrative',
-          chapterTitle: ch.title,
-          subtitle: ch.subtitle || '',
-          actTitle: ch.act1?.title || ch.title || 'The Celebration',
-          mp4: resolveAssetUrl(ch.mp4, ASSETS.realmAtlantisMp4),
-          posterImage: DEFAULT_BG,
-          text: ch.act1?.text || ch.text,
-          femaleAvatar: chapterFemaleAvatar,
-          maleAvatar: chapterMaleAvatar
-        });
-      }
-
-      // Opening Dialogue (Elion & Alethea)
-      if (ch.dialog && ch.dialog.length > 0) {
-        items.push({
-          id: 'atlantis-ch2-dialog',
-          chapterNumber: 2,
-          actKey: 'ch2-dialog',
-          type: 'dialogue',
-          chapterTitle: ch.title,
-          subtitle: ch.subtitle,
-          actTitle: 'What do you chose',
-          mp4: resolveAssetUrl(ch.mp4, ASSETS.realmAtlantisMp4),
-          posterImage: DEFAULT_BG,
-          sceneNarrative: ch.act1?.text || 'The Day of Founding began with music. Citizens filled the plaza. Children released glowing lanterns. The Heart of Atlantis shone brighter than ever before.',
-          dialogue: ch.dialog,
-          femaleAvatar: chapterFemaleAvatar,
-          maleAvatar: chapterMaleAvatar
-        });
-      }
-
-      // Choices
-      if (ch.choices && Array.isArray(ch.choices)) {
-        ch.choices.forEach((choice: any, cIdx: number) => {
-          items.push({
-            id: `atlantis-ch2-choice-${choice.type?.toLowerCase() || cIdx}`,
-            chapterNumber: 2,
-            actKey: `ch2-choice-${choice.type?.toLowerCase() || cIdx}`,
-            type: 'choice',
-            chapterTitle: ch.title,
-            subtitle: ch.subtitle,
-            actTitle: choice.title || `Choice: ${choice.type}`,
-            mp4: resolveAssetUrl(ch.mp4, ASSETS.realmAtlantisMp4),
-            posterImage: DEFAULT_BG,
-            choiceType: choice.type,
-            choiceTitle: choice.title,
-            sceneNarrative: choice.narrative || `Elion and Alethea face the emergency controls under pressure.`,
-            dialogue: choice.dialog,
-            femaleAvatar: chapterFemaleAvatar,
-            maleAvatar: chapterMaleAvatar
-          });
-        });
-      }
-    }
+    return {
+      id: actId,
+      chapterNumber: actDef.chapter,
+      actKey: `ch${actDef.chapter}-${actDef.act}`,
+      type: actDef.type || 'narrative',
+      chapterTitle,
+      subtitle,
+      actTitle: actDef.title || `${actDef.act.replace(/_/g, ' ').toUpperCase()}`,
+      mp4: mp4Url,
+      audio: audioUrl,
+      audio_es: getActMp3Url(actDef, 'ES'),
+      audio_nl: getActMp3Url(actDef, 'NL'),
+      audio_it: getActMp3Url(actDef, 'IT'),
+      audio_pt: getActMp3Url(actDef, 'PT-pt'),
+      vtt: vttUrl,
+      vtt_en: getActVttUrl(actDef, 'EN'),
+      vtt_es: getActVttUrl(actDef, 'ES'),
+      vtt_nl: getActVttUrl(actDef, 'NL'),
+      vtt_it: getActVttUrl(actDef, 'IT'),
+      vtt_pt: getActVttUrl(actDef, 'PT-pt'),
+      posterImage: realmAtlantisJpg,
+      characterName: actDef.characterName,
+      role: actDef.role,
+      gender: actDef.gender,
+      femaleAvatar: avatarAlethea,
+      maleAvatar: avatarElion,
+      actData: actDef,
+    };
   });
-
-  return items;
 }
