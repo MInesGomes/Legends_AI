@@ -422,6 +422,7 @@ export default function App() {
         ) : currentPage === 'dashboard' ? (
           <Dashboard
             user={dbState.user_profile}
+            currentLang={currentLang}
             todayTalesCount={todayTalesCount}
             onOpenProfile={() => setShowProfileDrawer(true)}
             onSelectRealm={handleSelectRealm}
@@ -436,6 +437,7 @@ export default function App() {
             realm={activeRealm}
             tales={allTales}
             user={dbState.user_profile}
+            currentLang={currentLang}
             dailyLogs={dbState.daily_tales_log}
             todayTalesCount={todayTalesCount}
             todayTalesList={todayTalesList}

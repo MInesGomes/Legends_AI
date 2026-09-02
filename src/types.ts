@@ -40,6 +40,7 @@ export interface Realm {
   isAdultOnly: boolean;
   bgImage: string;
   iconName: string;
+  audienceLabel?: Record<Language, string>;
 }
 
 export interface Tale {

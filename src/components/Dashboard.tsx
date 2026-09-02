@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChapterComment, Realm, UserProfile } from '../types';
+import { ChapterComment, Language, Realm, UserProfile } from '../types';
 import { REALMS } from '../data/realmsAndTales';
 import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2, MessageSquare } from 'lucide-react';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit } from '../lib/supabase';
@@ -7,6 +7,7 @@ import { CommentsDrawer } from './CommentsDrawer';
 
 interface DashboardProps {
   user: UserProfile | null;
+  currentLang?: Language;
   todayTalesCount?: number;
   onOpenProfile?: () => void;
   onSelectRealm: (realm: Realm) => void;
@@ -159,6 +160,7 @@ const CartouchePlaque: React.FC<{
 
 export const Dashboard: React.FC<DashboardProps> = ({
   user,
+  currentLang,
   todayTalesCount = 0,
   onOpenProfile,
   onSelectRealm,
@@ -170,6 +172,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [showCommentsDrawer, setShowCommentsDrawer] = useState(false);
   const feedbackComments = commentsMap?.['dashboard_feedback'] || [];
+
+  const effectiveLang: Language = currentLang || user?.language || 'EN';
 
   const userAge = user?.age ?? 20; // Default adult if missing
   const isUnder18 = userAge < 18;
@@ -300,6 +304,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   referrerPolicy="no-referrer"
                 />
 
+                {/* Audience Label Badge (e.g. "Child" i18n label for El Dorado) */}
+                {realm.audienceLabel && (
+                  <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-10 pointer-events-none">
+                    <div className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border-2 border-[#fff9e6] shadow-[0_4px_16px_rgba(0,0,0,0.35),0_0_12px_rgba(212,175,55,0.4)]">
+                      <Sparkles className="w-3.5 h-3.5 text-[#7a4d04]" />
+                      <span className="text-[11px] sm:text-xs font-cinzel font-bold tracking-wider uppercase drop-shadow-sm">
+                        {realm.audienceLabel[effectiveLang] || realm.audienceLabel.EN}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Subtle Bottom Vignette Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />

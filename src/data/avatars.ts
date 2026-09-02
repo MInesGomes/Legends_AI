@@ -1,4 +1,4 @@
-const AVATAR_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Avatar';
+const AVATAR_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/avatar';
 
 export const avatarAlethea = `${AVATAR_BASE_URL}/AvatarAlethea.jpg`;
 export const avatarElion = `${AVATAR_BASE_URL}/AvatarElion.jpg`;

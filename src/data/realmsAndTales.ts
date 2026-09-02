@@ -53,7 +53,14 @@ export const REALMS: Realm[] = [
     title: 'EL DORADO',
     isAdultOnly: false,
     bgImage: eldoradoBg,
-    iconName: 'Pyramid'
+    iconName: 'Pyramid',
+    audienceLabel: {
+      EN: 'Child',
+      ES: 'Infantil',
+      IT: 'Bambini',
+      'PT-pt': 'Infantil',
+      NL: 'Kind',
+    },
   },
   {
     id: 'realm-future-land',

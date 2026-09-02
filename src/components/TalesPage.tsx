@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Realm, Tale, UserProfile, DailyTaleLog, ChapterComment } from '../types';
+import { Realm, Tale, UserProfile, DailyTaleLog, ChapterComment, Language } from '../types';
 import { AddTaleModal } from './AddTaleModal';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit, hasReachedDailyTaleLimit } from '../lib/supabase';
 import { ArrowLeft, Plus, Eye, Heart, MessageSquare, Sparkles, BookOpen, ShieldCheck, Settings, X, Clock, Lock } from 'lucide-react';
@@ -8,6 +8,7 @@ interface TalesPageProps {
   realm: Realm;
   tales: Tale[];
   user: UserProfile | null;
+  currentLang?: Language;
   dailyLogs?: DailyTaleLog[];
   todayTalesCount?: number;
   todayTalesList?: string[];
@@ -23,6 +24,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
   realm,
   tales,
   user,
+  currentLang,
   dailyLogs = [],
   todayTalesCount = 0,
   todayTalesList = [],
@@ -35,6 +37,8 @@ export const TalesPage: React.FC<TalesPageProps> = ({
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [limitModalOpen, setLimitModalOpen] = useState(false);
+
+  const effectiveLang: Language = currentLang || user?.language || 'EN';
 
   // Scroll to top whenever the Tales page loads or realm changes
   useEffect(() => {
@@ -112,12 +116,18 @@ export const TalesPage: React.FC<TalesPageProps> = ({
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <div>
+            <div className="flex items-center gap-3 flex-wrap">
               <h2 className={`text-2xl sm:text-3xl font-bold font-cinzel ${
                 darkMode ? 'gold-gradient-text' : 'text-[#8a5d12]'
               }`}>
                 {realm.title} TALES
               </h2>
+              {realm.audienceLabel && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border border-[#fff9e6] shadow-sm text-[11px] font-cinzel font-bold tracking-wider uppercase">
+                  <Sparkles className="w-3.5 h-3.5 text-[#7a4d04]" />
+                  {realm.audienceLabel[effectiveLang] || realm.audienceLabel.EN}
+                </span>
+              )}
             </div>
           </div>
         </div>
