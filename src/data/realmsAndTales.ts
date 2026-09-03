@@ -1,18 +1,20 @@
 import { Realm, Tale } from '../types';
-import { realmAtlantisJpg as atlantisBg, fiveCrystalsJpg as fiveCrystalsImg } from '../lib/assetRegistry';
-import workBg from '../assets/realms/work/work_realm_bg_1786616108471.jpg';
-import marriageBg from '../assets/realms/marriage/marriage.jpeg';
-import dadMomBg from '../assets/realms/dad_mom/dad_mom_realm_bg_1786616128388.jpg';
-import eldoradoBg from '../assets/realms/eldorado/eldorado_realm_bg_1786616150490.jpg';
-import futureLandBg from '../assets/realms/future_land/future_land_realm_bg_1786616159214.jpg';
-
-import babyTaleImg from '../assets/realms/dad_mom/tale_baby_1786619486118.jpg';
-import childTaleImg from '../assets/realms/dad_mom/tale_child_1786619497253.jpg';
-import teensTaleImg from '../assets/realms/dad_mom/tale_teens_1786619511039.jpg';
-import pridePrejudiceImg from '../assets/realms/marriage/tale_pride_prejudice_1786619522458.jpg';
-import oneHartImg from '../assets/realms/marriage/tale_one_hart_1786619538922.jpg';
-import startupWinnerImg from '../assets/realms/work/tale_startup_winner_1786619547804.jpg';
-import jobQuestImg from '../assets/realms/work/job_quest_ch1_1786784386457.jpg';
+import {
+  realmAtlantisJpg,
+  realmWorkJpg,
+  realmElDoradoJpg,
+  realmDadMomJpg,
+  realmMarriageJpg,
+  realmFutureLandJpg,
+  fiveCrystalsJpg,
+  taleBabyJpg,
+  taleChildJpg,
+  taleTeensJpg,
+  talePridePrejudiceJpg,
+  taleOneHartJpg,
+  taleStartupWinnerJpg,
+  taleJobQuestJpg,
+} from '../lib/assetRegistry';
 
 export const REALMS: Realm[] = [
   {
@@ -20,7 +22,7 @@ export const REALMS: Realm[] = [
     key: 'work',
     title: 'WORK',
     isAdultOnly: true,
-    bgImage: workBg,
+    bgImage: realmWorkJpg,
     iconName: 'Briefcase'
   },
   {
@@ -28,7 +30,7 @@ export const REALMS: Realm[] = [
     key: 'marriage',
     title: 'MARRIAGE',
     isAdultOnly: true,
-    bgImage: marriageBg,
+    bgImage: realmMarriageJpg,
     iconName: 'HeartHandshake'
   },
   {
@@ -36,7 +38,7 @@ export const REALMS: Realm[] = [
     key: 'dad_mom',
     title: 'DAD & MOM',
     isAdultOnly: true,
-    bgImage: dadMomBg,
+    bgImage: realmDadMomJpg,
     iconName: 'Users'
   },
   {
@@ -44,7 +46,7 @@ export const REALMS: Realm[] = [
     key: 'atlantis',
     title: 'ATLANTIS',
     isAdultOnly: false,
-    bgImage: atlantisBg,
+    bgImage: realmAtlantisJpg,
     iconName: 'Trident'
   },
   {
@@ -52,7 +54,7 @@ export const REALMS: Realm[] = [
     key: 'el_dorado',
     title: 'EL DORADO',
     isAdultOnly: false,
-    bgImage: eldoradoBg,
+    bgImage: realmElDoradoJpg,
     iconName: 'Pyramid',
     audienceLabel: {
       EN: 'Child',
@@ -67,7 +69,7 @@ export const REALMS: Realm[] = [
     key: 'future_land',
     title: 'FUTURE LAND',
     isAdultOnly: false,
-    bgImage: futureLandBg,
+    bgImage: realmFutureLandJpg,
     iconName: 'Building2'
   }
 ];
@@ -79,7 +81,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-atlantis',
     title: '5 Crystals',
     subtitle: 'The Heart of Atlantis',
-    coverImage: fiveCrystalsImg,
+    coverImage: fiveCrystalsJpg,
     skill: 'Win4All',
     viewsCount: 1420,
     likesCount: 388,
@@ -92,7 +94,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-dad-mom',
     title: 'Baby',
     subtitle: 'First Steps & Infinite Patience',
-    coverImage: babyTaleImg,
+    coverImage: taleBabyJpg,
     skill: 'Recharge',
     viewsCount: 1102,
     likesCount: 412,
@@ -103,7 +105,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-dad-mom',
     title: 'Child',
     subtitle: 'Curiosity & Playful Wisdom',
-    coverImage: childTaleImg,
+    coverImage: taleChildJpg,
     skill: 'Listen',
     viewsCount: 885,
     likesCount: 290,
@@ -114,7 +116,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-dad-mom',
     title: 'Teens',
     subtitle: 'Navigating Identity & Trust',
-    coverImage: teensTaleImg,
+    coverImage: taleTeensJpg,
     skill: 'Plan',
     viewsCount: 1350,
     likesCount: 510,
@@ -127,7 +129,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-marriage',
     title: 'Pride & Prejudice',
     subtitle: 'Overcoming Assumptions',
-    coverImage: pridePrejudiceImg,
+    coverImage: talePridePrejudiceJpg,
     skill: 'Listen',
     viewsCount: 2100,
     likesCount: 840,
@@ -138,7 +140,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-marriage',
     title: 'One Hart',
     subtitle: 'Shared Horizons',
-    coverImage: oneHartImg,
+    coverImage: taleOneHartJpg,
     skill: 'Win4All',
     viewsCount: 1780,
     likesCount: 620,
@@ -151,7 +153,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-work',
     title: 'Startup Winner',
     subtitle: 'Leadership Under Pressure',
-    coverImage: startupWinnerImg,
+    coverImage: taleStartupWinnerJpg,
     skill: 'Leader',
     viewsCount: 3100,
     likesCount: 1120,
@@ -162,7 +164,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-work',
     title: 'Job Quest',
     subtitle: 'Explore. Learn. Grow. Succeed.',
-    coverImage: jobQuestImg,
+    coverImage: taleJobQuestJpg,
     skill: 'Plan',
     viewsCount: 2450,
     likesCount: 910,
@@ -175,7 +177,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-el-dorado',
     title: 'The City of Gold',
     subtitle: 'Wealth of Spirit vs Greed',
-    coverImage: eldoradoBg,
+    coverImage: realmElDoradoJpg,
     skill: 'Leader',
     viewsCount: 1640,
     likesCount: 450,
@@ -188,7 +190,7 @@ export const INITIAL_TALES: Tale[] = [
     realmId: 'realm-future-land',
     title: 'AI Horizon',
     subtitle: 'Co-creating with Tomorrow',
-    coverImage: futureLandBg,
+    coverImage: realmFutureLandJpg,
     skill: 'Plan',
     viewsCount: 2890,
     likesCount: 1040,

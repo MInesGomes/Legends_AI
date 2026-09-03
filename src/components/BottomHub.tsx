@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Type, ZoomIn, ZoomOut, Check, Sparkles, BookOpen, ShieldCheck, ChevronUp, ChevronDown, Minimize2, Maximize2 } from 'lucide-react';
-import { UserProfile } from '../types';
+import { Type, ZoomIn, ChevronUp, ChevronDown, Minimize2 } from 'lucide-react';
+import { UserProfile, Language } from '../types';
 import { getEffectiveDailyLimit } from '../lib/supabase';
+import { t } from '../lib/i18n';
 
 export type FontScale = 'normal' | 'large' | 'xlarge';
 
@@ -9,6 +10,7 @@ interface BottomHubProps {
   fontScale: FontScale;
   onChangeFontScale: (scale: FontScale) => void;
   user: UserProfile | null;
+  currentLang?: Language;
   todayTalesCount?: number;
   onOpenProfile?: () => void;
   darkMode?: boolean;
@@ -18,6 +20,7 @@ export const BottomHub: React.FC<BottomHubProps> = ({
   fontScale,
   onChangeFontScale,
   user,
+  currentLang = 'EN',
   todayTalesCount = 0,
   onOpenProfile,
   darkMode = true,
@@ -25,13 +28,12 @@ export const BottomHub: React.FC<BottomHubProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  const effectiveLimit = getEffectiveDailyLimit(user);
-  const isUnder18 = (user?.age ?? 20) < 18;
+  const effectiveLang: Language = currentLang || user?.language || 'EN';
 
   const fontOptions: { key: FontScale; label: string; sizeLabel: string; percent: string }[] = [
-    { key: 'normal', label: 'Standard', sizeLabel: 'A', percent: '100%' },
-    { key: 'large', label: 'Large', sizeLabel: 'A+', percent: '115%' },
-    { key: 'xlarge', label: 'X-Large', sizeLabel: 'A++', percent: '130%' },
+    { key: 'normal', label: t('standardSize', effectiveLang), sizeLabel: 'A', percent: '100%' },
+    { key: 'large', label: t('largeSize', effectiveLang), sizeLabel: 'A+', percent: '115%' },
+    { key: 'xlarge', label: t('xlargeSize', effectiveLang), sizeLabel: 'A++', percent: '130%' },
   ];
 
   const handleStep = (direction: 'up' | 'down') => {
@@ -58,7 +60,7 @@ export const BottomHub: React.FC<BottomHubProps> = ({
               ? 'bg-[#101726]/95 border-[#d4af37] text-[#fce0a2] shadow-[0_8px_25px_rgba(212,175,55,0.35)]'
               : 'bg-white/95 border-[#d4af37] text-[#8a5d12] shadow-[0_8px_25px_rgba(212,175,55,0.3)]'
           }`}
-          title="Open Text Size & Readability Hub"
+          title={t('openHub', effectiveLang)}
         >
           <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center">
             <div className={`w-full h-full rounded-full flex items-center justify-center ${
@@ -88,11 +90,11 @@ export const BottomHub: React.FC<BottomHubProps> = ({
                 <div className="flex items-center gap-2">
                   <Type className="w-4 h-4 text-[#d4af37]" />
                   <span className="text-xs sm:text-sm font-bold font-cinzel uppercase tracking-wider text-[#d4af37]">
-                    Text Size &amp; Readability
+                    {t('textSizeReadability', effectiveLang)}
                   </span>
                 </div>
                 <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-[#d4af37]/20 text-[#d4af37]">
-                  {fontOptions.find((o) => o.key === fontScale)?.percent} Size
+                  {fontOptions.find((o) => o.key === fontScale)?.percent} {t('sizeLabel', effectiveLang)}
                 </span>
               </div>
 
@@ -138,7 +140,7 @@ export const BottomHub: React.FC<BottomHubProps> = ({
                   onClick={() => handleStep('down')}
                   disabled={fontScale === 'normal'}
                   className="p-1.5 px-2.5 text-xs font-bold hover:bg-[#d4af37]/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  title="Decrease Font Size"
+                  title={t('decreaseSize', effectiveLang)}
                 >
                   A-
                 </button>
@@ -147,7 +149,7 @@ export const BottomHub: React.FC<BottomHubProps> = ({
                   onClick={() => handleStep('up')}
                   disabled={fontScale === 'xlarge'}
                   className="p-1.5 px-2.5 text-xs font-bold hover:bg-[#d4af37]/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[#d4af37]"
-                  title="Increase Font Size"
+                  title={t('increaseSize', effectiveLang)}
                 >
                   A+
                 </button>
@@ -166,7 +168,7 @@ export const BottomHub: React.FC<BottomHubProps> = ({
                     ? 'bg-[#182130] border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#1f2c42]'
                     : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100'
                 }`}
-                title="Toggle Font Size & Display options"
+                title={t('textSizeReadability', effectiveLang)}
               >
                 <ZoomIn className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Options</span>
@@ -184,7 +186,7 @@ export const BottomHub: React.FC<BottomHubProps> = ({
                     ? 'bg-[#182130] border-slate-700 text-slate-300 hover:text-[#d4af37] hover:border-[#d4af37]/60'
                     : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-[#8a5d12] hover:border-[#d4af37]/60'
                 }`}
-                title="Minimise Hub to small middle icon"
+                title="Minimise Hub"
               >
                 <Minimize2 className="w-4 h-4" />
               </button>

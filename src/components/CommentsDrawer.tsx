@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ChapterComment, UserProfile } from '../types';
+import { ChapterComment, UserProfile, Language } from '../types';
 import { getDailyCommentsCount } from '../lib/supabase';
+import { t } from '../lib/i18n';
 import { X, Send, MessageSquare, AlertCircle, Edit2, Trash2, Check, RotateCcw, Lock } from 'lucide-react';
 
 interface CommentsDrawerProps {
@@ -8,6 +9,7 @@ interface CommentsDrawerProps {
   chapterTitle: string;
   comments: ChapterComment[];
   user: UserProfile | null;
+  currentLang?: Language;
   onClose: () => void;
   onAddComment: (commentText: string) => void;
   onEditComment?: (commentId: string, newText: string) => void;
@@ -20,6 +22,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
   chapterTitle,
   comments,
   user,
+  currentLang = 'EN',
   onClose,
   onAddComment,
   onEditComment,
@@ -88,11 +91,11 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                 <h3 className={`text-sm font-bold font-cinzel uppercase tracking-wider ${
                   darkMode ? 'gold-gradient-text' : 'text-[#8a5d12]'
                 }`}>
-                  My Comments
+                  {t('myComments', currentLang)}
                 </h3>
                 <span className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300">
                   <Lock className="w-2.5 h-2.5" />
-                  Private to you
+                  {t('privateToYou', currentLang)}
                 </span>
               </div>
               <p className={`text-xs line-clamp-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>{chapterTitle}</p>
@@ -113,11 +116,11 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
         <div className={`px-4 py-2 border-b border-[#d4af37]/30 flex items-center justify-between text-xs ${
           darkMode ? 'bg-[#1b2536]' : 'bg-[#f4e8c1]/60'
         }`}>
-          <span className={darkMode ? 'text-slate-300' : 'text-[#8a5d12] font-semibold'}>Daily Limit Status</span>
+          <span className={darkMode ? 'text-slate-300' : 'text-[#8a5d12] font-semibold'}>{t('dailyLimitStatus', currentLang)}</span>
           <span className={`font-semibold font-mono px-2 py-0.5 rounded border border-[#d4af37]/50 ${
             darkMode ? 'text-[#fce0a2] bg-[#d4af37]/20' : 'text-[#8a5d12] bg-white'
           }`}>
-            {remainingComments} of 10 comments left today
+            {t('commentsLeftToday', currentLang, { count: remainingComments, limit: 10 })}
           </span>
         </div>
 
@@ -128,9 +131,9 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
               <div className="w-10 h-10 mx-auto rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
                 <MessageSquare className="w-5 h-5 opacity-80" />
               </div>
-              <p className="font-semibold text-sm">No comments submitted yet</p>
+              <p className="font-semibold text-sm">{t('noCommentsYet', currentLang)}</p>
               <p className="text-[11px] leading-relaxed">
-                Your comments for this chapter will appear here and are only visible to your account.
+                {t('noCommentsSub', currentLang)}
               </p>
             </div>
           ) : (
@@ -159,7 +162,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                       <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
                         darkMode ? 'bg-[#d4af37]/20 text-[#fce0a2] border border-[#d4af37]/40' : 'bg-[#d4af37]/15 text-[#8a5d12] border border-[#d4af37]/40'
                       }`}>
-                        You
+                        {t('youLabel', currentLang)}
                       </span>
                     </div>
                     
@@ -171,7 +174,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                         <div className="flex items-center gap-1 ml-1">
                           <button
                             onClick={() => handleStartEdit(comment)}
-                            title="Edit comment"
+                            title={t('editComment', currentLang)}
                             className={`p-1 rounded hover:bg-[#d4af37]/20 transition-colors ${
                               darkMode ? 'text-slate-400 hover:text-[#fce0a2]' : 'text-slate-500 hover:text-[#8a5d12]'
                             }`}
@@ -180,7 +183,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                           </button>
                           <button
                             onClick={() => handleDelete(comment.id)}
-                            title="Delete comment"
+                            title={t('deleteComment', currentLang)}
                             className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/40 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -210,14 +213,14 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                             darkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                           }`}
                         >
-                          <RotateCcw className="w-3 h-3" /> Cancel
+                          <RotateCcw className="w-3 h-3" /> {t('cancel', currentLang)}
                         </button>
                         <button
                           onClick={() => handleSaveEdit(comment.id)}
                           disabled={!editInputText.trim()}
                           className="px-2.5 py-1 text-[11px] rounded font-medium bg-gradient-to-r from-[#d4af37] to-[#996515] text-slate-950 font-bold hover:brightness-110 flex items-center gap-1 disabled:opacity-50"
                         >
-                          <Check className="w-3 h-3" /> Save
+                          <Check className="w-3 h-3" /> {t('save', currentLang)}
                         </button>
                       </div>
                     </div>
@@ -245,7 +248,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.stopPropagation()}
-                placeholder="Leave a comment..."
+                placeholder={t('leaveCommentPlaceholder', currentLang)}
                 className={`flex-1 border border-slate-300 focus:border-[#d4af37] rounded-xl px-3.5 py-2.5 text-xs focus:outline-none ${
                   darkMode ? 'bg-[#121824] text-slate-100 placeholder-slate-500' : 'bg-[#fbf9f4] text-slate-900 placeholder-slate-400'
                 }`}
@@ -261,7 +264,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
           ) : (
             <div className="flex items-center gap-2 p-3 bg-zinc-800 border border-zinc-600 rounded-xl text-xs text-zinc-300 font-semibold">
               <AlertCircle className="w-4 h-4 text-zinc-400 shrink-0" />
-              <span>You have reached your limit of 10 comments for today. Come back tomorrow!</span>
+              <span>{t('limitReached', currentLang)}</span>
             </div>
           )}
         </div>

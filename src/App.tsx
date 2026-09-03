@@ -22,7 +22,6 @@ import { Header } from './components/Header';
 import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
 import { TalesPage } from './components/TalesPage';
-import { FullscreenChapterView } from './components/ChapterIntro';
 import { ActPage } from './components/ActPage';
 import { ProfileDrawer } from './components/ProfileDrawer';
 import { BottomHub, FontScale } from './components/BottomHub';
@@ -449,38 +448,20 @@ export default function App() {
             darkMode={darkMode}
           />
         ) : currentPage === 'chapter' && activeTale ? (
-          activeTale.id === 'tale-5-crystals' ? (
-            <ActPage
-              user={dbState.user_profile}
-              currentLang={currentLang}
-              onLanguageChange={handleLanguageChange}
-              commentsMap={dbState.chapters_id_Comments}
-              onAddComment={handleAddComment}
-              onEditComment={handleEditComment}
-              onDeleteComment={handleDeleteComment}
-              onClose={() => setCurrentPage('tails')}
-              onEarnSkillPoint={handleEarnSkillPoint}
-              onRecordView={handleRecordView}
-              darkMode={darkMode}
-            />
-          ) : (
-            <FullscreenChapterView
-              tale={activeTale}
-              user={dbState.user_profile}
-              currentLang={currentLang}
-              likedChapters={dbState.chapters_id_Liked}
-              viewedChapters={dbState.chapters_id_Views}
-              commentsMap={dbState.chapters_id_Comments}
-              onClose={() => setCurrentPage('tails')}
-              onToggleLike={handleToggleLike}
-              onRecordView={handleRecordView}
-              onAddComment={handleAddComment}
-              onEditComment={handleEditComment}
-              onDeleteComment={handleDeleteComment}
-              onEarnSkillPoint={handleEarnSkillPoint}
-              darkMode={darkMode}
-            />
-          )
+          <ActPage
+            tale={activeTale}
+            user={dbState.user_profile}
+            currentLang={currentLang}
+            onLanguageChange={handleLanguageChange}
+            commentsMap={dbState.chapters_id_Comments}
+            onAddComment={handleAddComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
+            onClose={() => setCurrentPage('tails')}
+            onEarnSkillPoint={handleEarnSkillPoint}
+            onRecordView={handleRecordView}
+            darkMode={darkMode}
+          />
         ) : null}
       </main>
 
@@ -490,6 +471,7 @@ export default function App() {
           fontScale={fontScale}
           onChangeFontScale={setFontScale}
           user={dbState.user_profile}
+          currentLang={currentLang}
           todayTalesCount={todayTalesCount}
           onOpenProfile={() => setShowProfileDrawer(true)}
           darkMode={darkMode}

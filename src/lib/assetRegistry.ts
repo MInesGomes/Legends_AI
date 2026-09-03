@@ -2,7 +2,7 @@ import { Language } from '../types';
 
 export interface Act {
   chapter: number; // e.g. values 0, 1, 2
-  act: 'female_act' | 'male_act' | 'act0' | 'act1'| 'choice1' | 'choice2';
+  act: 'female_act' | 'male_act' | 'act0' | 'act1'| 'choice1' | 'choice2'| 'choice3' | 'choice4';
   title?: string;
   characterName?: string;
   gender?: 'female' | 'male';
@@ -16,7 +16,22 @@ export const ATLANTIS_5CRYSTALS_FOLDER_PATH = `${SUPABASE_BASE_URL}/Atlantis/5cr
 
 // Core Avatars and Realm Images
 export const realmAtlantisJpg = `${SUPABASE_BASE_URL}/Atlantis/realm_atlantis.jpg`;
+export const realmWorkJpg = `${SUPABASE_BASE_URL}/Work/realm_work.jpg`;
+export const realmElDoradoJpg = `${SUPABASE_BASE_URL}/ElDorado/realm_eldorado.jpg`;
+export const realmDadMomJpg = `${SUPABASE_BASE_URL}/DadMom/realm_dadmom.jpg`;
+export const realmMarriageJpg = `${SUPABASE_BASE_URL}/Marriage/realm_marriage.jpg`;
+export const realmFutureLandJpg = `${SUPABASE_BASE_URL}/FutureLand/realm_futureland.jpg`;
+
 export const fiveCrystalsJpg = `${SUPABASE_BASE_URL}/Atlantis/5crystals.jpg`;
+
+// Tales Cover Images
+export const taleBabyJpg = `${SUPABASE_BASE_URL}/DadMom/tale_baby.jpg`;
+export const taleChildJpg = `${SUPABASE_BASE_URL}/DadMom/tale_child.jpg`;
+export const taleTeensJpg = `${SUPABASE_BASE_URL}/DadMom/tale_teens.jpg`;
+export const talePridePrejudiceJpg = `${SUPABASE_BASE_URL}/Marriage/tale_pride_prejudice.jpg`;
+export const taleOneHartJpg = `${SUPABASE_BASE_URL}/Marriage/tale_one_hart.jpg`;
+export const taleStartupWinnerJpg = `${SUPABASE_BASE_URL}/Work/tale_startup_winner.jpg`;
+export const taleJobQuestJpg = `${SUPABASE_BASE_URL}/Work/tale_job_quest.jpg`;
 
 //TODO: DELETE
 export const elenaAvatar = `${SUPABASE_AVATAR}/female.jpg`
@@ -24,6 +39,11 @@ export const danielAvatar = `${SUPABASE_AVATAR}/male.jpg`
 
 export const ASSETS = {
   realmAtlantisJpg,
+  realmWorkJpg,
+  realmElDoradoJpg,
+  realmDadMomJpg,
+  realmMarriageJpg,
+  realmFutureLandJpg,
   fiveCrystalsJpg,
   elenaAvatar,
   danielAvatar,
@@ -63,8 +83,8 @@ export function getActBaseFolder(act: Act, customFolder: string = ATLANTIS_5CRYS
  * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".mp3"
  * => ".../chapter0/female_act/female_act_en.mp3"
  */
-export function getActMp3Url(act: Act, lang: Language | string = 'EN'): string {
-  const base = getActBaseFolder(act);
+export function getActMp3Url(act: Act, lang: Language | string = 'EN', customFolder?: string): string {
+  const base = getActBaseFolder(act, customFolder);
   const langCode = normalizeLangCode(lang);
   return `${base}/${act.act}_${langCode}.mp3`;
 }
@@ -74,16 +94,16 @@ export function getActMp3Url(act: Act, lang: Language | string = 'EN'): string {
  * e.g. folderPath + chapter + "/" + act + "/" + act + ".mp4"
  * => ".../chapter0/female_act/female_act.mp4"
  */
-export function getActMp4Url(act: Act): string {
-  const base = getActBaseFolder(act);
+export function getActMp4Url(act: Act, customFolder?: string): string {
+  const base = getActBaseFolder(act, customFolder);
   return `${base}/${act.act}.mp4`;
 }
 
 /**
  * Candidate MP4 URLs for playback resilience
  */
-export function getActMp4CandidateUrls(act: Act): string[] {
-  const base = getActBaseFolder(act);
+export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[] {
+  const base = getActBaseFolder(act, customFolder);
   const candidates = [
     `${base}/${act.act}.mp4`,
     `${base}/${act.act}_en.mp4`,
@@ -96,8 +116,8 @@ export function getActMp4CandidateUrls(act: Act): string[] {
  * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".vtt"
  * => ".../chapter0/female_act/female_act_en.vtt"
  */
-export function getActVttUrl(act: Act, lang: Language | string = 'EN'): string {
-  const base = getActBaseFolder(act);
+export function getActVttUrl(act: Act, lang: Language | string = 'EN', customFolder?: string): string {
+  const base = getActBaseFolder(act, customFolder);
   const langCode = normalizeLangCode(lang);
   return `${base}/${act.act}_${langCode}.vtt`;
 }
@@ -106,8 +126,8 @@ export function getActVttUrl(act: Act, lang: Language | string = 'EN'): string {
  * Candidate VTT URLs for subtitle fetching resilience
  * (checks direct root, /vtt/ folder, and /vvt/ folder)
  */
-export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN'): string[] {
-  const base = getActBaseFolder(act);
+export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN', customFolder?: string): string[] {
+  const base = getActBaseFolder(act, customFolder);
   const langCode = normalizeLangCode(lang);
   const actName = act.act;
 
@@ -149,29 +169,37 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
   {
     chapter: 0,
     act: 'act1',
-    title: 'The First Crystal Awakens',
+    title: 'The Heart Choice',
     type: 'narrative',
   },
   {
     chapter: 1,
-    act: 'act1',
-    title: 'Chapter 1: The Deep Awakening',
-    type: 'narrative',
+    act: 'act0',
+    title: 'The Celebration',
+    type: 'dialogue',
   },
   {
     chapter: 1,
     act: 'choice1',
-    title: 'Chapter 1: Alethea’s Counsel',
-    characterName: 'Alethea',
-    gender: 'female',
-    type: 'character',
+    title: 'BEST: Organize the Evacuation',
+    type: 'choice',
   },
   {
     chapter: 1,
     act: 'choice2',
-    title: 'Chapter 1: Elion’s Workshop',
-    characterName: 'Elion',
-    gender: 'male',
-    type: 'character',
+    title: 'SAFE: Try to Solve Everything Alone',
+    type: 'choice',
+  },
+  {
+    chapter: 1,
+    act: 'choice3',
+    title: 'WEAK: Wait for the Council',
+    type: 'choice',
+  },
+  {
+    chapter: 1,
+    act: 'choice4',
+    title: 'HARMFUL: Force the System and Blame Others',
+    type: 'choice',
   },
 ];

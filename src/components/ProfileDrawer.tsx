@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserProfile, UserSkillsPoints, Language, SUPPORTED_LANGUAGES, SkillType } from '../types';
 import { FEMALE_AVATARS, MALE_AVATARS, getAvatarByUrlOrId } from '../data/avatars';
 import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award } from 'lucide-react';
+import { t } from '../lib/i18n';
 
 interface ProfileDrawerProps {
   user: UserProfile | null;
@@ -51,7 +52,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
           <h3 className={`text-base font-bold font-cinzel uppercase tracking-wider ${
             darkMode ? 'gold-gradient-text' : 'text-[#8a5d12]'
           }`}>
-            Traveler Profile
+            {t('travelerProfile', currentLang)}
           </h3>
           <button
             onClick={onClose}
@@ -79,7 +80,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                   type="button"
                   onClick={() => setShowAvatarPicker(!showAvatarPicker)}
                   className="absolute bottom-0 right-0 p-1.5 rounded-full bg-[#d4af37] text-slate-950 hover:scale-110 shadow-lg transition-transform cursor-pointer"
-                  title="Change Avatar"
+                  title={t('changeAvatar', currentLang)}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                 </button>
@@ -118,7 +119,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
-                {showAvatarPicker ? 'Hide Avatar Choices' : 'Change Avatar (8 Choices)'}
+                {showAvatarPicker ? t('hideAvatarChoices', currentLang) : t('changeAvatarChoices', currentLang)}
                 {showAvatarPicker ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </button>
             )}
@@ -139,7 +140,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Lady (4)
+                  {t('femaleTab', currentLang)} (4)
                 </button>
                 <button
                   type="button"
@@ -150,7 +151,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Gentlemen (4)
+                  {t('maleTab', currentLang)} (4)
                 </button>
               </div>
 
@@ -201,12 +202,12 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
               }`}>
-                <Globe className="w-4 h-4 text-[#d4af37]" /> Languages
+                <Globe className="w-4 h-4 text-[#d4af37]" /> {t('languagesTitle', currentLang)}
               </h5>
               <span className={`text-[11px] font-mono font-semibold ${
                 darkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
-                Chapters Seen
+                {t('chaptersSeen', currentLang)}
               </span>
             </div>
 
@@ -242,7 +243,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                         <span className={`text-[10px] font-mono uppercase ${
                           isCurrent ? 'text-[#d4af37] font-bold' : darkMode ? 'text-slate-400' : 'text-slate-500'
                         }`}>
-                          {lang.code} {isCurrent ? '• Active' : ''}
+                          {lang.code} {isCurrent ? `• ${t('activeStatus', currentLang)}` : ''}
                         </span>
                       </div>
                     </div>
@@ -258,7 +259,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                             : 'text-slate-500 bg-slate-100 border-slate-200'
                       }`}>
                         <BookOpen className="w-3.5 h-3.5 text-[#d4af37]" />
-                        <span>{count} {count === 1 ? 'chapter' : 'chapters'}</span>
+                        <span>{count} {count === 1 ? t('chapterUnit', currentLang) : t('chaptersUnit', currentLang)}</span>
                       </span>
                     </div>
                   </button>
@@ -273,18 +274,26 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
               }`}>
-                <Award className="w-4 h-4 text-[#d4af37]" /> Skills Progress
+                <Award className="w-4 h-4 text-[#d4af37]" /> {t('skillsProgress', currentLang)}
               </h5>
               <span className={`text-[11px] font-mono font-semibold ${
                 darkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
-                Total: {Object.values(skillsPoints || {}).reduce((a: number, b: number) => a + (Number(b) || 0), 0)} pts
+                {t('totalPts', currentLang, {
+                  pts: Number(
+                    Object.values(skillsPoints || {}).reduce<number>(
+                      (sum, val) => sum + (Number(val) || 0),
+                      0
+                    )
+                  ),
+                })}
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
               {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
                 const points = skillsPoints?.[skillName] || 0;
+                const skillLabelKey = `skill_${skillName}` as const;
                 return (
                   <div
                     key={skillName}
@@ -295,7 +304,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                     }`}
                   >
                     <span className={`font-medium truncate ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                      {skillName}
+                      {t(skillLabelKey, currentLang)}
                     </span>
                     <span className={`font-bold font-mono px-2 py-0.5 rounded border text-[11px] shrink-0 ml-1.5 ${
                       points > 0
@@ -323,7 +332,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                       : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
             }`}
           >
-            <LogOut className="w-4 h-4" /> Sign Out
+            <LogOut className="w-4 h-4" /> {t('signOut', currentLang)}
           </button>
 
         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Language, UserProfile, SkillType, ChapterComment } from '../types';
-import { ActItem, getAtlantisActItems } from '../lib/atlantisData';
+import { Language, UserProfile, SkillType, ChapterComment, Tale } from '../types';
+import { ActItem, getAtlantisActItems, getTaleActItems } from '../lib/atlantisData';
 import {
   getActMp4CandidateUrls,
   getActMp3Url,
@@ -9,6 +9,7 @@ import {
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
+import { t } from '../lib/i18n';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react';
 
 interface ActPageProps {
+  tale?: Tale;
   initialActId?: string;
   initialChapter?: number;
   user: UserProfile | null;
@@ -84,6 +86,7 @@ function parseVttToCues(vttText: string): SubtitleCue[] {
 }
 
 export const ActPage: React.FC<ActPageProps> = ({
+  tale,
   initialActId,
   initialChapter = 0,
   user,
@@ -104,10 +107,13 @@ export const ActPage: React.FC<ActPageProps> = ({
       ? 'male'
       : 'female');
 
-  // Load act items using new Supabase URL joining logic
+  // Load act items for this tale (or default to Atlantis)
   const actItems: ActItem[] = useMemo(() => {
+    if (tale) {
+      return getTaleActItems(tale, currentLang, userGender);
+    }
     return getAtlantisActItems(currentLang, userGender);
-  }, [currentLang, userGender]);
+  }, [tale, currentLang, userGender]);
 
   // Find initial index
   const initialIdx = Math.max(
@@ -136,7 +142,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [isMediaNotFound, setIsMediaNotFound] = useState<boolean>(false);
 
   const currentAct = actItems[currentIndex] || actItems[0];
-  const currentChapterId = `atlantis-ch${currentAct.chapterNumber}`;
+  const currentChapterId = tale ? `${tale.id}-ch${currentAct.chapterNumber}` : `atlantis-ch${currentAct.chapterNumber}`;
 
   // Synchronize audio and VTT language initially from currentLang
   useEffect(() => {
@@ -156,15 +162,15 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   // Candidate video URLs for resilient playback
   const videoCandidates = useMemo(() => {
-    return getActMp4CandidateUrls(currentAct.actData);
-  }, [currentAct.actData]);
+    return getActMp4CandidateUrls(currentAct.actData, currentAct.folderPath);
+  }, [currentAct.actData, currentAct.folderPath]);
 
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
 
   // MP3 Audio Track URL based on upper button selected language
   const actAudioUrl = useMemo(() => {
-    return getActMp3Url(currentAct.actData, selectedAudioLang);
-  }, [currentAct.actData, selectedAudioLang]);
+    return getActMp3Url(currentAct.actData, selectedAudioLang, currentAct.folderPath);
+  }, [currentAct.actData, selectedAudioLang, currentAct.folderPath]);
 
   // Comments for this chapter
   const currentComments: ChapterComment[] = useMemo(() => {
@@ -208,7 +214,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     let isMounted = true;
     setActiveSubtitle('');
 
-    const vttCandidates = getActVttCandidateUrls(currentAct.actData, selectedVttLang);
+    const vttCandidates = getActVttCandidateUrls(currentAct.actData, selectedVttLang, currentAct.folderPath);
 
     async function loadVtt() {
       for (const url of vttCandidates) {
@@ -238,7 +244,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [currentAct.actData, selectedVttLang]);
+  }, [currentAct.actData, currentAct.folderPath, selectedVttLang]);
 
   // Synchronize video & audio play/pause
   useEffect(() => {
@@ -358,7 +364,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           darkMode ? 'bg-slate-950' : 'bg-stone-900'
         } flex items-center justify-center cursor-pointer select-none`}
         onClick={() => setIsAutoPlay(!isAutoPlay)}
-        title={isAutoPlay ? 'Click to pause video' : 'Click to play video'}
+        title={isAutoPlay ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
       >
         <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950">
           {/* Ambient backdrop poster */}
@@ -408,10 +414,10 @@ export const ActPage: React.FC<ActPageProps> = ({
                 <Film className="w-8 h-8 sm:w-10 sm:h-10 text-[#d4af37]" />
               </div>
               <div className="px-6 py-2 rounded-full border-2 border-[#d4af37] bg-slate-950 text-[#d4af37] font-bold text-base sm:text-xl tracking-wider font-cinzel shadow-2xl">
-                Coming soon
+                {t('comingSoon', currentLang)}
               </div>
               <p className="text-xs sm:text-sm text-slate-300 max-w-sm leading-relaxed mt-1 font-sans">
-                {currentAct.actTitle} is currently in production and will be available soon.
+                {t('comingSoonDesc', currentLang, { title: currentAct.actTitle })}
               </p>
             </div>
           )}
@@ -459,13 +465,13 @@ export const ActPage: React.FC<ActPageProps> = ({
         <button
           id="act-close-button"
           onClick={onClose}
-          aria-label="Close Act Page"
+          aria-label={t('closeAct', currentLang)}
           className={`p-2 sm:p-3 rounded-full border sm:border-2 border-[#d4af37] ${
             darkMode
               ? 'bg-black/70 hover:bg-[#d4af37] text-[#fce0a2] hover:text-black shadow-lg sm:shadow-2xl'
               : 'bg-white/95 hover:bg-[#d4af37] text-slate-900 hover:text-black shadow-md'
           } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center group`}
-          title="Close Act"
+          title={t('closeAct', currentLang)}
         >
           <CloseIcon className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:rotate-90" />
         </button>
@@ -497,7 +503,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
               : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
           } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center relative`}
-          title="Comments"
+          title={t('comments', currentLang)}
         >
           <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
           {currentComments.length > 0 && (
@@ -520,7 +526,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               ? 'border-[#d4af37]/50 bg-black/60 hover:bg-black/90 text-amber-200/70 hover:text-amber-200'
               : 'border-[#d4af37]/70 bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
           }`}
-          title={isAutoPlay ? 'Autoplay is ON — Click to pause' : 'Autoplay is OFF — Click to play automatically'}
+          title={isAutoPlay ? t('autoplayOn', currentLang) : t('autoplayOff', currentLang)}
         >
           {isAutoPlay ? (
             <Pause
@@ -546,7 +552,7 @@ export const ActPage: React.FC<ActPageProps> = ({
               ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
               : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
           } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center`}
-          title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+          title={isMuted ? t('unmuteAudio', currentLang) : t('muteAudio', currentLang)}
         >
           {isMuted ? (
             <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -562,7 +568,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           selectedLang={selectedAudioLang}
           onSelectLang={handleAudioLanguageSelected}
           darkMode={darkMode}
-          tooltip="Select Audio Voice (MP3) & Play"
+          tooltip={t('selectVoiceMp3', currentLang)}
         />
       </div>
 
@@ -571,13 +577,13 @@ export const ActPage: React.FC<ActPageProps> = ({
         id="act-prev-button"
         onClick={goToPrev}
         disabled={currentIndex === 0}
-        aria-label="Previous Act"
+        aria-label={t('previousAct', currentLang)}
         className={`absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] ${
           darkMode
             ? 'bg-slate-900/85 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 shadow-lg sm:shadow-2xl'
             : 'bg-white/98 hover:bg-[#d4af37] text-slate-900 hover:text-slate-950 shadow-xl'
         } disabled:opacity-20 disabled:pointer-events-none transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group`}
-        title="Previous Act"
+        title={t('previousAct', currentLang)}
       >
         <ChevronLeft className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:-translate-x-0.5" />
       </button>
@@ -587,13 +593,13 @@ export const ActPage: React.FC<ActPageProps> = ({
         id="act-next-button"
         onClick={goToNext}
         disabled={currentIndex === actItems.length - 1}
-        aria-label="Next Act"
+        aria-label={t('nextAct', currentLang)}
         className={`absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] ${
           darkMode
             ? 'bg-slate-900/85 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 shadow-lg sm:shadow-2xl'
             : 'bg-white/98 hover:bg-[#d4af37] text-slate-900 hover:text-slate-950 shadow-xl'
         } disabled:opacity-20 disabled:pointer-events-none transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group`}
-        title="Next Act"
+        title={t('nextAct', currentLang)}
       >
         <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:translate-x-0.5" />
       </button>
@@ -640,17 +646,9 @@ export const ActPage: React.FC<ActPageProps> = ({
                   }`}
                 >
                   {isMediaNotFound
-                    ? 'Coming soon'
+                    ? t('comingSoon', currentLang)
                     : isVideoFinished
-                    ? selectedVttLang === 'ES'
-                      ? 'Acto completado'
-                      : selectedVttLang === 'NL'
-                      ? 'Akte voltooid'
-                      : selectedVttLang === 'IT'
-                      ? 'Atto completato'
-                      : selectedVttLang === 'PT-pt'
-                      ? 'Ato concluído'
-                      : 'Act completed'
+                    ? t('actCompleted', selectedVttLang)
                     : currentAct.actTitle}
                 </p>
               )}
@@ -664,7 +662,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 selectedLang={selectedVttLang}
                 onSelectLang={handleVttLanguageSelected}
                 darkMode={darkMode}
-                tooltip="Select Subtitles (VTT) & Play"
+                tooltip={t('selectSubtitlesVtt', currentLang)}
               />
             </div>
           </div>
@@ -695,7 +693,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
               >
                 <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
-                <span>Comment</span>
+                <span>{t('commentBtn', currentLang)}</span>
               </button>
 
               {/* Replay Button */}
@@ -712,7 +710,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                 } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#d4af37]" />
-                <span>Replay</span>
+                <span>{t('replayBtn', currentLang)}</span>
               </button>
 
               {/* Next / Finish Button */}
@@ -725,7 +723,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                   }}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
                 >
-                  <span>Next Act</span>
+                  <span>{t('nextAct', currentLang)}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
@@ -737,7 +735,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                   }}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
                 >
-                  <span>Finish</span>
+                  <span>{t('finishBtn', currentLang)}</span>
                   <CheckCircle2 className="w-4 h-4" />
                 </button>
               )}
@@ -753,6 +751,7 @@ export const ActPage: React.FC<ActPageProps> = ({
           chapterTitle={currentAct.chapterTitle || 'The Heart of Atlantis'}
           comments={currentComments}
           user={user}
+          currentLang={currentLang}
           onClose={() => setShowCommentsDrawer(false)}
           onAddComment={(text) => onAddComment && onAddComment(currentChapterId, text)}
           onEditComment={(cId, text) => onEditComment && onEditComment(currentChapterId, cId, text)}

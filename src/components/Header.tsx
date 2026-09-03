@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sun, Moon, Download, User, Smartphone } from 'lucide-react';
 import { UserProfile, Language } from '../types';
 import { PWAInstallModal } from './PWAInstallModal';
+import { t } from '../lib/i18n';
 
 interface HeaderProps {
   user: UserProfile | null;
@@ -135,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenProfile}
               className="group relative p-0.5 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#fce0a2] to-[#996515] transition-transform active:scale-95 hover:scale-105 shadow-md"
-              title="View Profile & Skills"
+              title={t('profileProgress', currentLang)}
             >
               <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ${
                 darkMode ? 'bg-[#121824] border-[#121824]' : 'bg-white border-white'
@@ -165,9 +166,14 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Center: Brand Title & Compass Icon (Matching title.png reference exactly) */}
+          {/* Center: Brand Title & Icon */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <CompassStarIcon className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10" />
+            <img
+              src="https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/favicons/android-chrome-192x192.png"
+              alt="Learn with Legends"
+              className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain shrink-0 filter drop-shadow-[0_2px_4px_rgba(140,85,10,0.45)]"
+              referrerPolicy="no-referrer"
+            />
             <h1
               className="font-serif-display text-xl sm:text-2xl md:text-3xl lg:text-[34px] font-bold tracking-normal select-none"
               style={{
@@ -194,11 +200,11 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'bg-[#d4af37]/15 border-[#d4af37]/50 text-[#fce0a2] hover:bg-[#d4af37]/30 hover:border-[#d4af37]'
                     : 'bg-amber-50 border-[#d4af37]/60 text-[#8a5d12] hover:bg-amber-100 hover:border-[#d4af37]'
                 }`}
-                title="Add app to Home Screen"
+                title={t('installApp', currentLang)}
               >
                 <Download className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
-                <span className="hidden sm:inline">Add to Home</span>
-                <span className="sm:hidden">App</span>
+                <span className="hidden sm:inline">{t('installApp', currentLang)}</span>
+                <span className="sm:hidden">{t('installApp', currentLang)}</span>
               </button>
             )}
 
@@ -210,7 +216,7 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'bg-slate-800/80 border-slate-700/60 text-[#d4af37] hover:bg-slate-700'
                   : 'bg-white border-[#d4af37]/50 text-amber-600 hover:bg-amber-50'
               }`}
-              title="Toggle theme"
+              title={t('toggleTheme', currentLang)}
             >
               {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500 fill-amber-400" />}
             </button>

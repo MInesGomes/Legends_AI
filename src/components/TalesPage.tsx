@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Realm, Tale, UserProfile, DailyTaleLog, ChapterComment, Language } from '../types';
 import { AddTaleModal } from './AddTaleModal';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit, hasReachedDailyTaleLimit } from '../lib/supabase';
+import { t } from '../lib/i18n';
 import { ArrowLeft, Plus, Eye, Heart, MessageSquare, Sparkles, BookOpen, ShieldCheck, Settings, X, Clock, Lock } from 'lucide-react';
 
 interface TalesPageProps {
@@ -120,7 +121,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               <h2 className={`text-2xl sm:text-3xl font-bold font-cinzel ${
                 darkMode ? 'gold-gradient-text' : 'text-[#8a5d12]'
               }`}>
-                {realm.title} TALES
+                {realm.title} {t('talesTitleSuffix', effectiveLang)}
               </h2>
               {realm.audienceLabel && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border border-[#fff9e6] shadow-sm text-[11px] font-cinzel font-bold tracking-wider uppercase">
@@ -184,7 +185,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
                       <span className="px-2.5 py-1 rounded-full bg-amber-950/90 border border-amber-500/80 text-[10px] font-bold text-amber-200 uppercase tracking-wider shadow-lg flex items-center gap-1 backdrop-blur-sm">
                         <Clock className="w-3 h-3 text-amber-400" />
-                        Under Review (Only You)
+                        {t('underReview', effectiveLang)}
                       </span>
                     </div>
                   )}
@@ -193,7 +194,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
                       <span className="px-2.5 py-1 rounded-full bg-[#182130]/90 border border-[#d4af37]/80 text-[10px] font-bold text-[#fce0a2] uppercase tracking-wider shadow-lg flex items-center gap-1 backdrop-blur-sm">
                         <Sparkles className="w-3 h-3 text-[#d4af37]" />
-                        Approved Traveler Tale
+                        {t('approvedTale', effectiveLang)}
                       </span>
                     </div>
                   )}
@@ -202,7 +203,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                   {alreadyReadToday && (
                     <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
                       <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/60 text-[10px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
-                        Unlocked Today
+                        {t('unlockedToday', effectiveLang)}
                       </span>
                     </div>
                   )}
@@ -230,7 +231,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     <div className="flex items-center justify-center gap-4 text-xs text-[#fce0a2] mt-1 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                       <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
                       <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
-                      <span className="flex items-center gap-1" title="Your comments on this tale"><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {getTaleUserCommentsCount(tale)}</span>
+                      <span className="flex items-center gap-1" title={t('userCommentsTooltip', effectiveLang)}><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {getTaleUserCommentsCount(tale)}</span>
                     </div>
                   </div>
 
@@ -261,11 +262,11 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                 </div>
 
                 <h3 className="text-xl font-bold font-cinzel text-[#fce0a2]">
-                  Daily Limit Reached
+                  {t('dailyLimitReachedTitle', effectiveLang)}
                 </h3>
 
                 <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
-                  You have reached your daily reading quota of <strong className="text-[#d4af37] font-bold">{effectiveLimit} tales</strong> for today ({todayTalesCount} explored).
+                  {t('dailyLimitReachedDesc', effectiveLang, { limit: effectiveLimit, count: todayTalesCount })}
                 </p>
 
                 {/* Progress / Status banner */}
@@ -273,18 +274,18 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                   darkMode ? 'bg-[#182130] border-[#d4af37]/30' : 'bg-white border-[#d4af37]/40 shadow-sm'
                 }`}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold text-slate-300">Daily Tales Goal:</span>
+                    <span className="font-semibold text-slate-300">{t('dailyTalesGoal', effectiveLang)}</span>
                     <span className="font-mono font-bold text-[#d4af37]">{todayTalesCount} / {effectiveLimit}</span>
                   </div>
 
                   {isUnder18 ? (
                     <div className="flex items-center gap-1.5 text-xs text-amber-300 font-medium">
                       <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-                      <span>Youth Protection Rule: Under 18 accounts are limited to a maximum of 5 tales per day.</span>
+                      <span>{t('youthProtectionRule', effectiveLang)}</span>
                     </div>
                   ) : (
                     <p className="text-xs text-slate-300">
-                      Adult accounts are capped at a maximum of 10 tales per day to encourage meaningful reflection between decisions.
+                      {t('adultLimitRule', effectiveLang)}
                     </p>
                   )}
                 </div>
@@ -299,7 +300,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                       }}
                       className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md hover:brightness-110 transition-all cursor-pointer"
                     >
-                      <Settings className="w-3.5 h-3.5" /> Adjust Limit in Profile
+                      <Settings className="w-3.5 h-3.5" /> {t('adjustLimitProfile', effectiveLang)}
                     </button>
                   )}
                   <button
@@ -310,7 +311,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                         : 'border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200'
                     }`}
                   >
-                    Return to Tales
+                    {t('returnToTales', effectiveLang)}
                   </button>
                 </div>
               </div>

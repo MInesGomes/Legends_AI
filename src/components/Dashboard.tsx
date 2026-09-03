@@ -4,6 +4,7 @@ import { REALMS } from '../data/realmsAndTales';
 import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2, MessageSquare } from 'lucide-react';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit } from '../lib/supabase';
 import { CommentsDrawer } from './CommentsDrawer';
+import { t } from '../lib/i18n';
 
 interface DashboardProps {
   user: UserProfile | null;
@@ -323,7 +324,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="absolute bottom-3.5 sm:bottom-4 inset-x-0 flex items-center justify-center pointer-events-none">
                   <CartouchePlaque
                     icon={getIcon(realm.key)}
-                    title={realm.title}
+                    title={t(('realm_' + realm.key) as any, effectiveLang) || realm.title}
                   />
                 </div>
               </div>
@@ -351,7 +352,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
             <span className="text-xs sm:text-sm font-bold font-cinzel tracking-wider uppercase">
-              Feedback &amp; Comments
+              {t('feedbackBtn', effectiveLang)}
             </span>
             {feedbackComments.length > 0 && (
               <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
@@ -364,7 +365,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
           </button>
           <span className={`text-[11px] font-sans ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            Share your thoughts, suggestions, or feedback
+            {t('feedbackDesc', effectiveLang)}
           </span>
         </div>
 
@@ -374,7 +375,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <p className={`text-base sm:text-lg font-cinzel tracking-wider font-semibold ${
             darkMode ? 'text-[#fce0a2]/90' : 'text-[#8a5d12]'
           }`}>
-            To be ready for the future with AI.
+            {t('futureTagline', effectiveLang)}
           </p>
           <span className="text-[#d4af37] text-xs font-serif">--✦--</span>
         </div>
@@ -385,9 +386,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {showCommentsDrawer && (
         <CommentsDrawer
           chapterId="dashboard_feedback"
-          chapterTitle="Dashboard & App Feedback"
+          chapterTitle={t('dashboardFeedbackTitle', effectiveLang)}
           comments={feedbackComments}
           user={user}
+          currentLang={effectiveLang}
           onClose={() => setShowCommentsDrawer(false)}
           onAddComment={(text) => onAddComment?.('dashboard_feedback', text)}
           onEditComment={(commentId, newText) => onEditComment?.('dashboard_feedback', commentId, newText)}
