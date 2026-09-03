@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sun, Moon, Download, User, Smartphone } from 'lucide-react';
 import { UserProfile, Language } from '../types';
 import { PWAInstallModal } from './PWAInstallModal';
+import { FlagLanguageDropdown } from './FlagLanguageDropdown';
 import { t } from '../lib/i18n';
 
 interface HeaderProps {
@@ -221,30 +222,15 @@ export const Header: React.FC<HeaderProps> = ({
               {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500 fill-amber-400" />}
             </button>
 
-            {/* Language Switcher Dropdown (Pill button with flag matching 1DASHBOARD.png) */}
-            <div className="relative group">
-              <select
-                value={currentLang}
-                onChange={(e) => onLanguageChange(e.target.value as Language)}
-                className={`appearance-none border rounded-full px-3 py-1.5 pr-7 text-xs font-semibold cursor-pointer focus:outline-none shadow-sm ${
-                  darkMode
-                    ? 'bg-[#1a2332] text-[#fce0a2] border-[#d4af37]/40 focus:border-[#d4af37]'
-                    : 'bg-white text-[#8a5d12] border-[#d4af37]/50 focus:border-[#d4af37]'
-                }`}
-              >
-                <option value="EN">🇬🇧</option>
-                <option value="ES">🇪🇸</option>
-                <option value="IT">🇮🇹</option>
-                <option value="PT-pt">🇵🇹</option>
-                <option value="NL">🇳🇱</option>
-              </select>
-              <div className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] ${
-                darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'
-              }`}>
-                ∨
-              </div>
-            </div>
-
+            {/* Language Switcher matching ActPage Language button and dropdown */}
+            <FlagLanguageDropdown
+              id="header-language-dropdown"
+              type="language"
+              selectedLang={currentLang}
+              onSelectLang={onLanguageChange}
+              darkMode={darkMode}
+              tooltip={t('languagesTitle', currentLang)}
+            />
           </div>
 
         </div>

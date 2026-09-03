@@ -19,28 +19,33 @@ test.describe('Accessibility, Preferences & Internationalization', () => {
   });
 
   test('should switch languages dynamically and update UI translations', async ({ page }) => {
-    const langSelect = page.locator('header select').first();
-    await expect(langSelect).toBeVisible();
+    const langBtn = page.locator('#header-language-dropdown button').first();
+    await expect(langBtn).toBeVisible();
 
     // Switch to Spanish (ES)
-    await langSelect.selectOption('ES');
-    // In Spanish, El Dorado child badge or work realm plaque updates
+    await langBtn.click();
+    await page.locator('#header-language-dropdown-opt-ES').click();
+    // In Spanish, work realm plaque updates
     await expect(page.locator('#realm-card-work').getByText('TRABAJO')).toBeVisible();
 
     // Switch to Italian (IT)
-    await langSelect.selectOption('IT');
+    await langBtn.click();
+    await page.locator('#header-language-dropdown-opt-IT').click();
     await expect(page.locator('#realm-card-work').getByText('LAVORO')).toBeVisible();
 
     // Switch to Portuguese (PT-pt)
-    await langSelect.selectOption('PT-pt');
+    await langBtn.click();
+    await page.locator('#header-language-dropdown-opt-PT-pt').click();
     await expect(page.locator('#realm-card-work').getByText('TRABALHO')).toBeVisible();
 
     // Switch to Dutch (NL)
-    await langSelect.selectOption('NL');
+    await langBtn.click();
+    await page.locator('#header-language-dropdown-opt-NL').click();
     await expect(page.locator('#realm-card-work').getByText('WERK')).toBeVisible();
 
     // Switch back to English (EN)
-    await langSelect.selectOption('EN');
+    await langBtn.click();
+    await page.locator('#header-language-dropdown-opt-EN').click();
     await expect(page.locator('#realm-card-work').getByText('WORK')).toBeVisible();
   });
 

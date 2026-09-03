@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Language, UserProfile, SkillType, ChapterComment, Tale } from '../types';
-import { ActItem, getAtlantisActItems, getTaleActItems } from '../lib/atlantisData';
+import { ActItem, getAtlantisActItems, getTaleActItems } from '../lib/taleData';
 import {
   getActMp4CandidateUrls,
   getActMp3Url,
