@@ -292,7 +292,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {visibleRealms.map((realm) => (
             <div
               key={realm.id}
+              id={`realm-card-${realm.key}`}
+              role="button"
+              tabIndex={0}
               onClick={() => onSelectRealm(realm)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectRealm(realm);
+                }
+              }}
               className="p-[3.5px] rounded-[30px] sm:rounded-[32px] bg-gradient-to-b from-[#ffe59e] via-[#d4af37] via-[#c49226] to-[#7d4d0b] shadow-[0_12px_32px_rgba(0,0,0,0.18),0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)] transition-all duration-300 group cursor-pointer active:scale-[0.985]"
             >
               {/* Inner card with gold hairline border */}

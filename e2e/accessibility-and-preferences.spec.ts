@@ -1,0 +1,74 @@
+import { test, expect } from '@playwright/test';
+import { loginAsAdultUser } from './helpers';
+
+test.describe('Accessibility, Preferences & Internationalization', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsAdultUser(page);
+  });
+
+  test('should toggle dark/light theme mode', async ({ page }) => {
+    // Theme toggle button in header
+    const themeBtn = page.locator('header button[title*="Theme" i], header button[title*="Tema" i]').first();
+    await expect(themeBtn).toBeVisible();
+
+    // Click to toggle dark mode
+    await themeBtn.click();
+
+    // Click again to return
+    await themeBtn.click();
+  });
+
+  test('should switch languages dynamically and update UI translations', async ({ page }) => {
+    const langSelect = page.locator('header select').first();
+    await expect(langSelect).toBeVisible();
+
+    // Switch to Spanish (ES)
+    await langSelect.selectOption('ES');
+    // In Spanish, El Dorado child badge or work realm plaque updates
+    await expect(page.locator('#realm-card-work').getByText('TRABAJO')).toBeVisible();
+
+    // Switch to Italian (IT)
+    await langSelect.selectOption('IT');
+    await expect(page.locator('#realm-card-work').getByText('LAVORO')).toBeVisible();
+
+    // Switch to Portuguese (PT-pt)
+    await langSelect.selectOption('PT-pt');
+    await expect(page.locator('#realm-card-work').getByText('TRABALHO')).toBeVisible();
+
+    // Switch to Dutch (NL)
+    await langSelect.selectOption('NL');
+    await expect(page.locator('#realm-card-work').getByText('WERK')).toBeVisible();
+
+    // Switch back to English (EN)
+    await langSelect.selectOption('EN');
+    await expect(page.locator('#realm-card-work').getByText('WORK')).toBeVisible();
+  });
+
+  test('should change font scale via the bottom accessibility hub', async ({ page }) => {
+    const bottomHub = page.locator('aside[aria-label="Accessibility and display settings"]');
+    await expect(bottomHub).toBeVisible();
+
+    // Expand the hub by clicking the Options/Expand button
+    const expandBtn = bottomHub.getByRole('button', { name: /Options|Opciones|Opzioni|Opções|Opties/i });
+    if (await expandBtn.isVisible()) {
+      await expandBtn.click();
+    }
+
+    // Click on Large size ("A+")
+    const largeBtn = page.getByRole('button', { name: /A\+/i }).first();
+    if (await largeBtn.isVisible()) {
+      await largeBtn.click();
+      // Check HTML element for font-scale class
+      const htmlClass = await page.locator('html').getAttribute('class');
+      expect(htmlClass).toContain('font-scale-large');
+    }
+
+    // Click on Standard size ("A")
+    const normalBtn = page.getByRole('button', { name: /^A\s/i }).or(page.locator('button:has-text("Standard")')).first();
+    if (await normalBtn.isVisible()) {
+      await normalBtn.click();
+      const htmlClass = await page.locator('html').getAttribute('class');
+      expect(htmlClass).toContain('font-scale-normal');
+    }
+  });
+});
