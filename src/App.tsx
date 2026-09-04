@@ -23,6 +23,7 @@ import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
 import { TalesPage } from './components/TalesPage';
 import { ActPage } from './components/ActPage';
+import { ChapterFlow } from './components/ChapterFlow';
 import { ProfileDrawer } from './components/ProfileDrawer';
 import { BottomHub, FontScale } from './components/BottomHub';
 
@@ -448,9 +449,10 @@ export default function App() {
             darkMode={darkMode}
           />
         ) : currentPage === 'chapter' && activeTale ? (
-          <ActPage
+          <ChapterFlow
             tale={activeTale}
             user={dbState.user_profile}
+            userGender={dbState.user_profile?.gender}
             currentLang={currentLang}
             onLanguageChange={handleLanguageChange}
             commentsMap={dbState.chapters_id_Comments}

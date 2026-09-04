@@ -139,3 +139,24 @@ video::cue {
   border-radius: 4px;
 }
 
+/* Star Wars 3D Perspective Crawl Animation */
+@keyframes starWarsIntroCrawl {
+  0% {
+    top: 100%;
+    transform: rotateX(25deg) translateY(0);
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: -120%;
+    transform: rotateX(25deg) translateY(-85%);
+    opacity: 0;
+  }
+}
+
+.animate-starwars-crawl {
+  animation: starWarsIntroCrawl 24s linear forwards;
+}
+

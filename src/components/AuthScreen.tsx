@@ -9,6 +9,7 @@ import {
   DEFAULT_YOUTH_MALE_AVATAR,
   AvatarOption,
   female1,
+  female1_13,
   male1,
   male1_18,
 } from '../data/avatars';
@@ -193,7 +194,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   // Demo instant loggers
-  const handleQuickDemo = (preset: 'female' | 'male' | 'youth') => {
+  const handleQuickDemo = (preset: 'female' | 'male' | 'youth' | 'child') => {
     if (preset === 'female') {
       onLoginSuccess({
         user_id: 'user_demo_female',
@@ -220,7 +221,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         daily_tale_limit: 5,
         created_at: new Date().toISOString(),
       });
-    } else {
+    } else if (preset === 'youth') {
       onLoginSuccess({
         user_id: 'user_demo_youth',
         name: 'Leo Star',
@@ -231,6 +232,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         language: 'EN',
         avatar_url: DEFAULT_YOUTH_MALE_AVATAR,
         daily_tale_limit: 5,
+        created_at: new Date().toISOString(),
+      });
+    } else if (preset === 'child') {
+      onLoginSuccess({
+        user_id: 'user_demo_child',
+        name: 'Maya Sun',
+        email: 'maya@child.app',
+        gender: 'female',
+        date_of_birth: '2016-05-20',
+        age: 10,
+        language: 'EN',
+        avatar_url: female1_13,
+        daily_tale_limit: 3,
         created_at: new Date().toISOString(),
       });
     }
@@ -430,23 +444,43 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
            <button
             type="button"
+            id="demo-login-youth"
             onClick={() => handleQuickDemo('youth')}
-            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center text-center transition-all cursor-pointer ${
+            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center gap-3 text-center transition-all cursor-pointer ${
               darkMode
-                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-black hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
-                : 'bg-amber-50 border-[#d4af37]/60 text-black hover:bg-amber-100'
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-slate-300 hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-slate-700 hover:bg-amber-100/50 hover:border-[#d4af37]'
             }`}
           >
-
             <img
               src={male1_18}
               alt="Leo Star"
               className="w-12 h-12 rounded-full object-cover border-2 border-[#d4af37]/80 flex-shrink-0 shadow-sm"
             />
-             <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-               Leo Star (Youth Shield, Age 14
+            <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+              Leo Star (Youth Shield, Age 14)
             </span>
-           </button>
+          </button>
+
+          <button
+            type="button"
+            id="demo-login-child"
+            onClick={() => handleQuickDemo('child')}
+            className={`w-full py-2.5 px-3.5 border text-xs sm:text-sm font-medium rounded-xl flex items-center justify-center gap-3 text-center transition-all cursor-pointer ${
+              darkMode
+                ? 'bg-[#0b0f17] border-[#d4af37]/50 text-slate-300 hover:bg-[#d4af37]/15 hover:border-[#d4af37]'
+                : 'bg-[#fcfaf5] border-[#d4af37]/60 text-slate-700 hover:bg-amber-100/50 hover:border-[#d4af37]'
+            }`}
+          >
+            <img
+              src={female1_13}
+              alt="Maya Sun"
+              className="w-12 h-12 rounded-full object-cover border-2 border-[#d4af37]/80 flex-shrink-0 shadow-sm"
+            />
+            <span className={`font-semibold ${darkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+              Maya Sun (Child Demo, Age 10 - El Dorado only)
+            </span>
+          </button>
 
         </div>
 

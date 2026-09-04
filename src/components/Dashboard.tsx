@@ -183,8 +183,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const remainingTales = Math.max(0, effectiveLimit - todayTalesCount);
   const progressPercent = Math.min(100, Math.round((todayTalesCount / effectiveLimit) * 100));
 
-  // Filter realms if under 18: hide Work, Marriage, Dad & Mom!
+  // Filter realms:
+  // If user is less than 13 years old, ONLY show El Dorado world!
+  // If user is under 18, hide adult-only realms (Work, Marriage, Dad & Mom)
   const visibleRealms = REALMS.filter((realm) => {
+    if (userAge < 13) {
+      return realm.id === 'realm-el-dorado';
+    }
     if (isUnder18 && realm.isAdultOnly) {
       return false; // Hide Work, Marriage, Dad & Mom for under 18!
     }
