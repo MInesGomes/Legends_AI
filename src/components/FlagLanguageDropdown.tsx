@@ -182,15 +182,28 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
     ? LANGUAGE_METADATA.filter((item) => availableLangs.includes(item.code))
     : LANGUAGE_METADATA;
 
-  const currentMeta = LANGUAGE_METADATA.find((l) => l.code === selectedLang) || LANGUAGE_METADATA[0];
+  const isAvailableEmpty = availableLangs !== undefined && availableLangs.length === 0;
 
-  const defaultTooltip =
-    tooltip ||
-    (type === 'mp3'
-      ? `Audio Voice: ${currentMeta.label}`
-      : type === 'vtt'
-      ? `Subtitles: ${currentMeta.label}`
-      : `Language: ${currentMeta.label}`);
+  const currentMeta =
+    availableLangs && availableLangs.length > 0
+      ? displayedOptions.find((l) => l.code === selectedLang) || displayedOptions[0]
+      : LANGUAGE_METADATA.find((l) => l.code === selectedLang) || LANGUAGE_METADATA[0];
+
+  // If current selectedLang is not among available options, switch automatically
+  useEffect(() => {
+    if (availableLangs && availableLangs.length > 0 && !availableLangs.includes(selectedLang)) {
+      onSelectLang(displayedOptions[0].code);
+    }
+  }, [availableLangs, selectedLang, onSelectLang, displayedOptions]);
+
+  const defaultTooltip = isAvailableEmpty
+    ? 'No Subtitles Available for this Act'
+    : tooltip ||
+      (type === 'mp3'
+        ? `Audio Voice: ${currentMeta.label}`
+        : type === 'vtt'
+        ? `Subtitles: ${currentMeta.label}`
+        : `Language: ${currentMeta.label}`);
 
   return (
     <div
@@ -201,21 +214,26 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
       {/* Trigger Button with exact circular flag + golden chevron matching reference image */}
       <button
         type="button"
+        disabled={isAvailableEmpty}
         onClick={(e) => {
           e.stopPropagation();
-          setIsOpen(!isOpen);
+          if (!isAvailableEmpty) {
+            setIsOpen(!isOpen);
+          }
         }}
-        className={`group flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1 rounded-full border transition-all duration-200 cursor-pointer shadow-md hover:scale-105 active:scale-95 ${
-          darkMode
-            ? 'bg-slate-900/95 hover:bg-slate-800 border-[#d4af37]/80 text-[#fce0a2] shadow-[0_2px_12px_rgba(0,0,0,0.6)]'
-            : 'bg-white/98 hover:bg-amber-50/90 border-[#d4af37] text-slate-900 shadow-[0_2px_10px_rgba(212,175,55,0.25)]'
+        className={`group flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1 rounded-full border transition-all duration-200 shadow-md ${
+          isAvailableEmpty
+            ? 'opacity-40 cursor-not-allowed border-slate-700 bg-slate-900/50 text-slate-500'
+            : darkMode
+            ? 'bg-slate-900/95 hover:bg-slate-800 border-[#d4af37]/80 text-[#fce0a2] shadow-[0_2px_12px_rgba(0,0,0,0.6)] hover:scale-105 active:scale-95 cursor-pointer'
+            : 'bg-white/98 hover:bg-amber-50/90 border-[#d4af37] text-slate-900 shadow-[0_2px_10px_rgba(212,175,55,0.25)] hover:scale-105 active:scale-95 cursor-pointer'
         }`}
         title={defaultTooltip}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
         {/* Circular Glossy Flag Icon */}
-        <CircularFlag code={selectedLang} size={26} />
+        <CircularFlag code={currentMeta.code} size={26} />
 
         {/* Golden Metallic Chevron Down Arrow */}
         <div className="flex items-center justify-center pr-0.5">

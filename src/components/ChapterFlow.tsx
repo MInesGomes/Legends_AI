@@ -14,6 +14,10 @@ import {
   getActMp4CandidateUrls,
   getActMp3Url,
   getActVttCandidateUrls,
+  getChoiceMp4CandidateUrls,
+  getChoiceMp3CandidateUrls,
+  getChoiceVttCandidateUrls,
+  getChoiceFeedbackVttCandidateUrls,
   normalizeLangCode,
   realmAtlantisJpg,
 } from '../lib/assetRegistry';
@@ -40,7 +44,29 @@ import {
   Shuffle,
   Compass,
   Scroll,
+  Play,
+  Pause,
 } from 'lucide-react';
+
+export function getTaleWorldAndName(tale: Tale | undefined): { world: string; taleName: string } {
+  if (!tale) return { world: 'Atlantis', taleName: '5crystals' };
+  if (tale.realmId === 'realm-work') {
+    return { world: 'Work', taleName: tale.id === 'tale-job-quest' ? 'job_quest' : 'startup_winner' };
+  }
+  if (tale.realmId === 'realm-marriage') {
+    return { world: 'Marriage', taleName: tale.id === 'tale-one-hart' ? 'one_hart' : 'pride_prejudice' };
+  }
+  if (tale.realmId === 'realm-dad-mom') {
+    return { world: 'DadMom', taleName: tale.id === 'tale-baby' ? 'baby' : tale.id === 'tale-teens' ? 'teens' : 'child' };
+  }
+  if (tale.realmId === 'realm-eldorado') {
+    return { world: 'ElDorado', taleName: 'city_of_gold' };
+  }
+  if (tale.realmId === 'realm-futureland') {
+    return { world: 'FutureLand', taleName: 'ai_horizon' };
+  }
+  return { world: 'Atlantis', taleName: '5crystals' };
+}
 
 export type ChoiceId = 'choice1' | 'choice2' | 'choice3' | 'choice4';
 
@@ -87,7 +113,40 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
     title: 'The Awakening Call',
     subtitle: 'Destiny Beckons',
     hasAct1: true,
-    choices: [],
+    choices: [
+      {
+        id: 'choice1',
+        available: true,
+        title: 'Heed the Crystal Harmonic',
+        subtitle: 'Path of Harmonic Wisdom',
+        description: 'Attune yourself to the elder tides and harmonize the crystalline matrix.',
+        skillOutcome: 'Leader',
+      },
+      {
+        id: 'choice2',
+        available: true,
+        title: 'Consult the Elder Archives',
+        subtitle: 'Path of Prudence',
+        description: 'Delve into the ancestral logs before stepping beyond the coral threshold.',
+        skillOutcome: 'Plan',
+      },
+      {
+        id: 'choice3',
+        available: true,
+        title: 'Probe the Sunken Chasm',
+        subtitle: 'Path of Discovery',
+        description: 'Descend with courage into the luminous crevasse to investigate ancient tremors.',
+        skillOutcome: 'Listen',
+      },
+      {
+        id: 'choice4',
+        available: true,
+        title: 'Assemble the Coral Vanguard',
+        subtitle: 'Path of Unity',
+        description: 'Unite the kingdom sentinels into an unbreakable defensive formation.',
+        skillOutcome: 'Win4All',
+      },
+    ],
   },
   {
     id: 2,
@@ -326,116 +385,41 @@ function buildFeedbackVttCandidateUrls(
 
   return [
     // Standard pattern requested with language suffix
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}_${langCode}.vtt`,
-    // Exact pattern from prompt
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}.vtt`,
-    // Atlantis 5crystals alias
-    `${SUPABASE_BASE_URL}/${world}/5crystals/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}_${langCode}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/5crystals/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}_${langCode}.vtt`
   ];
 }
 
-/**
- * Fallback feedback VTT content across languages when Supabase network is pending or file is missing
- */
-function getFallbackFeedbackVtt(
-  chapterNumber: number,
-  choiceId: ChoiceId,
-  lang: Language,
-  choiceTitle?: string
-): string {
-  const langCode = normalizeLangCode(lang);
-  const choiceNum = choiceId.replace('choice', '') || '1';
+const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT-pt'];
+const vttUrlCache = new Map<string, boolean>();
 
-  if (langCode === 'es') {
-    return `WEBVTT
-
-00:00:01.000 --> 00:00:06.000
-CAPÍTULO ${chapterNumber}: ELECCIÓN ${choiceNum}
-${choiceTitle ? choiceTitle.toUpperCase() : 'EL CAMINO DE LA SABIDURÍA'}
-
-00:00:07.000 --> 00:00:14.000
-Has elegido con determinación y perspicacia.
-Las corrientes cristalinas resuenan con una vibración dorada de armonía.
-
-00:00:15.000 --> 00:00:23.000
-Al comprender el impacto de tus decisiones sobre todos los seres de la ciudad,
-demuestras el auténtico espíritu de un guardián legendario.
-
-00:00:24.000 --> 00:00:32.000
-Lee en voz alta este mensaje para sellar tu aprendizaje y afianzar tu maestría lingüística.`;
+async function checkVttUrl(url: string): Promise<boolean> {
+  if (vttUrlCache.has(url)) {
+    return vttUrlCache.get(url)!;
   }
-
-  if (langCode === 'it') {
-    return `WEBVTT
-
-00:00:01.000 --> 00:00:06.000
-CAPITOLO ${chapterNumber}: SCELTA ${choiceNum}
-${choiceTitle ? choiceTitle.toUpperCase() : 'IL SENTIERO DELLA SAGGEZZA'}
-
-00:00:07.000 --> 00:00:14.000
-Hai scelto con lucidità e coraggio straordinari.
-Le acque cristalline brillano di una radiosità dorata e profonda.
-
-00:00:15.000 --> 00:00:23.000
-Ascoltando le correnti con rispetto, sveli i segreti custoditi nel cuore del regno.
-
-00:00:24.000 --> 00:00:32.000
-Leggi questo messaggio ad alta voce per consacrare il tuo trionfo e conquistare punti maestria.`;
+  try {
+    const headRes = await fetch(url, { method: 'HEAD' });
+    if (headRes.ok && headRes.status === 200) {
+      vttUrlCache.set(url, true);
+      return true;
+    }
+    if (headRes.status === 404) {
+      vttUrlCache.set(url, false);
+      return false;
+    }
+    // Fallback to GET
+    const getRes = await fetch(url);
+    if (getRes.ok && getRes.status === 200) {
+      const text = await getRes.text();
+      const isValid = text.includes('WEBVTT') || text.includes('-->');
+      vttUrlCache.set(url, isValid);
+      return isValid;
+    }
+    vttUrlCache.set(url, false);
+    return false;
+  } catch {
+    vttUrlCache.set(url, false);
+    return false;
   }
-
-  if (langCode === 'pt') {
-    return `WEBVTT
-
-00:00:01.000 --> 00:00:06.000
-CAPÍTULO ${chapterNumber}: ESCOLHA ${choiceNum}
-${choiceTitle ? choiceTitle.toUpperCase() : 'O CAMINHO DA SABEDORIA'}
-
-00:00:07.000 --> 00:00:14.000
-Escolheste com admirável discernimento e serenidade.
-As correntes ancestrais respondem ao teu apelo com luz dourada.
-
-00:00:15.000 --> 00:00:23.000
-Ao proteger a harmonia do templo, revelas o espírito autêntico dos nobres guardiões.
-
-00:00:24.000 --> 00:00:32.000
-Lê este testemunho em voz alta para celebrar a tua sabedoria e acumular pontos de idioma.`;
-  }
-
-  if (langCode === 'nl') {
-    return `WEBVTT
-
-00:00:01.000 --> 00:00:06.000
-HOOFDSTUK ${chapterNumber}: KEUZE ${choiceNum}
-${choiceTitle ? choiceTitle.toUpperCase() : 'HET PAD DER WIJSHEID'}
-
-00:00:07.000 --> 00:00:14.000
-Je hebt gekozen met scherpe intuïtie en moedig inzicht.
-De kristalheldere wateren stralen met een gouden glans van evenwicht.
-
-00:00:15.000 --> 00:00:23.000
-Door te luisteren naar de oude stromingen behoed je het heiligdom voor disharmonie.
-
-00:00:24.000 --> 00:00:32.000
-Lees deze tekst hardop voor om je taalvaardigheid te bewijzen en beloningspunten te verdienen.`;
-  }
-
-  return `WEBVTT
-
-00:00:01.000 --> 00:00:06.000
-CHAPTER ${chapterNumber}: CHOICE ${choiceNum}
-${choiceTitle ? choiceTitle.toUpperCase() : 'THE PATH OF WISDOM'}
-
-00:00:07.000 --> 00:00:14.000
-You have chosen with keen insight and steadfast courage.
-The crystal tides awaken, reverberating with an ancient golden luminescence.
-
-00:00:15.000 --> 00:00:23.000
-By listening to the subterranean echoes rather than acting with haste,
-you uphold the balance and preserve the sanctuary of the realm.
-
-00:00:24.000 --> 00:00:32.000
-Read this passage aloud in the target language to seal your pledge and claim language mastery points.`;
 }
 
 /**
@@ -487,15 +471,17 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [currentChapterNumber, setCurrentChapterNumber] = useState<number>(initialChapterId);
 
   // Active step within the chapter:
-  // Chapter 1: 'act0' -> 'gender_branch' -> 'act1' (if hasAct1) -> Chapter 2 act0
-  // Chapter 2..N: 'act0' -> 'choices' -> 'choice_page'
-  type FlowStep = 'act0' | 'gender_branch' | 'act1' | 'choices' | 'choice_page';
+  // Chapter 1: 'act0' -> 'gender_branch' -> 'act1' (if hasAct1) -> choices (or Chapter 2)
+  // Chapters 2..N: 'act0' -> 'choices' -> 'choice_act' (video & audio) -> 'choice_feedback' (crawl & read)
+  type FlowStep = 'act0' | 'gender_branch' | 'act1' | 'choices' | 'choice_act' | 'choice_feedback';
   const [currentStep, setCurrentStep] = useState<FlowStep>('act0');
   const [selectedChoiceId, setSelectedChoiceId] = useState<ChoiceId>('choice1');
 
   // Audio and Subtitle language selectors
   const [selectedAudioLang, setSelectedAudioLang] = useState<Language>(currentLang);
   const [selectedVttLang, setSelectedVttLang] = useState<Language>(currentLang);
+  const [availableVttLangs, setAvailableVttLangs] = useState<Language[]>(ALL_SUPPORTED_LANGUAGES);
+  const [isCheckingVttLangs, setIsCheckingVttLangs] = useState<boolean>(false);
 
   // Video & audio playback state
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -505,6 +491,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
   const [isMediaNotFound, setIsMediaNotFound] = useState<boolean>(false);
   const [candidateVideoIdx, setCandidateVideoIdx] = useState<number>(0);
+  const [candidateAudioIdx, setCandidateAudioIdx] = useState<number>(0);
 
   // Subtitles & Comments drawer
   const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
@@ -548,6 +535,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return array;
   }, [currentChapterConfig]);
 
+  // Derive world and tale name for Supabase storage paths
+  const { world: currentWorld, taleName: currentTaleName } = useMemo(() => {
+    return getTaleWorldAndName(tale);
+  }, [tale]);
+
   // Construct current Act definition based on flow step
   const currentActData: Act = useMemo(() => {
     const chIdx = currentChapterNumber - 1;
@@ -566,48 +558,131 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
     }
 
-    // Chapters 2..N
-    if (currentStep === 'act0') {
-      return {
-        chapter: chIdx,
-        act: 'act0',
-        title: `Chapter ${currentChapterNumber}: The Turning Point`,
-        type: 'dialogue',
-      };
-    }
-
-    if (currentStep === 'choice_page') {
+    if (currentStep === 'choice_act' || currentStep === 'choice_feedback') {
       const choiceCfg = currentChapterConfig.choices.find((c) => c.id === selectedChoiceId);
+      const choiceNum = selectedChoiceId.replace('choice', '') || '1';
       return {
         chapter: chIdx,
-        act: selectedChoiceId,
-        title: choiceCfg?.title || `Chapter ${currentChapterNumber}: ${selectedChoiceId.toUpperCase()}`,
+        act: `choice${choiceNum}`,
+        title: choiceCfg?.title || `Chapter ${currentChapterNumber} • Choice ${choiceNum}`,
         type: 'choice',
       };
     }
 
-    // Fallback
-    return { chapter: chIdx, act: 'act0', title: `Chapter ${currentChapterNumber}`, type: 'narrative' };
+    // Standard acts (act0)
+    return {
+      chapter: chIdx,
+      act: 'act0',
+      title: `Chapter ${currentChapterNumber}: The Turning Point`,
+      type: 'dialogue',
+    };
   }, [currentChapterNumber, currentStep, effectiveGender, currentChapterConfig, selectedChoiceId]);
 
   // Construct URLs for the current act media
   const folderPath = useMemo(() => {
-    if (tale) {
-      return `${SUPABASE_BASE_URL}/Atlantis/5crystals/chapter`;
-    }
     return `${SUPABASE_BASE_URL}/Atlantis/5crystals/chapter`;
-  }, [tale]);
+  }, []);
 
   const videoCandidates = useMemo(() => {
+    if (currentStep === 'choice_act') {
+      return getChoiceMp4CandidateUrls(
+        currentWorld,
+        currentTaleName,
+        currentChapterNumber,
+        selectedChoiceId
+      );
+    }
     return getActMp4CandidateUrls(currentActData, folderPath);
-  }, [currentActData, folderPath]);
+  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, currentActData, folderPath]);
+
+  const audioCandidates = useMemo(() => {
+    if (currentStep === 'choice_act') {
+      return getChoiceMp3CandidateUrls(
+        currentWorld,
+        currentTaleName,
+        currentChapterNumber,
+        selectedChoiceId,
+        selectedAudioLang
+      );
+    }
+    const standardUrl = getActMp3Url(currentActData, selectedAudioLang, folderPath);
+    return standardUrl ? [standardUrl] : [];
+  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, selectedAudioLang, currentActData, folderPath]);
 
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
-  const currentAudioUrl = getActMp3Url(currentActData, selectedAudioLang, folderPath);
+  const currentAudioUrl = audioCandidates[candidateAudioIdx] || audioCandidates[0];
+
+  const handleAudioError = () => {
+    if (candidateAudioIdx + 1 < audioCandidates.length) {
+      setCandidateAudioIdx((prev) => prev + 1);
+    }
+  };
+
+  // Check available VTT languages for the current act
+  // "if a vtt file is not available for an act, play the mp3 and mp4 file and remove the language dropdown choice of that specific language. e.g if act0_en.vtt is not available remove the English in the dropdown button"
+  useEffect(() => {
+    if (currentStep === 'choices' || currentStep === 'choice_feedback') return;
+
+    let isMounted = true;
+    setIsCheckingVttLangs(true);
+
+    async function checkLanguages() {
+      const validLangs: Language[] = [];
+
+      await Promise.all(
+        ALL_SUPPORTED_LANGUAGES.map(async (lang) => {
+          const urls =
+            currentStep === 'choice_act'
+              ? getChoiceVttCandidateUrls(
+                  currentWorld,
+                  currentTaleName,
+                  currentChapterNumber,
+                  selectedChoiceId,
+                  lang
+                )
+              : getActVttCandidateUrls(currentActData, lang, folderPath);
+
+          for (const url of urls) {
+            const ok = await checkVttUrl(url);
+            if (ok) {
+              validLangs.push(lang);
+              return;
+            }
+          }
+        })
+      );
+
+      if (isMounted) {
+        const sorted = ALL_SUPPORTED_LANGUAGES.filter((l) => validLangs.includes(l));
+        setAvailableVttLangs(sorted);
+        setIsCheckingVttLangs(false);
+
+        // If the current selectedVttLang is not available, switch to first available
+        if (sorted.length > 0 && !sorted.includes(selectedVttLang)) {
+          setSelectedVttLang(sorted[0]);
+        }
+      }
+    }
+
+    checkLanguages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    currentActData,
+    folderPath,
+    currentStep,
+    currentWorld,
+    currentTaleName,
+    currentChapterNumber,
+    selectedChoiceId,
+  ]);
 
   // Reset media & candidates when step, chapter, or choice changes
   useEffect(() => {
     setCandidateVideoIdx(0);
+    setCandidateAudioIdx(0);
     setIsMediaNotFound(false);
     setIsVideoFinished(false);
     setActiveSubtitle('');
@@ -636,15 +711,24 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   }, [currentChapterNumber, currentStep, selectedChoiceId, selectedAudioLang]);
 
-  // Fetch Subtitles (VTT) for standard act videos
+  // Fetch Subtitles (VTT) for standard act and choice videos
   useEffect(() => {
     if (currentStep === 'choices') return;
-    if (currentStep === 'choice_page') return; // Choice page handles feedback VTT separately
+    if (currentStep === 'choice_feedback') return;
 
     let isMounted = true;
     setActiveSubtitle('');
 
-    const vttCandidates = getActVttCandidateUrls(currentActData, selectedVttLang, folderPath);
+    const vttCandidates =
+      currentStep === 'choice_act'
+        ? getChoiceVttCandidateUrls(
+            currentWorld,
+            currentTaleName,
+            currentChapterNumber,
+            selectedChoiceId,
+            selectedVttLang
+          )
+        : getActVttCandidateUrls(currentActData, selectedVttLang, folderPath);
 
     async function loadStandardVtt() {
       for (const url of vttCandidates) {
@@ -674,17 +758,27 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [currentActData, folderPath, selectedVttLang, currentStep]);
+  }, [
+    currentActData,
+    folderPath,
+    selectedVttLang,
+    currentStep,
+    currentWorld,
+    currentTaleName,
+    currentChapterNumber,
+    selectedChoiceId,
+  ]);
 
-  // Choice Page: Fetch Feedback VTT from Supabase Storage
-  // URL pattern: ${SUPABASE_BASE_URL}/${world}/${tale}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}.vtt
+  // Choice Feedback: Fetch Feedback VTT from Supabase Storage
+  // eg https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/vtt/feedback_en.vtt
+  // If there's no vtt file, skip feedback and go to choices page
   useEffect(() => {
-    if (currentStep !== 'choice_page') return;
+    if (currentStep !== 'choice_act' && currentStep !== 'choice_feedback') return;
 
     let isMounted = true;
-    const choiceCfg = currentChapterConfig.choices.find((c) => c.id === selectedChoiceId);
-    const candidateUrls = buildFeedbackVttCandidateUrls(
-      tale,
+    const candidateUrls = getChoiceFeedbackVttCandidateUrls(
+      currentWorld,
+      currentTaleName,
       currentChapterNumber,
       selectedChoiceId,
       selectedVttLang
@@ -697,10 +791,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           if (res.ok) {
             const text = await res.text();
             if (isMounted && text && text.includes('WEBVTT')) {
-              setVttRawText(text);
               const paras = extractCleanTextFromVtt(text);
-              setFeedbackParagraphs(paras.length > 0 ? paras : [text]);
-              return;
+              if (paras.length > 0) {
+                setVttRawText(text);
+                setFeedbackParagraphs(paras);
+                return;
+              }
             }
           }
         } catch {
@@ -708,16 +804,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         }
       }
 
-      // Fallback content if Supabase bucket doesn't have the file yet
+      // No VTT file found: skip feedback and return to choices page
       if (isMounted) {
-        const fallbackText = getFallbackFeedbackVtt(
-          currentChapterNumber,
-          selectedChoiceId,
-          selectedVttLang,
-          choiceCfg?.title
-        );
-        setVttRawText(fallbackText);
-        setFeedbackParagraphs(extractCleanTextFromVtt(fallbackText));
+        setVttRawText('');
+        setFeedbackParagraphs([]);
+        if (currentStep === 'choice_feedback') {
+          setCurrentStep('choices');
+        }
       }
     }
 
@@ -726,7 +819,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [currentStep, currentChapterNumber, selectedChoiceId, selectedVttLang, tale, currentChapterConfig]);
+  }, [
+    currentStep,
+    currentChapterNumber,
+    selectedChoiceId,
+    selectedVttLang,
+    currentWorld,
+    currentTaleName,
+  ]);
 
   // Synchronize audio and video playback
   useEffect(() => {
@@ -809,6 +909,31 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
    *    -> choice page completed -> act0 of Chapter N+1 (or finish story)
    */
   const goToNext = () => {
+    // 1. If currently playing a choice act video, advance to its feedback screen if vtt exists, else skip to choices
+    if (currentStep === 'choice_act') {
+      if (feedbackParagraphs.length > 0) {
+        setCurrentStep('choice_feedback');
+      } else {
+        setCurrentStep('choices');
+      }
+      return;
+    }
+
+    // 2. If on choice feedback screen, advance to the next chapter or finish
+    if (currentStep === 'choice_feedback') {
+      const nextChapterId = currentChapterNumber + 1;
+      const nextExists = chapterConfigs.some((cfg) => cfg.id === nextChapterId);
+      if (nextExists) {
+        setCurrentChapterNumber(nextChapterId);
+        setCurrentStep('act0');
+      } else {
+        if (onClose) onClose();
+      }
+      return;
+    }
+
+    // Chapter 1 Flow:
+    // act0 -> gender_branch -> act1 (if hasAct1) -> choices (if available) -> Chapter 2 act0
     if (currentChapterNumber === 1) {
       if (currentStep === 'act0') {
         setCurrentStep('gender_branch');
@@ -819,42 +944,65 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           setCurrentStep('act1');
           return;
         }
-        // Chapter 1 without act1 -> act0 of Chapter 2
+        if (currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available)) {
+          setCurrentStep('choices');
+          return;
+        }
         setCurrentChapterNumber(2);
         setCurrentStep('act0');
         return;
       }
       if (currentStep === 'act1') {
-        // act1 finished -> act0 of Chapter 2
+        if (currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available)) {
+          setCurrentStep('choices');
+          return;
+        }
         setCurrentChapterNumber(2);
         setCurrentStep('act0');
         return;
       }
+      if (currentStep === 'choices') {
+        const firstAvail = currentChapterConfig.choices.find((c) => c.available) || currentChapterConfig.choices[0];
+        if (firstAvail) {
+          handleSelectChoice(firstAvail.id);
+        }
+        return;
+      }
     }
 
-    // Chapters 2..N
+    // Chapters 2..N Flow:
+    // act0 -> choices -> choice_act -> choice_feedback -> Chapter N+1 act0
     if (currentChapterNumber >= 2) {
       if (currentStep === 'act0') {
-        // act0 finished -> present available choices
         setCurrentStep('choices');
         return;
       }
-      if (currentStep === 'choice_page') {
-        // Choice page finished -> transition to next chapter or finish
-        const nextChapterId = currentChapterNumber + 1;
-        const nextExists = chapterConfigs.some((cfg) => cfg.id === nextChapterId);
-        if (nextExists) {
-          setCurrentChapterNumber(nextChapterId);
-          setCurrentStep('act0');
-        } else {
-          if (onClose) onClose();
+      if (currentStep === 'choices') {
+        const firstAvail = currentChapterConfig.choices.find((c) => c.available) || currentChapterConfig.choices[0];
+        if (firstAvail) {
+          handleSelectChoice(firstAvail.id);
         }
+        return;
       }
     }
   };
 
   const goToPrev = () => {
+    if (currentStep === 'choice_feedback') {
+      setCurrentStep('choice_act');
+      return;
+    }
+
+    if (currentStep === 'choice_act') {
+      setCurrentStep('choices');
+      return;
+    }
+
     if (currentChapterNumber === 1) {
+      if (currentStep === 'choices') {
+        setCurrentStep(currentChapterConfig.hasAct1 ? 'act1' : 'gender_branch');
+        return;
+      }
       if (currentStep === 'act1') {
         setCurrentStep('gender_branch');
         return;
@@ -871,10 +1019,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
     // Chapters 2..N
     if (currentChapterNumber >= 2) {
-      if (currentStep === 'choice_page') {
-        setCurrentStep('choices');
-        return;
-      }
       if (currentStep === 'choices') {
         setCurrentStep('act0');
         return;
@@ -883,20 +1027,28 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         // Go back to previous chapter
         const prevChapterId = currentChapterNumber - 1;
         setCurrentChapterNumber(prevChapterId);
-        if (prevChapterId === 1) {
-          const prevConfig = chapterConfigs.find((c) => c.id === 1);
+        const prevConfig = chapterConfigs.find((c) => c.id === prevChapterId);
+        if (prevConfig?.choices && prevConfig.choices.some((c) => c.available)) {
+          setCurrentStep('choices');
+        } else if (prevChapterId === 1) {
           setCurrentStep(prevConfig?.hasAct1 ? 'act1' : 'gender_branch');
         } else {
-          setCurrentStep('choices');
+          setCurrentStep('act0');
         }
       }
     }
   };
 
-  // Choice selection handler
+  // Choice selection handler: plays the chosen act video and audio
   const handleSelectChoice = (choiceId: ChoiceId) => {
     setSelectedChoiceId(choiceId);
-    setCurrentStep('choice_page');
+    setCandidateVideoIdx(0);
+    setCandidateAudioIdx(0);
+    setIsVideoFinished(false);
+    setIsMediaNotFound(false);
+    setVttRawText('');
+    setFeedbackParagraphs([]);
+    setCurrentStep('choice_act');
   };
 
   // Language selectors
@@ -1088,7 +1240,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 ? 'The Decision (Act 1)'
                 : currentStep === 'choices'
                 ? 'Decision Nexus'
-                : `Choice: ${selectedChoiceId.toUpperCase()}`}
+                : currentStep === 'choice_act'
+                ? `Choice: ${selectedChoiceId.toUpperCase()}`
+                : `Feedback: ${selectedChoiceId.toUpperCase()}`}
             </span>
           </div>
         </div>
@@ -1206,15 +1360,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               ))}
             </div>
 
-            <div className="mt-6 flex items-center gap-2 text-xs text-slate-400">
-              <Shuffle className="w-3.5 h-3.5 text-[#d4af37]" />
-              <span>Available choices are randomly shuffled</span>
-            </div>
           </div>
         )}
 
-        {/* B. CHOICE PAGE: STAR WARS INTRO EFFECT & READ ALOUD SCREEN */}
-        {currentStep === 'choice_page' && (
+        {/* B. CHOICE FEEDBACK: STAR WARS INTRO EFFECT & READ ALOUD SCREEN */}
+        {currentStep === 'choice_feedback' && feedbackParagraphs.length > 0 && (
           <div
             id="choice-feedback-starwars-view"
             className="relative z-20 w-full h-full flex flex-col items-center justify-center p-4 sm:p-6"
@@ -1382,6 +1532,21 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                         I have read it aloud (Claim Points)
                       </button>
                     )}
+
+                    {/* Direct Next Chapter / Continue Button */}
+                    <button
+                      id="feedback-next-chapter-action-btn"
+                      onClick={goToNext}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer"
+                    >
+                      <span>
+                        {currentChapterNumber >= chapterConfigs.length
+                          ? t('finishBtn', currentLang)
+                          : 'Next Chapter'}
+                      </span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -1389,8 +1554,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           </div>
         )}
 
-        {/* C. STANDARD ACT VIDEO MEDIA (Chapter 1 acts & Chapter 2..N act0) */}
-        {currentStep !== 'choices' && currentStep !== 'choice_page' && (
+        {/* C. ACT VIDEO MEDIA (Chapter 1 acts, Chapter 2..N act0, and Choice Acts) */}
+        {currentStep !== 'choices' && currentStep !== 'choice_feedback' && (
           <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
             {!isMediaNotFound ? (
               <video
@@ -1410,7 +1575,18 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     audioRef.current.pause();
                     audioRef.current.currentTime = 0;
                   }
-                  if (isAutoPlay) {
+                  if (currentStep === 'choice_act') {
+                    // After choice video finishes, display feedback if vtt exists, otherwise go to choices
+                    if (isAutoPlay) {
+                      setTimeout(() => {
+                        if (feedbackParagraphs.length > 0) {
+                          setCurrentStep('choice_feedback');
+                        } else {
+                          setCurrentStep('choices');
+                        }
+                      }, 1000);
+                    }
+                  } else if (isAutoPlay) {
                     setTimeout(() => {
                       goToNext();
                     }, 3500);
@@ -1442,10 +1618,26 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 muted={isMuted}
                 preload="auto"
                 playsInline
+                onError={handleAudioError}
                 onEnded={() => {
                   if (isMediaNotFound) {
                     setIsVideoFinished(true);
                     setActiveSubtitle('');
+                    if (currentStep === 'choice_act') {
+                      if (isAutoPlay) {
+                        setTimeout(() => {
+                          if (feedbackParagraphs.length > 0) {
+                            setCurrentStep('choice_feedback');
+                          } else {
+                            setCurrentStep('choices');
+                          }
+                        }, 1000);
+                      }
+                    } else if (isAutoPlay) {
+                      setTimeout(() => {
+                        goToNext();
+                      }, 2500);
+                    }
                   }
                 }}
               />
@@ -1516,7 +1708,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 <p className="font-sans text-xs sm:text-sm italic text-center text-slate-400">
                   {currentStep === 'choices'
                     ? 'Select an available path to proceed'
-                    : currentStep === 'choice_page'
+                    : currentStep === 'choice_act'
+                    ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : currentActData.title)
+                    : currentStep === 'choice_feedback'
                     ? `Language Practice: ${selectedVttLang}`
                     : isVideoFinished
                     ? 'Act Completed'
@@ -1533,7 +1727,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 selectedLang={selectedVttLang}
                 onSelectLang={handleVttLanguageSelected}
                 darkMode={darkMode}
-                tooltip="Subtitles / Reading Language (VTT)"
+                availableLangs={availableVttLangs}
+                tooltip={availableVttLangs.length === 0 ? 'No Subtitles Available for this Act' : 'Subtitles / Reading Language (VTT)'}
               />
             </div>
           </div>
@@ -1592,9 +1787,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               <span>
                 {currentStep === 'choices'
                   ? 'Choose Below'
-                  : currentStep === 'choice_page' && currentChapterNumber >= chapterConfigs.length
+                  : currentStep === 'choice_act'
+                  ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
+                  : currentStep === 'choice_feedback' && currentChapterNumber >= chapterConfigs.length
                   ? t('finishBtn', currentLang)
-                  : currentStep === 'choice_page'
+                  : currentStep === 'choice_feedback'
                   ? 'Next Chapter'
                   : t('nextAct', currentLang)}
               </span>

@@ -203,3 +203,123 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
     type: 'choice',
   },
 ];
+
+/**
+ * Choice Media Helpers
+ * URL Pattern requested:
+ * eg https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/choice1.mp4 , mp3 vtt/choice1.vtt
+ * After choices finishes feedback:
+ * eg https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/vtt/feedback_en.vtt
+ */
+
+export function getChoiceBaseFolder(
+  world = 'Atlantis',
+  taleName = '5crystals',
+  chapterNumber = 1,
+  choiceId = 'choice1'
+): string {
+  const choiceNum = choiceId.replace('choice', '') || '1';
+  return `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNum}`;
+}
+
+export function getChoiceMp4CandidateUrls(
+  world = 'Atlantis',
+  taleName = '5crystals',
+  chapterNumber = 1,
+  choiceId = 'choice1'
+): string[] {
+  const choiceNum = choiceId.replace('choice', '') || '1';
+  const cName = `choice${choiceNum}`;
+  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
+  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
+
+  return Array.from(
+    new Set([
+      `${base}/${cName}.mp4`,
+      `${base}/${cName}_en.mp4`,
+      `${base}/video.mp4`,
+      `${altBase}/${cName}.mp4`,
+    ])
+  );
+}
+
+export function getChoiceMp3CandidateUrls(
+  world = 'Atlantis',
+  taleName = '5crystals',
+  chapterNumber = 1,
+  choiceId = 'choice1',
+  lang: Language | string = 'EN'
+): string[] {
+  const choiceNum = choiceId.replace('choice', '') || '1';
+  const cName = `choice${choiceNum}`;
+  const langCode = normalizeLangCode(lang);
+  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
+  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
+
+  return Array.from(
+    new Set([
+      `${base}/${cName}_${langCode}.mp3`,
+      `${base}/${cName}.mp3`,
+      `${base}/mp3/${cName}_${langCode}.mp3`,
+      `${base}/mp3/${cName}.mp3`,
+      `${base}/${cName}_en.mp3`,
+      `${altBase}/${cName}_${langCode}.mp3`,
+      `${altBase}/${cName}.mp3`,
+    ])
+  );
+}
+
+export function getChoiceVttCandidateUrls(
+  world = 'Atlantis',
+  taleName = '5crystals',
+  chapterNumber = 1,
+  choiceId = 'choice1',
+  lang: Language | string = 'EN'
+): string[] {
+  const choiceNum = choiceId.replace('choice', '') || '1';
+  const cName = `choice${choiceNum}`;
+  const langCode = normalizeLangCode(lang);
+  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
+  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
+
+  return Array.from(
+    new Set([
+      `${base}/vtt/${cName}.vtt`,
+      `${base}/vtt/${cName}_${langCode}.vtt`,
+      `${base}/${cName}_${langCode}.vtt`,
+      `${base}/${cName}.vtt`,
+      `${base}/vvt/${cName}.vtt`,
+      `${altBase}/vtt/${cName}.vtt`,
+    ])
+  );
+}
+
+export function getChoiceFeedbackVttCandidateUrls(
+  world = 'Atlantis',
+  taleName = '5crystals',
+  chapterNumber = 1,
+  choiceId = 'choice1',
+  lang: Language | string = 'EN'
+): string[] {
+  const choiceNum = choiceId.replace('choice', '') || '1';
+  const cName = `choice${choiceNum}`;
+  const langCode = normalizeLangCode(lang);
+  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
+  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
+
+  return Array.from(
+    new Set([
+      `${base}/vtt/feedback_${langCode}.vtt`,
+      `${base}/vtt/feedback_${lang.toLowerCase()}.vtt`,
+      `${base}/vtt/feedback.vtt`,
+      `${base}/feedback_${langCode}.vtt`,
+      `${base}/feedback.vtt`,
+      `${base}/vtt/${cName}_feedback.vtt`,
+      `${base}/${cName}_feedback.vtt`,
+      `${altBase}/vtt/feedback_${langCode}.vtt`,
+      `${base}/vtt/${cName}.vtt`,
+      `${base}/${cName}.vtt`,
+    ])
+  );
+}
+

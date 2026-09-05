@@ -85,6 +85,38 @@ function parseVttToCues(vttText: string): SubtitleCue[] {
   return cues;
 }
 
+const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT-pt'];
+const vttUrlCache = new Map<string, boolean>();
+
+async function checkVttUrl(url: string): Promise<boolean> {
+  if (vttUrlCache.has(url)) {
+    return vttUrlCache.get(url)!;
+  }
+  try {
+    const headRes = await fetch(url, { method: 'HEAD' });
+    if (headRes.ok && headRes.status === 200) {
+      vttUrlCache.set(url, true);
+      return true;
+    }
+    if (headRes.status === 404) {
+      vttUrlCache.set(url, false);
+      return false;
+    }
+    const getRes = await fetch(url);
+    if (getRes.ok && getRes.status === 200) {
+      const text = await getRes.text();
+      const isValid = text.includes('WEBVTT') || text.includes('-->');
+      vttUrlCache.set(url, isValid);
+      return isValid;
+    }
+    vttUrlCache.set(url, false);
+    return false;
+  } catch {
+    vttUrlCache.set(url, false);
+    return false;
+  }
+}
+
 export const ActPage: React.FC<ActPageProps> = ({
   tale,
   initialActId,
@@ -131,6 +163,8 @@ export const ActPage: React.FC<ActPageProps> = ({
   // Video and Audio Language tracks
   const [selectedAudioLang, setSelectedAudioLang] = useState<Language>(currentLang);
   const [selectedVttLang, setSelectedVttLang] = useState<Language>(currentLang);
+  const [availableVttLangs, setAvailableVttLangs] = useState<Language[]>(ALL_SUPPORTED_LANGUAGES);
+  const [isCheckingVttLangs, setIsCheckingVttLangs] = useState<boolean>(false);
 
   // Subtitles & Video Finished State
   const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
@@ -149,6 +183,46 @@ export const ActPage: React.FC<ActPageProps> = ({
     setSelectedAudioLang(currentLang);
     setSelectedVttLang(currentLang);
   }, [currentLang]);
+
+  // Check available VTT languages for the current act
+  // "if a vtt file is not available for an act, play only the mp3 file and remove the language dropdown choice of that language. e.g if act0_en.vtt is not available remove the English in the dropdown button"
+  useEffect(() => {
+    let isMounted = true;
+    setIsCheckingVttLangs(true);
+
+    async function checkLanguages() {
+      const validLangs: Language[] = [];
+
+      await Promise.all(
+        ALL_SUPPORTED_LANGUAGES.map(async (lang) => {
+          const urls = getActVttCandidateUrls(currentAct.actData, lang, currentAct.folderPath);
+          for (const url of urls) {
+            const ok = await checkVttUrl(url);
+            if (ok) {
+              validLangs.push(lang);
+              return;
+            }
+          }
+        })
+      );
+
+      if (isMounted) {
+        const sorted = ALL_SUPPORTED_LANGUAGES.filter((l) => validLangs.includes(l));
+        setAvailableVttLangs(sorted);
+        setIsCheckingVttLangs(false);
+
+        if (sorted.length > 0 && !sorted.includes(selectedVttLang)) {
+          setSelectedVttLang(sorted[0]);
+        }
+      }
+    }
+
+    checkLanguages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentAct.actData, currentAct.folderPath]);
 
   // Record view on chapter transition
   useEffect(() => {
@@ -444,6 +518,11 @@ export const ActPage: React.FC<ActPageProps> = ({
                 if (isMediaNotFound) {
                   setIsVideoFinished(true);
                   setActiveSubtitle('');
+                  if (isAutoPlay && currentIndex < actItems.length - 1) {
+                    setTimeout(() => {
+                      goToNext();
+                    }, 3500);
+                  }
                 }
               }}
             />
@@ -662,7 +741,8 @@ export const ActPage: React.FC<ActPageProps> = ({
                 selectedLang={selectedVttLang}
                 onSelectLang={handleVttLanguageSelected}
                 darkMode={darkMode}
-                tooltip={t('selectSubtitlesVtt', currentLang)}
+                availableLangs={availableVttLangs}
+                tooltip={availableVttLangs.length === 0 ? 'No Subtitles Available for this Act' : t('selectSubtitlesVtt', currentLang)}
               />
             </div>
           </div>
