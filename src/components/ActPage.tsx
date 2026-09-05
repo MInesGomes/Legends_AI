@@ -22,7 +22,13 @@ import {
   Sparkles,
   CheckCircle2,
   RotateCcw,
-  Film
+  Film,
+  FastForward,
+  FileText,
+  ChevronUp,
+  ChevronDown,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface ActPageProps {
@@ -85,7 +91,43 @@ function parseVttToCues(vttText: string): SubtitleCue[] {
   return cues;
 }
 
-const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT-pt'];
+/**
+ * Cleanly extracts readable text paragraphs from a WebVTT string
+ */
+function extractCleanTextFromVtt(vttContent: string): string[] {
+  const lines = vttContent.split('\n');
+  const paragraphs: string[] = [];
+  let currentPara: string[] = [];
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) {
+      if (currentPara.length > 0) {
+        paragraphs.push(currentPara.join(' '));
+        currentPara = [];
+      }
+      continue;
+    }
+    if (
+      line.startsWith('WEBVTT') ||
+      line.startsWith('NOTE') ||
+      /^\d+$/.test(line) ||
+      /\d{1,2}:\d{2}/.test(line)
+    ) {
+      continue;
+    }
+    const cleanLine = line.replace(/<[^>]+>/g, '').trim();
+    if (cleanLine) {
+      currentPara.push(cleanLine);
+    }
+  }
+  if (currentPara.length > 0) {
+    paragraphs.push(currentPara.join(' '));
+  }
+  return paragraphs.filter((p) => p.length > 0);
+}
+
+const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT'];
 const vttUrlCache = new Map<string, boolean>();
 
 async function checkVttUrl(url: string): Promise<boolean> {
@@ -170,6 +212,14 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
   const [activeSubtitle, setActiveSubtitle] = useState<string>('');
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
+
+  // Complete VTT File Text State
+  const [rawVttText, setRawVttText] = useState<string>('');
+  const [isVttLoading, setIsVttLoading] = useState<boolean>(false);
+  const [isVttCardCollapsed, setIsVttCardCollapsed] = useState<boolean>(false);
+  const [vttViewMode, setVttViewMode] = useState<'clean' | 'raw'>('clean');
+  const [vttFontSize, setVttFontSize] = useState<'normal' | 'large'>('normal');
+  const [copiedRawVtt, setCopiedRawVtt] = useState<boolean>(false);
 
   // Media loading & "Coming soon" state
   const [candidateVideoIdx, setCandidateVideoIdx] = useState<number>(0);
@@ -263,6 +313,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     setIsMediaNotFound(false);
     setIsVideoFinished(false);
     setActiveSubtitle('');
+    setRawVttText('');
 
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
@@ -287,6 +338,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   useEffect(() => {
     let isMounted = true;
     setActiveSubtitle('');
+    setIsVttLoading(true);
 
     const vttCandidates = getActVttCandidateUrls(currentAct.actData, selectedVttLang, currentAct.folderPath);
 
@@ -298,8 +350,10 @@ export const ActPage: React.FC<ActPageProps> = ({
             const text = await res.text();
             if (isMounted) {
               const cues = parseVttToCues(text);
-              if (cues.length > 0) {
+              if (cues.length > 0 || text.includes('WEBVTT')) {
+                setRawVttText(text);
                 setSubtitles(cues);
+                setIsVttLoading(false);
                 return;
               }
             }
@@ -309,7 +363,9 @@ export const ActPage: React.FC<ActPageProps> = ({
         }
       }
       if (isMounted) {
+        setRawVttText('');
         setSubtitles([]);
+        setIsVttLoading(false);
       }
     }
 
@@ -384,6 +440,41 @@ export const ActPage: React.FC<ActPageProps> = ({
       } else {
         audioRef.current.pause();
       }
+    }
+  };
+
+  const handleSkipMedia = () => {
+    // 1. Pause and seek audio track to end
+    if (audioRef.current) {
+      audioRef.current.pause();
+      try {
+        if (!isNaN(audioRef.current.duration) && audioRef.current.duration > 0) {
+          audioRef.current.currentTime = audioRef.current.duration;
+        }
+      } catch {}
+    }
+    // 2. Pause and seek video track to end
+    if (videoRef.current) {
+      videoRef.current.pause();
+      try {
+        if (!isNaN(videoRef.current.duration) && videoRef.current.duration > 0) {
+          videoRef.current.currentTime = videoRef.current.duration;
+        }
+      } catch {}
+    }
+    // 3. Mark video as finished and clear active subtitle line
+    setIsVideoFinished(true);
+    setActiveSubtitle('');
+  };
+
+  const handleCopyRawVtt = async () => {
+    if (!rawVttText) return;
+    try {
+      await navigator.clipboard.writeText(rawVttText);
+      setCopiedRawVtt(true);
+      setTimeout(() => setCopiedRawVtt(false), 2000);
+    } catch {
+      // Fallback
     }
   };
 
@@ -651,7 +742,181 @@ export const ActPage: React.FC<ActPageProps> = ({
         />
       </div>
 
-      {/* 5. CENTER LEFT: PREVIOUS `<` BUTTON */}
+      {/* 5. COMPLETE VTT FILE TEXT DISPLAY ABOVE THE VIDEO */}
+      <div
+        id="act-complete-vtt-box"
+        className="relative z-25 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-16 sm:pt-20 pb-2 select-text pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className={`w-full rounded-2xl border-2 transition-all duration-300 ${
+            darkMode
+              ? 'bg-slate-950/90 border-[#d4af37]/70 text-slate-100 shadow-[0_8px_32px_rgba(0,0,0,0.85)]'
+              : 'bg-white/95 border-[#c69214] text-slate-900 shadow-[0_8px_25px_rgba(212,175,55,0.2)]'
+          } backdrop-blur-xl p-3 sm:p-4`}
+        >
+          {/* Header of VTT Card */}
+          <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#d4af37]/30 mb-2.5">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#d4af37]" />
+              <span
+                className={`text-xs sm:text-sm font-cinzel font-bold tracking-wider uppercase ${
+                  darkMode ? 'text-amber-200' : 'text-amber-900'
+                }`}
+              >
+                Complete Story Text
+              </span>
+              <span
+                className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold ${
+                  darkMode
+                    ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
+                    : 'bg-amber-100 text-amber-900 border border-amber-300'
+                }`}
+              >
+                {selectedVttLang}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Clean Story vs Raw VTT Mode Toggle */}
+              <div
+                className={`flex items-center rounded-lg border p-0.5 text-xs font-semibold ${
+                  darkMode ? 'bg-slate-900 border-slate-700 text-slate-300' : 'bg-amber-50 border-amber-200 text-slate-700'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setVttViewMode('clean')}
+                  className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
+                    vttViewMode === 'clean'
+                      ? darkMode
+                        ? 'bg-amber-400/25 text-amber-200 font-bold'
+                        : 'bg-white text-amber-950 font-bold shadow-xs'
+                      : 'hover:opacity-80'
+                  }`}
+                  title="View clean story text"
+                >
+                  Story
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVttViewMode('raw')}
+                  className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
+                    vttViewMode === 'raw'
+                      ? darkMode
+                        ? 'bg-amber-400/25 text-amber-200 font-bold'
+                        : 'bg-white text-amber-950 font-bold shadow-xs'
+                      : 'hover:opacity-80'
+                  }`}
+                  title="View raw VTT file text with timecodes"
+                >
+                  Raw VTT
+                </button>
+              </div>
+
+              {/* Font Size Toggle */}
+              <button
+                type="button"
+                onClick={() => setVttFontSize(vttFontSize === 'normal' ? 'large' : 'normal')}
+                className={`px-2 py-0.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                  darkMode
+                    ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-amber-200'
+                    : 'bg-amber-50 border-amber-200 text-slate-800 hover:bg-amber-100'
+                }`}
+                title="Toggle Text Size"
+              >
+                {vttFontSize === 'normal' ? 'A+' : 'A'}
+              </button>
+
+              {/* Copy Raw Text (when in raw mode) */}
+              {vttViewMode === 'raw' && rawVttText && (
+                <button
+                  type="button"
+                  onClick={handleCopyRawVtt}
+                  className={`p-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
+                    darkMode ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-amber-200' : 'bg-amber-50 border-amber-200 text-slate-800'
+                  }`}
+                  title="Copy Raw VTT Text"
+                >
+                  {copiedRawVtt ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+              )}
+
+              {/* Collapse / Expand Toggle */}
+              <button
+                type="button"
+                onClick={() => setIsVttCardCollapsed(!isVttCardCollapsed)}
+                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                  darkMode
+                    ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-amber-200'
+                    : 'bg-amber-50 border-amber-200 text-slate-800 hover:bg-amber-100'
+                }`}
+                title={isVttCardCollapsed ? 'Expand Story Text' : 'Minimize Story Text'}
+              >
+                {isVttCardCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Body Content */}
+          {!isVttCardCollapsed && (
+            <div
+              className={`overflow-y-auto pr-1 transition-all ${
+                vttFontSize === 'large' ? 'max-h-[26vh] sm:max-h-[30vh]' : 'max-h-[20vh] sm:max-h-[24vh]'
+              }`}
+            >
+              {isVttLoading ? (
+                <div className="py-3 text-center text-xs text-amber-300/80 animate-pulse">
+                  Loading subtitles for {selectedVttLang}...
+                </div>
+              ) : vttViewMode === 'raw' ? (
+                rawVttText ? (
+                  <pre className="font-mono text-[11px] sm:text-xs leading-relaxed whitespace-pre-wrap text-amber-100/95 select-all p-2.5 rounded-lg bg-black/50 border border-slate-800">
+                    {rawVttText}
+                  </pre>
+                ) : (
+                  <p className="text-xs italic text-slate-400 py-2">No raw VTT file content available.</p>
+                )
+              ) : (
+                /* Clean formatted story text with real-time active cue highlight */
+                subtitles.length > 0 ? (
+                  <div
+                    className={`leading-relaxed space-y-1.5 ${
+                      vttFontSize === 'large' ? 'text-base sm:text-lg' : 'text-xs sm:text-sm md:text-base'
+                    }`}
+                  >
+                    {subtitles.map((cue, idx) => {
+                      const isCurrent = activeSubtitle && cue.text.trim() === activeSubtitle.trim();
+                      return (
+                        <span
+                          key={idx}
+                          className={`inline transition-all duration-200 mr-1.5 ${
+                            isCurrent
+                              ? darkMode
+                                ? 'bg-amber-400/25 text-amber-200 font-bold px-1.5 py-0.5 rounded shadow-sm border border-amber-400/40'
+                                : 'bg-amber-200 text-amber-950 font-bold px-1.5 py-0.5 rounded shadow-sm border border-amber-400'
+                              : darkMode
+                              ? 'text-slate-200'
+                              : 'text-stone-800'
+                          }`}
+                        >
+                          {cue.text}{' '}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-2 text-center text-xs italic text-slate-400">
+                    No subtitles available for {selectedVttLang}. You can switch subtitle language from the bottom-right menu.
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 6. CENTER LEFT: PREVIOUS `<` BUTTON */}
       <button
         id="act-prev-button"
         onClick={goToPrev}
@@ -747,35 +1012,34 @@ export const ActPage: React.FC<ActPageProps> = ({
             </div>
           </div>
 
-          {/* Act Completion Controls Bar */}
-          {isVideoFinished && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`w-full flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 pt-2.5 pb-1 px-2 sm:px-3 border-t mt-2 rounded-2xl ${
+          {/* Act Completion and Media Controls Bar */}
+          <div
+            id="act-controls-bottom-bar"
+            className={`w-full flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 pt-2.5 pb-1 px-2 sm:px-3 border-t mt-2 rounded-2xl ${
+              darkMode
+                ? 'bg-slate-900/95 border-[#d4af37]/60 text-slate-100 shadow-xl'
+                : 'bg-amber-50/95 border-[#d4af37]/40 text-slate-900 shadow-sm'
+            }`}
+          >
+            {/* Comment Button */}
+            <button
+              id="act-write-comment-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCommentsDrawer(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#d4af37] ${
                 darkMode
-                  ? 'bg-slate-900/95 border-[#d4af37]/60 text-slate-100 shadow-xl'
-                  : 'bg-amber-50/95 border-[#d4af37]/40 text-slate-900 shadow-sm'
-              }`}
+                  ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
+                  : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
+              } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
             >
-              {/* Comment Button */}
-              <button
-                id="act-write-comment-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowCommentsDrawer(true);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                  darkMode
-                    ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
-                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
-                } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
-              >
-                <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
-                <span>{t('commentBtn', currentLang)}</span>
-              </button>
+              <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
+              <span>{t('commentBtn', currentLang)}</span>
+            </button>
 
+            {/* Middle Action Group: Replay and Skip MP3 & MP4 */}
+            <div className="flex items-center gap-2">
               {/* Replay Button */}
               <button
                 id="act-replay-btn"
@@ -788,39 +1052,58 @@ export const ActPage: React.FC<ActPageProps> = ({
                     ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
                     : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
                 } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+                title={t('replayBtn', currentLang)}
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#d4af37]" />
                 <span>{t('replayBtn', currentLang)}</span>
               </button>
 
-              {/* Next / Finish Button */}
-              {!isLastAct ? (
-                <button
-                  id="act-next-completion-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToNext();
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
-                >
-                  <span>{t('nextAct', currentLang)}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              ) : (
-                <button
-                  id="act-close-completion-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClose();
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
-                >
-                  <span>{t('finishBtn', currentLang)}</span>
-                  <CheckCircle2 className="w-4 h-4" />
-                </button>
-              )}
-            </motion.div>
-          )}
+              {/* Skip Button */}
+              <button
+                id="act-skip-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSkipMedia();
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
+                  darkMode
+                    ? 'bg-slate-950 text-amber-200 hover:bg-[#d4af37] hover:text-slate-950'
+                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
+                } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+                title="Skip MP3 and MP4 playback"
+              >
+                <FastForward className="w-3.5 h-3.5 text-[#d4af37]" />
+                <span>{t('skipBtn', currentLang)}</span>
+              </button>
+            </div>
+
+            {/* Next / Finish Button */}
+            {!isLastAct ? (
+              <button
+                id="act-next-completion-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+              >
+                <span>{t('nextAct', currentLang)}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                id="act-close-completion-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+              >
+                <span>{t('finishBtn', currentLang)}</span>
+                <CheckCircle2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
 

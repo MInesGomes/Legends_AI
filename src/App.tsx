@@ -260,7 +260,7 @@ export default function App() {
         'EN': [],
         'ES': [],
         'IT': [],
-        'PT-pt': [],
+        'PT': [],
         'NL': [],
         ...(prev.language_chapters_viewed || {}),
         [lang]: newLangViews,

@@ -81,8 +81,6 @@ export interface ChapterChoiceConfig {
 
 export interface ChapterConfig {
   id: number; // 1..N
-  title?: string;
-  subtitle?: string;
   hasAct1?: boolean; // Chapter 1 optional act1
   choices: ChapterChoiceConfig[];
 }
@@ -110,156 +108,27 @@ export interface ChapterFlowProps {
 export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 1,
-    title: 'The Awakening Call',
-    subtitle: 'Destiny Beckons',
     hasAct1: true,
     choices: [
       {
         id: 'choice1',
         available: true,
-        title: 'Heed the Crystal Harmonic',
-        subtitle: 'Path of Harmonic Wisdom',
-        description: 'Attune yourself to the elder tides and harmonize the crystalline matrix.',
         skillOutcome: 'Leader',
       },
       {
         id: 'choice2',
         available: true,
-        title: 'Consult the Elder Archives',
-        subtitle: 'Path of Prudence',
-        description: 'Delve into the ancestral logs before stepping beyond the coral threshold.',
         skillOutcome: 'Plan',
       },
       {
         id: 'choice3',
         available: true,
-        title: 'Probe the Sunken Chasm',
-        subtitle: 'Path of Discovery',
-        description: 'Descend with courage into the luminous crevasse to investigate ancient tremors.',
         skillOutcome: 'Listen',
       },
       {
         id: 'choice4',
         available: true,
-        title: 'Assemble the Coral Vanguard',
-        subtitle: 'Path of Unity',
-        description: 'Unite the kingdom sentinels into an unbreakable defensive formation.',
         skillOutcome: 'Win4All',
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: 'The Resonance of Atlantis',
-    subtitle: 'The Crystalline Trials',
-    hasAct1: false,
-    choices: [
-      {
-        id: 'choice1',
-        available: true,
-        title: 'Align the Azure Crystal',
-        subtitle: 'Path of Harmonic Wisdom',
-        description: 'Attune yourself to the elder tides and harmonize the crystalline matrix.',
-        skillOutcome: 'Leader',
-      },
-      {
-        id: 'choice2',
-        available: true,
-        title: 'Fortify the Submerged Barrier',
-        subtitle: 'Path of Prudence',
-        description: 'Reinforce the outer gates against the impending oceanic tremor.',
-        skillOutcome: 'Plan',
-      },
-      {
-        id: 'choice3',
-        available: true,
-        title: 'Probe the Abyssal Rift',
-        subtitle: 'Path of Curiosity',
-        description: 'Descend cautiously into the fissure to uncover ancient titan artifacts.',
-        skillOutcome: 'Listen',
-      },
-      {
-        id: 'choice4',
-        available: true,
-        title: 'Surge the Core Generators',
-        subtitle: 'Path of Bold Action',
-        description: 'Unleash full reactor power to dispel the surrounding shadow vortex.',
-        skillOutcome: 'Win4All',
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: 'The Guardians of the Reef',
-    subtitle: 'Testing of Resolve',
-    hasAct1: false,
-    // Chapter 3 defines only choice1 and choice2 as available
-    choices: [
-      {
-        id: 'choice1',
-        available: true,
-        title: 'Commune with the Coral Ancients',
-        subtitle: 'Symbiotic Communion',
-        description: 'Speak in the ancient oceanic tongue to win the favor of the reef protectors.',
-        skillOutcome: 'Win4All',
-      },
-      {
-        id: 'choice2',
-        available: true,
-        title: 'Navigate the Sonic Labyrinth',
-        subtitle: 'Tactical Navigation',
-        description: 'Deploy acoustic probes to chart a safe passage around hostile vortexes.',
-        skillOutcome: 'Plan',
-      },
-      {
-        id: 'choice3',
-        available: false, // Omitted
-        title: 'Force the Coral Gates',
-        description: 'Unavailable in this timeline.',
-      },
-      {
-        id: 'choice4',
-        available: false, // Omitted
-        title: 'Retreat to the Shallows',
-        description: 'Unavailable in this timeline.',
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: 'The Five Crystals Ascendance',
-    subtitle: 'The Pinnacle Outcome',
-    hasAct1: false,
-    choices: [
-      {
-        id: 'choice1',
-        available: true,
-        title: 'Unite the Five Crystals',
-        subtitle: 'The Grand Synthesis',
-        description: 'Bring together all celestial shards to illuminate the forgotten kingdom forever.',
-        skillOutcome: 'Leader',
-      },
-      {
-        id: 'choice2',
-        available: true,
-        title: 'Entrust the Legacy to the Keepers',
-        subtitle: 'Enduring Stewardship',
-        description: 'Seal the inner sanctum so future generations may inherit peace.',
-        skillOutcome: 'Recharge',
-      },
-      {
-        id: 'choice3',
-        available: true,
-        title: 'Broadcast the Light Beyond the Seas',
-        subtitle: 'Global Beacon',
-        description: 'Project the golden frequency to every continent across the globe.',
-        skillOutcome: 'Win4All',
-      },
-      {
-        id: 'choice4',
-        available: false, // Omitted
-        title: 'Disperse the Shards to the Depths',
-        description: 'Unavailable in this timeline.',
       },
     ],
   },
@@ -385,11 +254,11 @@ function buildFeedbackVttCandidateUrls(
 
   return [
     // Standard pattern requested with language suffix
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}_${langCode}.vtt`
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/choice${choiceNumber}_${langCode}.vtt`
   ];
 }
 
-const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT-pt'];
+const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT'];
 const vttUrlCache = new Map<string, boolean>();
 
 async function checkVttUrl(url: string): Promise<boolean> {
@@ -428,16 +297,16 @@ async function checkVttUrl(url: string): Promise<boolean> {
 function getSpeechLangTag(lang: Language): string {
   switch (lang) {
     case 'ES':
-      return 'es-ES';
+      return 'es';
     case 'IT':
-      return 'it-IT';
-    case 'PT-pt':
-      return 'pt-PT';
+      return 'it';
+    case 'PT':
+      return 'pt';
     case 'NL':
-      return 'nl-NL';
+      return 'nl';
     case 'EN':
     default:
-      return 'en-US';
+      return 'en';
   }
 }
 
@@ -502,6 +371,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [vttRawText, setVttRawText] = useState<string>('');
   const [feedbackParagraphs, setFeedbackParagraphs] = useState<string[]>([]);
   const [isCrawlFinished, setIsCrawlFinished] = useState<boolean>(false);
+  const [feedbackFontSize, setFeedbackFontSize] = useState<'normal' | 'large' | 'xlarge'>('large');
   const [isReadingAloud, setIsReadingAloud] = useState<boolean>(false);
   const [readTranscript, setReadTranscript] = useState<string>('');
   const [readAccuracy, setReadAccuracy] = useState<number | null>(null);
@@ -514,7 +384,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return (
       chapterConfigs.find((cfg) => cfg.id === currentChapterNumber) || {
         id: currentChapterNumber,
-        title: `Chapter ${currentChapterNumber}`,
         hasAct1: currentChapterNumber === 1,
         choices: [],
       }
@@ -897,6 +766,28 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   };
 
+  // Skip MP3 and MP4 playback
+  const handleSkipMedia = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      try {
+        if (!isNaN(audioRef.current.duration) && audioRef.current.duration > 0) {
+          audioRef.current.currentTime = audioRef.current.duration;
+        }
+      } catch {}
+    }
+    if (videoRef.current) {
+      videoRef.current.pause();
+      try {
+        if (!isNaN(videoRef.current.duration) && videoRef.current.duration > 0) {
+          videoRef.current.currentTime = videoRef.current.duration;
+        }
+      } catch {}
+    }
+    setIsVideoFinished(true);
+    setActiveSubtitle('');
+  };
+
   /**
    * Primary FLOW TRANSITION LOGIC
    *
@@ -1229,21 +1120,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             } backdrop-blur-md shadow-lg text-xs font-semibold`}
           >
             <Compass className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>Chapter {currentChapterNumber}: {currentChapterConfig.title || tale?.title || 'Atlantis'}</span>
-            <span className="text-[#d4af37] font-bold">|</span>
-            <span className="opacity-80">
-              {currentStep === 'act0'
-                ? 'Intro (Act 0)'
-                : currentStep === 'gender_branch'
-                ? `Branch: ${effectiveGender === 'male' ? 'Daniel' : 'Elena'}`
-                : currentStep === 'act1'
-                ? 'The Decision (Act 1)'
-                : currentStep === 'choices'
-                ? 'Decision Nexus'
-                : currentStep === 'choice_act'
-                ? `Choice: ${selectedChoiceId.toUpperCase()}`
-                : `Feedback: ${selectedChoiceId.toUpperCase()}`}
-            </span>
+            <span> {tale?.title || ''}</span>
           </div>
         </div>
 
@@ -1314,11 +1191,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             </div>
 
             <h2 className="text-xl sm:text-3xl md:text-4xl font-cinzel font-bold text-center mb-2 gold-gradient-text drop-shadow-md">
-              {currentChapterConfig.title || 'Choose Your Path'}
+              {tale?.title || 'Choose Your Path'}
             </h2>
-            <p className="text-xs sm:text-sm text-center text-slate-300 max-w-xl mb-6 sm:mb-8 font-sans">
-              Only available paths appear for this chapter. Make your decision to guide the fate of the realm.
-            </p>
 
             {/* Shuffled Available Choice Buttons */}
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -1367,19 +1241,29 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         {currentStep === 'choice_feedback' && feedbackParagraphs.length > 0 && (
           <div
             id="choice-feedback-starwars-view"
-            className="relative z-20 w-full h-full flex flex-col items-center justify-center p-4 sm:p-6"
+            className="relative z-20 w-full h-full flex flex-col items-center justify-center p-3 sm:p-6"
           >
-            {/* Deep Cosmic Backdrop */}
-            <div className="absolute inset-0 bg-black/95 bg-radial from-slate-900/40 via-black to-black -z-10" />
+            {/* Thematic Adaptive Backdrop for high readability */}
+            <div
+              className={`absolute inset-0 -z-10 transition-colors duration-300 ${
+                darkMode
+                  ? 'bg-black/95 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900/60 via-slate-950 to-black'
+                  : 'bg-[#f7f5f0] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-100/50 via-[#f4f0e6] to-[#ebe3d3]'
+              }`}
+            />
 
             {!isCrawlFinished ? (
-              /* STAR WARS 3D PERSPECTIVE INTRO EFFECT */
+              /* STAR WARS 3D PERSPECTIVE INTRO EFFECT WITH DUAL-MODE CONTRAST */
               <div className="relative w-full h-[70vh] sm:h-[76vh] flex flex-col items-center justify-center overflow-hidden [perspective:420px] select-none">
                 {/* Skip / Fast Forward Button */}
                 <button
                   id="starwars-skip-crawl-btn"
                   onClick={() => setIsCrawlFinished(true)}
-                  className="absolute top-2 right-3 sm:right-6 z-40 px-3 py-1.5 rounded-full border border-[#d4af37]/60 bg-black/80 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                  className={`absolute top-2 right-3 sm:right-6 z-40 px-3.5 py-1.5 rounded-full border text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                    darkMode
+                      ? 'border-[#d4af37]/70 bg-slate-950/90 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950'
+                      : 'border-amber-600/50 bg-white/95 hover:bg-amber-500 text-amber-950 hover:text-white'
+                  }`}
                 >
                   <FastForward className="w-3.5 h-3.5" />
                   <span>Skip Intro & Read</span>
@@ -1391,16 +1275,34 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   onAnimationEnd={() => setIsCrawlFinished(true)}
                 >
                   <div className="mb-6">
-                    <p className="text-[#ffe81f] text-sm sm:text-base font-cinzel font-bold tracking-widest uppercase mb-1">
+                    <p
+                      className={`text-sm sm:text-base font-cinzel font-bold tracking-widest uppercase mb-1 ${
+                        darkMode
+                          ? 'text-[#ffe81f] drop-shadow-[0_0_10px_rgba(255,232,31,0.6)]'
+                          : 'text-amber-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]'
+                      }`}
+                    >
                       Chapter {currentChapterNumber} • Feedback
                     </p>
-                    <h2 className="text-[#ffe81f] text-2xl sm:text-4xl font-cinzel font-extrabold uppercase tracking-wider drop-shadow-[0_0_15px_rgba(255,232,31,0.6)]">
+                    <h2
+                      className={`text-2xl sm:text-4xl font-cinzel font-black uppercase tracking-wider ${
+                        darkMode
+                          ? 'text-[#ffe81f] drop-shadow-[0_0_15px_rgba(255,232,31,0.6)]'
+                          : 'text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)]'
+                      }`}
+                    >
                       {currentChapterConfig.choices.find((c) => c.id === selectedChoiceId)?.title ||
                         `Choice ${selectedChoiceId.replace('choice', '')}`}
                     </h2>
                   </div>
 
-                  <div className="space-y-6 text-[#ffe81f] text-base sm:text-xl font-cinzel font-semibold leading-relaxed drop-shadow-[0_0_8px_rgba(255,232,31,0.5)]">
+                  <div
+                    className={`space-y-6 text-base sm:text-xl font-cinzel font-semibold leading-relaxed ${
+                      darkMode
+                        ? 'text-[#ffe81f] drop-shadow-[0_0_8px_rgba(255,232,31,0.5)]'
+                        : 'text-stone-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]'
+                    }`}
+                  >
                     {feedbackParagraphs.map((para, idx) => (
                       <p key={idx}>{para}</p>
                     ))}
@@ -1409,56 +1311,204 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               </div>
             ) : (
               /* AT THE END OF STAR WARS INTRO:
-                 - ALL THE TEXT ON SCREEN
+                 - ALL THE TEXT ON SCREEN WITH HIGH-CONTRAST LIGHT & DARK READABILITY
+                 - FONT SIZING CONTROLS
+                 - NUMBERED PARAGRAPH BLOCKS WITH GOLD ACCENTS
                  - READ ALOUD BUTTON WITH SPEECH RECOGNITION & SCORE POINTS */
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-                className={`relative z-30 w-full max-w-3xl max-h-[75vh] sm:max-h-[78vh] flex flex-col rounded-3xl border-2 border-[#d4af37] ${
-                  darkMode ? 'bg-slate-950/95 text-slate-100' : 'bg-white/98 text-slate-900'
-                } backdrop-blur-2xl shadow-[0_12px_45px_rgba(0,0,0,0.85)] p-4 sm:p-7 overflow-hidden`}
+                transition={{ duration: 0.35 }}
+                className={`relative z-30 w-full max-w-3xl max-h-[78vh] sm:max-h-[82vh] flex flex-col rounded-3xl border-2 ${
+                  darkMode
+                    ? 'border-[#d4af37]/70 bg-slate-950/95 text-slate-100 shadow-[0_20px_60px_rgba(0,0,0,0.9)]'
+                    : 'border-[#c69214] bg-white/98 text-slate-900 shadow-[0_20px_50px_rgba(180,130,20,0.18)]'
+                } backdrop-blur-2xl p-4 sm:p-7 overflow-hidden`}
               >
-                {/* Header with target reading language */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#d4af37]/40 mb-3 sm:mb-4">
-                  <div className="flex items-center gap-2">
-                    <Scroll className="w-5 h-5 text-[#d4af37]" />
-                    <h3 className="text-base sm:text-xl font-cinzel font-bold text-amber-200">
-                      Feedback: {selectedChoiceId.toUpperCase()}
-                    </h3>
+                {/* Header with target reading language & font size adjustment */}
+                <div
+                  className={`flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b mb-3 sm:mb-4 ${
+                    darkMode ? 'border-[#d4af37]/30' : 'border-amber-200/90'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`p-2 rounded-xl ${
+                        darkMode ? 'bg-amber-400/15 text-[#d4af37]' : 'bg-amber-100 text-[#8a5d12]'
+                      }`}
+                    >
+                      <Scroll className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3
+                        className={`text-base sm:text-xl font-cinzel font-bold tracking-wide ${
+                          darkMode ? 'text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-amber-950 font-black'
+                        }`}
+                      >
+                        Feedback: {selectedChoiceId.toUpperCase()}
+                      </h3>
+                      <p
+                        className={`text-[11px] font-sans ${
+                          darkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
+                        }`}
+                      >
+                        Read the passage aloud to earn Language Mastery points
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 text-xs text-amber-200 font-medium">
-                    <span>Language:</span>
-                    <span className="font-bold text-[#d4af37]">{selectedVttLang}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Replay Crawl Button */}
+                    <button
+                      type="button"
+                      onClick={() => setIsCrawlFinished(false)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                        darkMode
+                          ? 'bg-slate-900/90 border-slate-700 hover:border-amber-400/50 text-slate-300 hover:text-amber-200'
+                          : 'bg-amber-50 border-amber-200 hover:border-amber-400 text-amber-900 hover:bg-amber-100'
+                      }`}
+                      title="Watch the 3D Intro Crawl again"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span className="hidden sm:inline">Intro Crawl</span>
+                    </button>
+
+                    {/* Font size control */}
+                    <div
+                      className={`flex items-center rounded-lg border p-0.5 text-xs font-semibold ${
+                        darkMode
+                          ? 'bg-slate-900 border-slate-700 text-slate-300'
+                          : 'bg-amber-50/80 border-amber-200 text-slate-700'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackFontSize('normal')}
+                        className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
+                          feedbackFontSize === 'normal'
+                            ? darkMode
+                              ? 'bg-amber-400/25 text-amber-200 font-bold'
+                              : 'bg-white text-amber-950 font-bold shadow-xs'
+                            : 'hover:opacity-80'
+                        }`}
+                        title="Standard Text Size"
+                      >
+                        A
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackFontSize('large')}
+                        className={`px-2 py-0.5 rounded text-sm transition-colors cursor-pointer ${
+                          feedbackFontSize === 'large'
+                            ? darkMode
+                              ? 'bg-amber-400/25 text-amber-200 font-bold'
+                              : 'bg-white text-amber-950 font-bold shadow-xs'
+                            : 'hover:opacity-80'
+                        }`}
+                        title="Large Text Size"
+                      >
+                        A+
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackFontSize('xlarge')}
+                        className={`px-2 py-0.5 rounded text-base transition-colors cursor-pointer ${
+                          feedbackFontSize === 'xlarge'
+                            ? darkMode
+                              ? 'bg-amber-400/25 text-amber-200 font-bold'
+                              : 'bg-white text-amber-950 font-bold shadow-xs'
+                            : 'hover:opacity-80'
+                        }`}
+                        title="Extra Large Text Size"
+                      >
+                        A++
+                      </button>
+                    </div>
+
+                    {/* Language Badge */}
+                    <div
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold ${
+                        darkMode
+                          ? 'bg-amber-400/10 border-amber-400/30 text-amber-200'
+                          : 'bg-amber-100/90 border-amber-300 text-amber-900'
+                      }`}
+                    >
+                      <span className={darkMode ? 'text-amber-300/70' : 'text-amber-700'}>Lang:</span>
+                      <span className={`font-bold ${darkMode ? 'text-amber-200' : 'text-amber-950'}`}>
+                        {selectedVttLang}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* All Text Displayed on Screen */}
                 <div
                   id="choice-feedback-full-text"
-                  className="flex-1 overflow-y-auto pr-2 space-y-3 sm:space-y-4 font-sans text-sm sm:text-base leading-relaxed text-slate-200 max-h-[36vh] sm:max-h-[42vh]"
+                  className="flex-1 overflow-y-auto pr-2 space-y-3.5 sm:space-y-4 max-h-[38vh] sm:max-h-[44vh] custom-scrollbar"
                 >
                   {feedbackParagraphs.map((para, i) => (
-                    <p
+                    <div
                       key={i}
-                      className="p-3 rounded-xl bg-slate-900/60 border border-[#d4af37]/20 text-amber-100/95 font-medium leading-relaxed"
+                      className={`p-4 sm:p-5 rounded-2xl border-l-4 transition-all ${
+                        darkMode
+                          ? 'bg-slate-900/85 border border-slate-800/80 border-l-[#d4af37] text-slate-100 shadow-sm'
+                          : 'bg-amber-50/40 hover:bg-amber-50/70 border border-amber-200/70 border-l-[#b8860b] text-stone-900 shadow-xs'
+                      }`}
                     >
-                      {para}
-                    </p>
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono mt-0.5 ${
+                            darkMode
+                              ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
+                              : 'bg-amber-100 text-amber-900 border border-amber-300'
+                          }`}
+                        >
+                          {i + 1}
+                        </span>
+                        <p
+                          className={`${
+                            feedbackFontSize === 'normal'
+                              ? 'text-sm sm:text-base leading-relaxed'
+                              : feedbackFontSize === 'large'
+                              ? 'text-base sm:text-lg leading-relaxed sm:leading-loose'
+                              : 'text-lg sm:text-xl leading-relaxed sm:leading-loose font-medium'
+                          } ${darkMode ? 'text-slate-100' : 'text-stone-900 font-normal sm:font-medium'}`}
+                        >
+                          {para}
+                        </p>
+                      </div>
+                    </div>
                   ))}
                 </div>
 
                 {/* Read Aloud & Score Points Verification Hub */}
-                <div className="mt-4 pt-3 border-t border-[#d4af37]/40 flex flex-col gap-2.5">
+                <div
+                  className={`mt-3.5 pt-3 border-t flex flex-col gap-2.5 ${
+                    darkMode ? 'border-[#d4af37]/30' : 'border-amber-200/90'
+                  }`}
+                >
                   {/* Realtime Spoken Transcript Display */}
                   {readTranscript && (
-                    <div className="p-2.5 rounded-xl bg-amber-500/10 border border-[#d4af37]/40 text-xs text-amber-200">
-                      <span className="font-bold text-[#d4af37]">Heard you say: </span>
-                      <span className="italic">"{readTranscript}"</span>
+                    <div
+                      className={`p-3 rounded-xl border text-xs sm:text-sm ${
+                        darkMode
+                          ? 'bg-amber-950/40 border-amber-400/40 text-amber-100'
+                          : 'bg-amber-50 border-amber-300 text-amber-950 font-medium'
+                      }`}
+                    >
+                      <span className={`font-bold ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
+                        Heard you say:{' '}
+                      </span>
+                      <span className={`italic ${darkMode ? 'text-amber-100' : 'text-stone-900'}`}>
+                        "{readTranscript}"
+                      </span>
                       {readAccuracy !== null && (
-                        <span className="ml-2 font-mono font-bold text-amber-300">
-                          (Match: {readAccuracy}%)
+                        <span
+                          className={`ml-2 font-mono font-bold px-2 py-0.5 rounded text-xs ${
+                            darkMode ? 'bg-amber-400/20 text-amber-200' : 'bg-amber-200 text-amber-950'
+                          }`}
+                        >
+                          Match: {readAccuracy}%
                         </span>
                       )}
                     </div>
@@ -1466,17 +1516,29 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
                   {/* Success / Points Awarded Badge */}
                   {hasClaimedPoints && (
-                    <div className="p-2.5 rounded-xl bg-emerald-950/80 border-2 border-emerald-500/70 text-emerald-200 flex items-center justify-between text-xs font-bold animate-in fade-in">
+                    <div
+                      className={`p-3 rounded-xl border-2 flex items-center justify-between text-xs sm:text-sm font-bold animate-in fade-in ${
+                        darkMode
+                          ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-200'
+                          : 'bg-emerald-50 border-emerald-600/70 text-emerald-900'
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
-                        <Award className="w-4 h-4 text-emerald-400" />
+                        <Award className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
                         <span>Language Mastery Verified! +50 Points Awarded in {selectedVttLang}</span>
                       </div>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <CheckCircle2 className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
                     </div>
                   )}
 
                   {speechError && (
-                    <div className="p-2 rounded-xl bg-amber-950/60 border border-amber-500/40 text-[11px] text-amber-300">
+                    <div
+                      className={`p-2.5 rounded-xl border text-xs ${
+                        darkMode
+                          ? 'bg-amber-950/60 border-amber-500/40 text-amber-200'
+                          : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
+                      }`}
+                    >
                       {speechError}
                     </div>
                   )}
@@ -1489,11 +1551,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                         id="choice-read-aloud-btn"
                         onClick={isReadingAloud ? stopSpeechRecognition : startSpeechRecognition}
                         type="button"
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 border-[#d4af37] ${
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 ${
                           isReadingAloud
-                            ? 'bg-rose-600 text-white animate-pulse'
-                            : 'bg-[#d4af37] text-slate-950 hover:bg-amber-400'
-                        } font-bold text-xs sm:text-sm shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer`}
+                            ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-400 animate-pulse'
+                            : 'bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 border-amber-300'
+                        } font-bold text-xs sm:text-sm shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer`}
                       >
                         {isReadingAloud ? (
                           <>
@@ -1513,10 +1575,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                         id="choice-listen-tts-btn"
                         onClick={speakPassageNative}
                         type="button"
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[#d4af37]/60 bg-slate-900/80 hover:bg-[#d4af37]/20 text-amber-200 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                          darkMode
+                            ? 'bg-slate-900/90 hover:bg-[#d4af37]/20 border-[#d4af37]/60 text-amber-200'
+                            : 'bg-white hover:bg-amber-50 border-amber-400 text-amber-950 shadow-xs'
+                        }`}
                         title="Listen to native voice pronunciation"
                       >
-                        <Volume1 className="w-4 h-4 text-[#d4af37]" />
+                        <Volume1 className={`w-4 h-4 ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`} />
                         <span className="hidden sm:inline">Listen Pronunciation</span>
                       </button>
                     </div>
@@ -1527,7 +1593,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                         id="choice-claim-points-btn"
                         onClick={awardLanguagePoints}
                         type="button"
-                        className="text-xs text-amber-300 hover:text-amber-200 underline cursor-pointer"
+                        className={`text-xs underline cursor-pointer font-medium ${
+                          darkMode
+                            ? 'text-amber-300 hover:text-amber-200'
+                            : 'text-amber-800 hover:text-amber-950 font-semibold'
+                        }`}
                       >
                         I have read it aloud (Claim Points)
                       </button>
@@ -1538,7 +1608,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                       id="feedback-next-chapter-action-btn"
                       onClick={goToNext}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border-2 border-amber-400 bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
                     >
                       <span>
                         {currentChapterNumber >= chapterConfigs.length
@@ -1705,7 +1775,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   {activeSubtitle}
                 </p>
               ) : (
-                <p className="font-sans text-xs sm:text-sm italic text-center text-slate-400">
+                <p
+                  className={`font-sans text-xs sm:text-sm italic text-center ${
+                    darkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
+                  }`}
+                >
                   {currentStep === 'choices'
                     ? 'Select an available path to proceed'
                     : currentStep === 'choice_act'
@@ -1758,22 +1832,44 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               <span>{t('commentBtn', currentLang)}</span>
             </button>
 
-            {/* Replay */}
-            <button
-              id="act-replay-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleReplay();
-              }}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                darkMode
-                  ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
-                  : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950'
-              } text-xs sm:text-sm font-bold transition-all cursor-pointer hover:scale-105 active:scale-95`}
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-[#d4af37]" />
-              <span>{t('replayBtn', currentLang)}</span>
-            </button>
+            {/* Middle Group: Replay and Skip */}
+            <div className="flex items-center gap-2">
+              {/* Replay */}
+              <button
+                id="act-replay-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleReplay();
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
+                  darkMode
+                    ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
+                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950'
+                } text-xs sm:text-sm font-bold transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+                title={t('replayBtn', currentLang)}
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-[#d4af37]" />
+                <span>{t('replayBtn', currentLang)}</span>
+              </button>
+
+              {/* Skip */}
+              <button
+                id="act-skip-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSkipMedia();
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
+                  darkMode
+                    ? 'bg-slate-950 text-amber-200 hover:bg-[#d4af37] hover:text-slate-950'
+                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
+                } text-xs sm:text-sm font-bold transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+                title="Skip MP3 and MP4 playback"
+              >
+                <FastForward className="w-3.5 h-3.5 text-[#d4af37]" />
+                <span>{t('skipBtn', currentLang)}</span>
+              </button>
+            </div>
 
             {/* Next Step / Continue Button */}
             <button
@@ -1805,7 +1901,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       {showCommentsDrawer && (
         <CommentsDrawer
           chapterId={chapterCommentId}
-          chapterTitle={`Chapter ${currentChapterNumber}: ${currentChapterConfig.title || 'Atlantis'}`}
+          chapterTitle={`Chapter ${currentChapterNumber}: ${tale?.title || 'Atlantis'}`}
           comments={currentComments}
           user={user || null}
           currentLang={currentLang}

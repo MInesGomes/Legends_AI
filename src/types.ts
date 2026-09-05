@@ -1,10 +1,10 @@
-export type Language = 'EN' | 'ES' | 'IT' | 'PT-pt' | 'NL';
+export type Language = 'EN' | 'ES' | 'IT' | 'PT' | 'NL';
 
 export const SUPPORTED_LANGUAGES: { code: Language; label: string; flag: string }[] = [
   { code: 'EN', label: 'English', flag: '🇬🇧' },
   { code: 'ES', label: 'Español', flag: '🇪🇸' },
   { code: 'IT', label: 'Italiano', flag: '🇮🇹' },
-  { code: 'PT-pt', label: 'Português', flag: '🇵🇹' },
+  { code: 'PT', label: 'Português', flag: '🇵🇹' },
   { code: 'NL', label: 'Nederlands', flag: '🇳🇱' },
 ];
 

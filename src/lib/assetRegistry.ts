@@ -56,7 +56,7 @@ export function resolveAssetUrl(url?: string | null, fallback: string = realmAtl
 
 
 /**
- * Normalizes Language code ('EN' | 'ES' | 'IT' | 'PT-pt' | 'NL') to lowercase string ('en', 'es', 'it', 'pt', 'nl')
+ * Normalizes Language code ('EN' | 'ES' | 'IT' | 'PT' | 'NL') to lowercase string ('en', 'es', 'it', 'pt', 'nl')
  */
 export function normalizeLangCode(lang: Language | string = 'EN'): string {
   const l = String(lang).toLowerCase();
@@ -301,24 +301,12 @@ export function getChoiceFeedbackVttCandidateUrls(
   choiceId = 'choice1',
   lang: Language | string = 'EN'
 ): string[] {
-  const choiceNum = choiceId.replace('choice', '') || '1';
-  const cName = `choice${choiceNum}`;
   const langCode = normalizeLangCode(lang);
   const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
-  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
 
   return Array.from(
     new Set([
-      `${base}/vtt/feedback_${langCode}.vtt`,
-      `${base}/vtt/feedback_${lang.toLowerCase()}.vtt`,
-      `${base}/vtt/feedback.vtt`,
-      `${base}/feedback_${langCode}.vtt`,
-      `${base}/feedback.vtt`,
-      `${base}/vtt/${cName}_feedback.vtt`,
-      `${base}/${cName}_feedback.vtt`,
-      `${altBase}/vtt/feedback_${langCode}.vtt`,
-      `${base}/vtt/${cName}.vtt`,
-      `${base}/${cName}.vtt`,
+      `${base}/vtt/feedback_${langCode}.vtt`
     ])
   );
 }

@@ -57,6 +57,8 @@ export interface Translations {
   actCompleted: string;
   commentBtn: string;
   replayBtn: string;
+  skipBtn: string;
+  skipMediaBtn: string;
   finishBtn: string;
 
   // Comments Drawer
@@ -184,6 +186,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     actCompleted: 'Act completed',
     commentBtn: 'Comment',
     replayBtn: 'Replay',
+    skipBtn: 'Skip',
+    skipMediaBtn: 'Skip',
     finishBtn: 'Finish',
 
     commentsTitle: 'Comments',
@@ -305,6 +309,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     actCompleted: 'Acto completado',
     commentBtn: 'Comentar',
     replayBtn: 'Repetir',
+    skipBtn: 'Saltar',
+    skipMediaBtn: 'Saltar',
     finishBtn: 'Finalizar',
 
     commentsTitle: 'Comentarios',
@@ -426,6 +432,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     actCompleted: 'Atto completato',
     commentBtn: 'Commenta',
     replayBtn: 'Rivedi',
+    skipBtn: 'Salta',
+    skipMediaBtn: 'Salta',
     finishBtn: 'Termina',
 
     commentsTitle: 'Commenti',
@@ -495,7 +503,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skill_Recharge: 'Ricarica',
   },
 
-  'PT-pt': {
+  'PT': {
     appTitle: 'Lendas',
     profileProgress: 'Perfil e progresso',
     installApp: 'Instalar aplicação',
@@ -547,6 +555,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     actCompleted: 'Ato concluído',
     commentBtn: 'Comentar',
     replayBtn: 'Repetir',
+    skipBtn: 'Pular',
+    skipMediaBtn: 'Pular',
     finishBtn: 'Concluir',
 
     commentsTitle: 'Comentários',
@@ -668,6 +678,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     actCompleted: 'Akte voltooid',
     commentBtn: 'Reageren',
     replayBtn: 'Opnieuw afspelen',
+    skipBtn: 'Overslaan',
+    skipMediaBtn: 'Overslaan',
     finishBtn: 'Voltooien',
 
     commentsTitle: 'Reacties',

@@ -22,7 +22,7 @@ export const LANGUAGE_METADATA: {
   { code: 'ES', label: 'Spanish', nativeLabel: 'Español', flagCode: 'ES' },
   { code: 'NL', label: 'Dutch', nativeLabel: 'Nederlands', flagCode: 'NL' },
   { code: 'IT', label: 'Italian', nativeLabel: 'Italiano', flagCode: 'IT' },
-  { code: 'PT-pt', label: 'Portuguese', nativeLabel: 'Português', flagCode: 'PT' },
+  { code: 'PT', label: 'Portuguese', nativeLabel: 'Português', flagCode: 'PT' },
 ];
 
 export const CircularFlag: React.FC<{ code: Language; size?: number; className?: string }> = ({
@@ -112,7 +112,7 @@ export const CircularFlag: React.FC<{ code: Language; size?: number; className?:
         </svg>
       )}
 
-      {code === 'PT-pt' && (
+      {code === 'PT' && (
         <svg viewBox="0 0 60 60" className="w-full h-full block">
           <defs>
             <clipPath id="pt-circle-clip">
@@ -286,7 +286,7 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
               </span>
             </div>
             <span className="text-[9px] opacity-75 font-mono">
-              {selectedLang === 'PT-pt' ? 'PT' : selectedLang}
+              {selectedLang}
             </span>
           </div>
 
@@ -294,7 +294,7 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
           <div className="space-y-0.5">
             {displayedOptions.map((item) => {
               const isSelected = item.code === selectedLang;
-              const shortCode = item.code === 'PT-pt' ? 'PT' : item.code;
+              const shortCode = item.code;
 
               return (
                 <button

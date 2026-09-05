@@ -25,7 +25,7 @@ const defaultState: DatabaseState = {
     'EN': ['atlantis-ch1', 'atlantis-ch2'],
     'ES': ['atlantis-ch1'],
     'IT': [],
-    'PT-pt': [],
+    'PT': [],
     'NL': []
   },
   chapters_id_Comments: {
@@ -77,7 +77,7 @@ export function getLocalDb(): DatabaseState {
           'EN': parsed.chapters_id_Views || ['atlantis-ch1', 'atlantis-ch2'],
           'ES': ['atlantis-ch1'],
           'IT': [],
-          'PT-pt': [],
+          'PT': [],
           'NL': []
         })
       }

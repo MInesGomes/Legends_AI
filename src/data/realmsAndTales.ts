@@ -60,7 +60,7 @@ export const REALMS: Realm[] = [
       EN: 'Child',
       ES: 'Infantil',
       IT: 'Bambini',
-      'PT-pt': 'Infantil',
+      PT: 'Infantil',
       NL: 'Kind',
     },
   },
