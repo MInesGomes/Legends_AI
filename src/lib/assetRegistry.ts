@@ -90,6 +90,26 @@ export function getActMp3Url(act: Act, lang: Language | string = 'EN', customFol
 }
 
 /**
+ * Candidate MP3 URLs for act voiceover resilience
+ */
+export function getActMp3CandidateUrls(act: Act, lang: Language | string = 'EN', customFolder?: string): string[] {
+  const base = getActBaseFolder(act, customFolder);
+  const langCode = normalizeLangCode(lang);
+  const actName = act.act;
+
+  const candidates = [
+    `${base}/${actName}_${langCode}.mp3`,
+    `${base}/mp3/${actName}_${langCode}.mp3`,
+    `${base}/${actName}.mp3`,
+    `${base}/mp3/${actName}.mp3`,
+  ];
+  if (langCode === 'en') {
+    candidates.push(`${base}/${actName}_en.mp3`);
+  }
+  return Array.from(new Set(candidates));
+}
+
+/**
  * Constructs MP4 video URL for an Act.
  * e.g. folderPath + chapter + "/" + act + "/" + act + ".mp4"
  * => ".../chapter0/female_act/female_act.mp4"
@@ -220,6 +240,43 @@ export function getChoiceBaseFolder(
 ): string {
   const choiceNum = choiceId.replace('choice', '') || '1';
   return `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNum}`;
+}
+
+/**
+ * Constructs the primary image URL for a choice button,
+ * e.g. https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/choice1.jpg
+ */
+export function getChoiceImageUrl(
+  world = 'Atlantis',
+  taleName = '5crystals',
+  chapterNumber = 1,
+  choiceId = 'choice1'
+): string {
+  const choiceNum = choiceId.replace('choice', '') || '1';
+  const cName = `choice${choiceNum}`;
+  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
+  return `${base}/${cName}.jpg`;
+}
+
+export function getChoiceImageCandidateUrls(
+  world = 'Atlantis',
+  taleName = '5crystals',
+  chapterNumber = 1,
+  choiceId = 'choice1'
+): string[] {
+  const choiceNum = choiceId.replace('choice', '') || '1';
+  const cName = `choice${choiceNum}`;
+  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
+  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
+
+  return Array.from(
+    new Set([
+      `${base}/${cName}.jpg`,
+      `${base}/${cName}.png`,
+      `${base}/${cName}.webp`,
+      `${altBase}/${cName}.jpg`,
+    ])
+  );
 }
 
 export function getChoiceMp4CandidateUrls(

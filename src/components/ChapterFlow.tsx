@@ -7,13 +7,15 @@ import {
   ChapterComment,
   Tale,
 } from '../types';
-import { ActItem, getTaleActItems, getAtlantisActItems } from '../lib/taleData';
+import { ActItem, getTaleActItems, getAtlantisActItems, getTaleFolderPath } from '../lib/taleData';
 import {
   Act,
   SUPABASE_BASE_URL,
   getActMp4CandidateUrls,
   getActMp3Url,
+  getActMp3CandidateUrls,
   getActVttCandidateUrls,
+  getChoiceImageUrl,
   getChoiceMp4CandidateUrls,
   getChoiceMp3CandidateUrls,
   getChoiceVttCandidateUrls,
@@ -23,7 +25,7 @@ import {
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
-import { t } from '../lib/i18n';
+import { t, Translations, TRANSLATIONS } from '../lib/i18n';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -75,8 +77,57 @@ export interface ChapterChoiceConfig {
   available: boolean; // some chapters only have 2 of the 4 choices
   title?: string;
   subtitle?: string;
+  titleKey?: keyof Translations;
+  subtitleKey?: keyof Translations;
+  descriptionKey?: keyof Translations;
   description?: string;
-  skillOutcome?: SkillType;
+  imageUrl?: string;
+}
+
+export function getChoiceLocalizedTitle(
+  choice: ChapterChoiceConfig,
+  lang: Language | string = 'EN',
+  fallbackIndex = 0
+): string {
+  const normalizedLang = (lang as Language) || 'EN';
+  if (choice.titleKey && TRANSLATIONS[normalizedLang]?.[choice.titleKey]) {
+    return t(choice.titleKey, normalizedLang);
+  }
+  const defaultKey = `${choice.id}_title` as keyof Translations;
+  if (TRANSLATIONS[normalizedLang]?.[defaultKey]) {
+    return t(defaultKey, normalizedLang);
+  }
+  return choice.title || `Choice ${fallbackIndex + 1}`;
+}
+
+export function getChoiceLocalizedSubtitle(
+  choice: ChapterChoiceConfig,
+  lang: Language | string = 'EN'
+): string | undefined {
+  const normalizedLang = (lang as Language) || 'EN';
+  if (choice.subtitleKey && TRANSLATIONS[normalizedLang]?.[choice.subtitleKey]) {
+    return t(choice.subtitleKey, normalizedLang);
+  }
+  const defaultKey = `${choice.id}_subtitle` as keyof Translations;
+  if (TRANSLATIONS[normalizedLang]?.[defaultKey]) {
+    return t(defaultKey, normalizedLang);
+  }
+  return choice.subtitle;
+}
+
+export function getChoiceLocalizedDescription(
+  choice: ChapterChoiceConfig,
+  lang: Language | string = 'EN'
+): string | undefined {
+  const normalizedLang = (lang as Language) || 'EN';
+  if (choice.descriptionKey && TRANSLATIONS[normalizedLang]?.[choice.descriptionKey]) {
+    return t(choice.descriptionKey, normalizedLang);
+  }
+  const defaultKey = `${choice.id}_description` as keyof Translations;
+  if (TRANSLATIONS[normalizedLang]?.[defaultKey]) {
+    return t(defaultKey, normalizedLang);
+  }
+  return choice.description;
 }
 
 export interface ChapterConfig {
@@ -104,31 +155,42 @@ export interface ChapterFlowProps {
   initialChapterId?: number;
 }
 
-// Default 4-chapter narrative configuration
+// Default narrative configuration
 export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
-    id: 1,
+    id: 0,
     hasAct1: true,
+    choices: [],
+  },
+  {
+    id: 1,
     choices: [
       {
         id: 'choice1',
+        subtitle: 'Community Leadership',
+        description: "Don’t ask for permission and risk losing everything.",
         available: true,
-        skillOutcome: 'Leader',
       },
       {
         id: 'choice2',
+        title: 'Try to Solve Everything Alone',
+        subtitle: 'Cautious Heroism',
+        description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
         available: true,
-        skillOutcome: 'Plan',
       },
       {
         id: 'choice3',
+        title: 'Wait for the Council',
+        subtitle: 'Passive Compliance',
+        description: 'Delay action until the High Council issues formal evacuation orders.',
         available: true,
-        skillOutcome: 'Listen',
       },
       {
         id: 'choice4',
+        title: 'Force the System',
+        subtitle: 'Aggressive Intervention',
+        description: 'Override security safeguards by force, so all can be saved quickly.',
         available: true,
-        skillOutcome: 'Win4All',
       },
     ],
   },
@@ -326,7 +388,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   onEditComment,
   onDeleteComment,
   darkMode = true,
-  initialChapterId = 1,
+  initialChapterId = 0,
 }) => {
   // Resolve effective avatar gender ('male' or 'female')
   const effectiveGender: 'male' | 'female' =
@@ -336,13 +398,22 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       ? 'male'
       : 'female');
 
-  // Chapter tracking (1..N)
+  // Chapter tracking (0..N)
   const [currentChapterNumber, setCurrentChapterNumber] = useState<number>(initialChapterId);
 
   // Active step within the chapter:
-  // Chapter 1: 'act0' -> 'gender_branch' -> 'act1' (if hasAct1) -> choices (or Chapter 2)
-  // Chapters 2..N: 'act0' -> 'choices' -> 'choice_act' (video & audio) -> 'choice_feedback' (crawl & read)
-  type FlowStep = 'act0' | 'gender_branch' | 'act1' | 'choices' | 'choice_act' | 'choice_feedback';
+  // Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
+  // Chapters 1..N: 'act0' -> CHOICES -> Chapter n+1
+  // 'CHOICES': Choices screen -> 'choice_act' (video & audio) -> 'choice_feedback' (if hasFeedback crawl & read)
+  type FlowStep =
+    | 'act0'
+    | 'male_act'
+    | 'female_act'
+    | 'act1'
+    | 'choices'
+    | 'choice_act'
+    | 'choice_feedback';
+
   const [currentStep, setCurrentStep] = useState<FlowStep>('act0');
   const [selectedChoiceId, setSelectedChoiceId] = useState<ChoiceId>('choice1');
 
@@ -351,6 +422,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [selectedVttLang, setSelectedVttLang] = useState<Language>(currentLang);
   const [availableVttLangs, setAvailableVttLangs] = useState<Language[]>(ALL_SUPPORTED_LANGUAGES);
   const [isCheckingVttLangs, setIsCheckingVttLangs] = useState<boolean>(false);
+
+  // Synchronize audio and subtitle languages when parent currentLang prop updates
+  useEffect(() => {
+    if (currentLang) {
+      setSelectedAudioLang((prev) => (prev !== currentLang ? currentLang : prev));
+      setSelectedVttLang((prev) => (prev !== currentLang ? currentLang : prev));
+      setCandidateAudioIdx(0);
+    }
+  }, [currentLang]);
 
   // Video & audio playback state
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -384,11 +464,21 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return (
       chapterConfigs.find((cfg) => cfg.id === currentChapterNumber) || {
         id: currentChapterNumber,
-        hasAct1: currentChapterNumber === 1,
-        choices: [],
+        hasAct1: currentChapterNumber === 0,
+        choices: currentChapterNumber === 0 ? [] : [
+          { id: 'choice1', available: true },
+          { id: 'choice2', available: true },
+          { id: 'choice3', available: true },
+          { id: 'choice4', available: true },
+        ],
       }
     );
   }, [chapterConfigs, currentChapterNumber]);
+
+  const maxChapterId = useMemo(() => {
+    if (!chapterConfigs || chapterConfigs.length === 0) return 1;
+    return Math.max(...chapterConfigs.map((c) => c.id));
+  }, [chapterConfigs]);
 
   // Available choices in SHUFFLE order
   // "render buttons for each AVAILABLE choice (in shuffle order choice1, choice2, choice3, choice4)"
@@ -411,46 +501,84 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Construct current Act definition based on flow step
   const currentActData: Act = useMemo(() => {
-    const chIdx = currentChapterNumber - 1;
-
-    if (currentChapterNumber === 1) {
+    if (currentChapterNumber === 0) {
       if (currentStep === 'act0') {
-        return { chapter: 0, act: 'act0', title: 'Chapter 1: The Call', type: 'narrative' };
+        return {
+          chapter: 0,
+          act: 'act0',
+          type: 'narrative',
+        };
+      }
+      if (currentStep === 'male_act') {
+        return {
+          chapter: 0,
+          act: 'male_act',
+          characterName: 'Elion',
+          gender: 'male',
+          type: 'character',
+        };
+      }
+      if (currentStep === 'female_act') {
+        return {
+          chapter: 0,
+          act: 'female_act',
+          characterName: 'Alethea',
+          gender: 'female',
+          type: 'character',
+        };
       }
       if (currentStep === 'gender_branch') {
         return effectiveGender === 'male'
-          ? { chapter: 0, act: 'male_act', title: "Daniel's Vision", gender: 'male', type: 'character' }
-          : { chapter: 0, act: 'female_act', title: "Elena's Counsel", gender: 'female', type: 'character' };
+          ? {
+              chapter: 0,
+              act: 'male_act',
+              characterName: 'Elion',
+              gender: 'male',
+              type: 'character',
+            }
+          : {
+              chapter: 0,
+              act: 'female_act',
+              characterName: 'Alethea',
+              gender: 'female',
+              type: 'character',
+            };
       }
       if (currentStep === 'act1') {
-        return { chapter: 0, act: 'act1', title: 'Chapter 1: The Decision', type: 'narrative' };
+        return {
+          chapter: 0,
+          act: 'act1',
+          type: 'narrative',
+        };
       }
     }
 
     if (currentStep === 'choice_act' || currentStep === 'choice_feedback') {
       const choiceCfg = currentChapterConfig.choices.find((c) => c.id === selectedChoiceId);
       const choiceNum = selectedChoiceId.replace('choice', '') || '1';
+      const choiceTitle = choiceCfg
+        ? getChoiceLocalizedTitle(choiceCfg, currentLang, parseInt(choiceNum, 10) - 1)
+        : `Chapter ${currentChapterNumber} • Choice ${choiceNum}`;
       return {
-        chapter: chIdx,
+        chapter: currentChapterNumber,
         act: `choice${choiceNum}`,
-        title: choiceCfg?.title || `Chapter ${currentChapterNumber} • Choice ${choiceNum}`,
+        title: choiceTitle,
         type: 'choice',
       };
     }
 
-    // Standard acts (act0)
+    // Standard acts (act0) for Chapter 1..N
     return {
-      chapter: chIdx,
+      chapter: currentChapterNumber,
       act: 'act0',
-      title: `Chapter ${currentChapterNumber}: The Turning Point`,
       type: 'dialogue',
     };
-  }, [currentChapterNumber, currentStep, effectiveGender, currentChapterConfig, selectedChoiceId]);
+  }, [currentChapterNumber, currentStep, effectiveGender, currentChapterConfig, selectedChoiceId, currentLang]);
 
   // Construct URLs for the current act media
   const folderPath = useMemo(() => {
-    return `${SUPABASE_BASE_URL}/Atlantis/5crystals/chapter`;
-  }, []);
+    return getTaleFolderPath(tale?.id || 'tale-5-crystals', tale?.realmId);
+  }, [tale]);
 
   const videoCandidates = useMemo(() => {
     if (currentStep === 'choice_act') {
@@ -474,8 +602,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         selectedAudioLang
       );
     }
-    const standardUrl = getActMp3Url(currentActData, selectedAudioLang, folderPath);
-    return standardUrl ? [standardUrl] : [];
+    return getActMp3CandidateUrls(currentActData, selectedAudioLang, folderPath);
   }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, selectedAudioLang, currentActData, folderPath]);
 
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
@@ -578,7 +705,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         audioRef.current.pause();
       }
     }
-  }, [currentChapterNumber, currentStep, selectedChoiceId, selectedAudioLang]);
+  }, [currentChapterNumber, currentStep, selectedChoiceId]);
 
   // Fetch Subtitles (VTT) for standard act and choice videos
   useEffect(() => {
@@ -697,7 +824,38 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     currentTaleName,
   ]);
 
-  // Synchronize audio and video playback
+  // Synchronize audio loading and playback with video
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentAudioUrl) return;
+
+    try {
+      audio.load();
+    } catch {}
+
+    const syncAndPlay = () => {
+      if (videoRef.current && !isNaN(videoRef.current.currentTime) && videoRef.current.currentTime > 0) {
+        try {
+          audio.currentTime = videoRef.current.currentTime;
+        } catch {}
+      }
+      if (isAutoPlay && !isMuted) {
+        audio.play().catch(() => {});
+      }
+    };
+
+    if (audio.readyState >= 2) {
+      syncAndPlay();
+    } else {
+      audio.addEventListener('canplay', syncAndPlay, { once: true });
+    }
+
+    return () => {
+      audio.removeEventListener('canplay', syncAndPlay);
+    };
+  }, [currentAudioUrl, isAutoPlay, isMuted]);
+
+  // Synchronize video auto-play
   useEffect(() => {
     if (videoRef.current) {
       if (isAutoPlay) {
@@ -706,23 +864,18 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         videoRef.current.pause();
       }
     }
-    if (audioRef.current && currentAudioUrl) {
-      if (isAutoPlay) {
-        if (videoRef.current && !isNaN(videoRef.current.currentTime)) {
-          audioRef.current.currentTime = videoRef.current.currentTime;
-        }
-        audioRef.current.play().catch(() => {});
-      } else {
-        audioRef.current.pause();
-      }
-    }
-  }, [isAutoPlay, currentAudioUrl]);
+  }, [isAutoPlay]);
 
-  // Synchronize mute
+  // Synchronize mute:
+  // Crucial: video is ALWAYS muted when an MP3 audio track is present so the baked-in English audio from the MP4 doesn't play over the selected MP3 language!
   useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = isMuted;
-    if (audioRef.current) audioRef.current.muted = isMuted;
-  }, [isMuted]);
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+    }
+    if (videoRef.current) {
+      videoRef.current.muted = Boolean(currentAudioUrl) || isMuted;
+    }
+  }, [isMuted, currentAudioUrl]);
 
   const handleTimeUpdate = (curr: number) => {
     if (audioRef.current && videoRef.current && !audioRef.current.paused && Math.abs(audioRef.current.currentTime - curr) > 0.3) {
@@ -788,70 +941,90 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     setActiveSubtitle('');
   };
 
+  const advanceChapterOrClose = () => {
+    const nextChapterId = currentChapterNumber + 1;
+    const nextExists = chapterConfigs.some((cfg) => cfg.id === nextChapterId) || nextChapterId <= maxChapterId;
+    if (nextExists) {
+      setCurrentChapterNumber(nextChapterId);
+      setCurrentStep('act0');
+    } else {
+      if (onClose) onClose();
+    }
+  };
+
   /**
    * Primary FLOW TRANSITION LOGIC
    *
-   * 1. Chapter 1 flow:
-   *    act0 -> (branch by userGender) -> act1 (if hasAct1 true) -> act0 of Chapter 2
+   * Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
+   *   1- male_act then female_act or female_act then male_act according to avatar gender
+   *   e.g.: If avatar male:
+   *   'act0' -> male_act -> female_act -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
+   *   e.g.: If avatar female:
+   *   'act0' -> female_act -> male_act -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
    *
-   * 2. Chapters 2..N flow:
-   *    act0 -> render buttons for each AVAILABLE choice (in shuffle order choice1..choice4)
-   *    -> clicking a choice navigates to that choice's page
-   *    -> choice page completed -> act0 of Chapter N+1 (or finish story)
+   * Chapters 1..N: 'act0' -> CHOICES -> Chapter n+1
+   *
+   * 'CHOICES': Choices screen -> 'choice_act' (video & audio) -> 'choice_feedback' (if hasFeedback crawl & read)
    */
   const goToNext = () => {
-    // 1. If currently playing a choice act video, advance to its feedback screen if vtt exists, else skip to choices
+    // 1. If currently playing a choice act video, advance to its feedback screen if vtt exists, else advance to next chapter
     if (currentStep === 'choice_act') {
       if (feedbackParagraphs.length > 0) {
         setCurrentStep('choice_feedback');
       } else {
-        setCurrentStep('choices');
+        advanceChapterOrClose();
       }
       return;
     }
 
     // 2. If on choice feedback screen, advance to the next chapter or finish
     if (currentStep === 'choice_feedback') {
-      const nextChapterId = currentChapterNumber + 1;
-      const nextExists = chapterConfigs.some((cfg) => cfg.id === nextChapterId);
-      if (nextExists) {
-        setCurrentChapterNumber(nextChapterId);
-        setCurrentStep('act0');
-      } else {
-        if (onClose) onClose();
-      }
+      advanceChapterOrClose();
       return;
     }
 
-    // Chapter 1 Flow:
-    // act0 -> gender_branch -> act1 (if hasAct1) -> choices (if available) -> Chapter 2 act0
-    if (currentChapterNumber === 1) {
+    // 3. Chapter 0 Flow:
+    if (currentChapterNumber === 0) {
+      const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
+      const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
+      const hasChoices = Boolean(currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available));
+
       if (currentStep === 'act0') {
-        setCurrentStep('gender_branch');
+        setCurrentStep(avatarGenderAct);
         return;
       }
-      if (currentStep === 'gender_branch') {
+
+      if (currentStep === avatarGenderAct || currentStep === 'gender_branch') {
+        setCurrentStep(notAvatarGenderAct);
+        return;
+      }
+
+      if (currentStep === notAvatarGenderAct) {
         if (currentChapterConfig.hasAct1) {
           setCurrentStep('act1');
           return;
         }
-        if (currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available)) {
+        if (hasChoices) {
           setCurrentStep('choices');
           return;
         }
-        setCurrentChapterNumber(2);
+        // Advance to Chapter 1
+        setCurrentChapterNumber(1);
         setCurrentStep('act0');
         return;
       }
+
       if (currentStep === 'act1') {
-        if (currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available)) {
+        if (hasChoices) {
           setCurrentStep('choices');
           return;
         }
-        setCurrentChapterNumber(2);
+        // Advance to Chapter 1
+        setCurrentChapterNumber(1);
         setCurrentStep('act0');
         return;
       }
+
       if (currentStep === 'choices') {
         const firstAvail = currentChapterConfig.choices.find((c) => c.available) || currentChapterConfig.choices[0];
         if (firstAvail) {
@@ -861,13 +1034,20 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
     }
 
-    // Chapters 2..N Flow:
-    // act0 -> choices -> choice_act -> choice_feedback -> Chapter N+1 act0
-    if (currentChapterNumber >= 2) {
+    // 4. Chapters 1..N Flow:
+    // 'act0' -> CHOICES -> Chapter n+1
+    if (currentChapterNumber >= 1) {
+      const hasChoices = Boolean(currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available));
+
       if (currentStep === 'act0') {
-        setCurrentStep('choices');
+        if (hasChoices) {
+          setCurrentStep('choices');
+        } else {
+          advanceChapterOrClose();
+        }
         return;
       }
+
       if (currentStep === 'choices') {
         const firstAvail = currentChapterConfig.choices.find((c) => c.available) || currentChapterConfig.choices[0];
         if (firstAvail) {
@@ -889,43 +1069,73 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       return;
     }
 
-    if (currentChapterNumber === 1) {
+    // Chapter 0 Flow Prev:
+    if (currentChapterNumber === 0) {
+      const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
+      const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
+
       if (currentStep === 'choices') {
-        setCurrentStep(currentChapterConfig.hasAct1 ? 'act1' : 'gender_branch');
+        if (currentChapterConfig.hasAct1) {
+          setCurrentStep('act1');
+        } else {
+          setCurrentStep(notAvatarGenderAct);
+        }
         return;
       }
+
       if (currentStep === 'act1') {
-        setCurrentStep('gender_branch');
+        setCurrentStep(notAvatarGenderAct);
         return;
       }
-      if (currentStep === 'gender_branch') {
+
+      if (currentStep === notAvatarGenderAct) {
+        setCurrentStep(avatarGenderAct);
+        return;
+      }
+
+      if (currentStep === avatarGenderAct || currentStep === 'gender_branch') {
         setCurrentStep('act0');
         return;
       }
+
       if (currentStep === 'act0') {
         if (onClose) onClose();
         return;
       }
     }
 
-    // Chapters 2..N
-    if (currentChapterNumber >= 2) {
+    // Chapters 1..N Flow Prev:
+    if (currentChapterNumber >= 1) {
       if (currentStep === 'choices') {
         setCurrentStep('act0');
         return;
       }
+
       if (currentStep === 'act0') {
         // Go back to previous chapter
         const prevChapterId = currentChapterNumber - 1;
         setCurrentChapterNumber(prevChapterId);
-        const prevConfig = chapterConfigs.find((c) => c.id === prevChapterId);
-        if (prevConfig?.choices && prevConfig.choices.some((c) => c.available)) {
-          setCurrentStep('choices');
-        } else if (prevChapterId === 1) {
-          setCurrentStep(prevConfig?.hasAct1 ? 'act1' : 'gender_branch');
+
+        if (prevChapterId === 0) {
+          const ch0Config = chapterConfigs.find((c) => c.id === 0);
+          const hasChoices = Boolean(ch0Config?.choices && ch0Config.choices.some((c) => c.available));
+          if (hasChoices) {
+            setCurrentStep('choices');
+          } else if (ch0Config?.hasAct1 ?? true) {
+            setCurrentStep('act1');
+          } else {
+            const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
+            setCurrentStep(notAvatarGenderAct);
+          }
         } else {
-          setCurrentStep('act0');
+          const prevConfig = chapterConfigs.find((c) => c.id === prevChapterId);
+          if (prevConfig?.choices && prevConfig.choices.some((c) => c.available)) {
+            setCurrentStep('choices');
+          } else {
+            setCurrentStep('act0');
+          }
         }
+        return;
       }
     }
   };
@@ -945,8 +1155,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // Language selectors
   const handleAudioLanguageSelected = (newLang: Language) => {
     setSelectedAudioLang(newLang);
+    setCandidateAudioIdx(0);
     setIsAutoPlay(true);
     setIsVideoFinished(false);
+    if (availableVttLangs.includes(newLang)) {
+      setSelectedVttLang(newLang);
+    }
     if (onLanguageChange) onLanguageChange(newLang);
   };
 
@@ -1067,8 +1281,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       onEarnLanguagePoints(selectedVttLang, 50);
     }
     if (onEarnSkillPoint) {
-      const choiceCfg = currentChapterConfig.choices.find((c) => c.id === selectedChoiceId);
-      onEarnSkillPoint(choiceCfg?.skillOutcome || 'Leader');
+      onEarnSkillPoint(tale?.skill || 'Leader');
     }
   };
 
@@ -1093,49 +1306,58 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   return (
     <div
       id="act-fullscreen-page"
-      className={`fixed inset-0 z-50 w-full h-[100dvh] max-h-[100dvh] overflow-hidden ${
-        darkMode ? 'bg-slate-950 text-slate-100' : 'bg-[#fcfbf9] text-slate-900'
-      } flex flex-col justify-between select-none`}
+      className={`fixed inset-0 z-50 w-full h-[100dvh] max-h-[100dvh] overflow-hidden select-none ${
+        darkMode ? 'bg-black text-slate-100' : 'bg-[#fcfbf9] text-stone-900'
+      }`}
     >
-      {/* 1. TOP HEADER OVERLAY */}
-      <div className="relative z-30 w-full px-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex items-center justify-between pointer-events-auto">
+      {/* 1. TOP HEADER OVERLAY: Completely transparent background, cinematic buttons */}
+      <div className="absolute top-0 left-0 right-0 z-30 w-full px-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex items-center justify-between pointer-events-auto bg-transparent">
         {/* Left: Close Button & Story Plaque */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             id="act-close-button"
             onClick={onClose}
-            className={`p-2 sm:p-2.5 rounded-full border sm:border-2 border-[#d4af37]/70 ${
+            className={`p-1.5 sm:p-2 transition-all hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
               darkMode
-                ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
-                : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
-            } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center`}
+                ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+            }`}
             title={t('closeAct', currentLang)}
+            aria-label={t('closeAct', currentLang)}
           >
-            <CloseIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
+            <CloseIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
           </button>
 
           <div
-            className={`hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#d4af37]/60 ${
-              darkMode ? 'bg-slate-900/80 text-amber-200' : 'bg-white/95 text-slate-900'
-            } backdrop-blur-md shadow-lg text-xs font-semibold`}
+            className={`hidden sm:flex items-center gap-2 px-2 py-1 text-xs font-semibold font-cinzel tracking-wider bg-transparent border-0 ${
+              darkMode
+                ? 'text-amber-200 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
+                : 'text-amber-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+            }`}
           >
-            <Compass className="w-3.5 h-3.5 text-[#d4af37]" />
+            <Compass className={`w-3.5 h-3.5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-700'}`} />
             <span> {tale?.title || ''}</span>
           </div>
         </div>
 
         {/* Right: Audio / Voice & Sound Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Autoplay Toggle */}
           <button
             id="act-autoplay-toggle"
             onClick={() => setIsAutoPlay(!isAutoPlay)}
-            className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-[#d4af37]/60 text-[11px] font-bold transition-all ${
+            className={`px-2 py-1 text-[11px] sm:text-xs font-bold font-mono tracking-widest transition-all cursor-pointer bg-transparent border-0 rounded-none ${
+              darkMode
+                ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
+                : 'drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+            } ${
               isAutoPlay
-                ? 'bg-[#d4af37] text-slate-950 shadow-md'
+                ? darkMode
+                  ? 'text-[#ffe81f] font-black underline decoration-[#d4af37] decoration-2 underline-offset-4'
+                  : 'text-amber-800 font-black underline decoration-amber-600 decoration-2 underline-offset-4'
                 : darkMode
-                ? 'bg-black/60 text-amber-200/80 hover:text-amber-200'
-                : 'bg-white/90 text-slate-700'
+                ? 'text-amber-200/75 hover:text-amber-200'
+                : 'text-amber-800/75 hover:text-amber-950'
             }`}
             title="Toggle Auto Advance"
           >
@@ -1146,14 +1368,19 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           <button
             id="act-sound-toggle"
             onClick={() => setIsMuted(!isMuted)}
-            className={`p-2 sm:p-2.5 rounded-full border sm:border-2 border-[#d4af37]/70 ${
+            className={`p-1.5 sm:p-2 transition-all hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
               darkMode
-                ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
-                : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
-            } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center`}
+                ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+            }`}
             title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+            aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
           >
-            {isMuted ? <VolumeX className="w-4 h-4 text-slate-400" /> : <Volume2 className="w-4 h-4 text-[#d4af37]" />}
+            {isMuted ? (
+              <VolumeX className={`w-5 h-5 sm:w-6 sm:h-6 ${darkMode ? 'text-slate-400 hover:text-white' : 'text-stone-400 hover:text-stone-700'} transition-colors`} />
+            ) : (
+              <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
+            )}
           </button>
 
           {/* Audio Voice MP3 Language Selector */}
@@ -1163,75 +1390,145 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             selectedLang={selectedAudioLang}
             onSelectLang={handleAudioLanguageSelected}
             darkMode={darkMode}
+            cinematic={true}
             tooltip="Voice Audio (MP3)"
           />
         </div>
       </div>
 
-      {/* 2. MAIN VIEWPORT AREA */}
+      {/* 2. MAIN VIEWPORT AREA: Full Screen Edge-to-Edge */}
       <div
         id="act-fullscreen-media-box"
-        className="relative flex-1 w-full overflow-hidden flex items-center justify-center"
+        className={`absolute inset-0 w-full h-full ${
+          currentStep === 'choices' || currentStep === 'choice_feedback'
+            ? 'overflow-y-auto'
+            : 'overflow-hidden'
+        } flex items-start sm:items-center justify-center z-0`}
       >
         {/* A. CHAPTERS 2..N: CHOICES SELECTION SCREEN */}
         {currentStep === 'choices' && (
           <div
             id="chapter-choices-container"
-            className="relative z-20 w-full max-w-4xl px-4 py-8 flex flex-col items-center justify-center animate-in fade-in duration-300"
+            className="relative z-20 w-full max-w-4xl px-4 py-16 sm:py-10 my-auto flex flex-col items-center justify-center animate-in fade-in duration-300"
           >
             {/* Ambient Background Glow */}
-            <div className="absolute inset-0 -z-10 bg-radial from-amber-500/10 via-transparent to-transparent blur-2xl pointer-events-none" />
+            <div
+              className={`absolute inset-0 -z-10 ${
+                darkMode
+                  ? 'bg-radial from-amber-500/10 via-transparent to-transparent'
+                  : 'bg-radial from-amber-400/25 via-amber-200/15 to-transparent'
+              } blur-2xl pointer-events-none`}
+            />
 
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-[#d4af37] animate-pulse" />
-              <span className="text-xs uppercase tracking-widest text-[#d4af37] font-bold">
-                Chapter {currentChapterNumber} Crossroads
+              <Sparkles className={`w-5 h-5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-600'} animate-pulse`} />
+              <span
+                className={`text-xs uppercase tracking-widest font-bold ${
+                  darkMode ? 'text-[#d4af37]' : 'text-amber-800'
+                }`}
+              >
+                {tale?.title || currentTaleName}
               </span>
-              <Sparkles className="w-5 h-5 text-[#d4af37] animate-pulse" />
+              <Sparkles className={`w-5 h-5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-600'} animate-pulse`} />
             </div>
 
-            <h2 className="text-xl sm:text-3xl md:text-4xl font-cinzel font-bold text-center mb-2 gold-gradient-text drop-shadow-md">
-              {tale?.title || 'Choose Your Path'}
+            <h2
+              className={`text-xl sm:text-3xl md:text-4xl font-cinzel font-bold text-center mb-4 sm:mb-6 ${
+                darkMode
+                  ? 'gold-gradient-text drop-shadow-md'
+                  : 'text-amber-950 drop-shadow-sm'
+              }`}
+            >
+              { t('chooseYourPath', currentLang)}
             </h2>
 
             {/* Shuffled Available Choice Buttons */}
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {shuffledAvailableChoices.map((choice, idx) => (
-                <button
-                  key={choice.id}
-                  id={`choice-btn-${choice.id}`}
-                  onClick={() => handleSelectChoice(choice.id)}
-                  type="button"
-                  className={`group relative p-4 sm:p-5 rounded-2xl border-2 border-[#d4af37]/60 ${
-                    darkMode
-                      ? 'bg-slate-900/90 hover:bg-slate-800/95 text-slate-100 hover:border-[#d4af37]'
-                      : 'bg-white/95 hover:bg-amber-50 text-slate-900 hover:border-[#d4af37]'
-                  } shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-left cursor-pointer flex flex-col justify-between`}
-                >
-                  <div className="flex items-center justify-between w-full mb-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/40">
-                      Option {idx + 1} ({choice.id.toUpperCase()})
-                    </span>
-                    <span className="text-xs text-[#d4af37] font-mono group-hover:translate-x-1 transition-transform">
-                      →
-                    </span>
-                  </div>
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {shuffledAvailableChoices.map((choice, idx) => {
+                const choiceImgUrl =
+                  choice.imageUrl ||
+                  getChoiceImageUrl(
+                    currentWorld,
+                    currentTaleName,
+                    currentChapterNumber,
+                    choice.id
+                  );
+                const choiceTitle = getChoiceLocalizedTitle(choice, currentLang, idx);
+                const choiceSubtitle = getChoiceLocalizedSubtitle(choice, currentLang);
+                const choiceDescription = getChoiceLocalizedDescription(choice, currentLang);
 
-                  <h4 className="text-base sm:text-lg font-cinzel font-bold text-amber-200 group-hover:text-amber-300 mb-1">
-                    {choice.title || `Choice ${idx + 1}`}
-                  </h4>
-                  {choice.subtitle && (
-                    <div className="text-xs text-[#d4af37] font-medium mb-1.5 italic">
-                      {choice.subtitle}
+                return (
+                  <button
+                    key={choice.id}
+                    id={`choice-btn-${choice.id}`}
+                    onClick={() => handleSelectChoice(choice.id)}
+                    type="button"
+                    className="group relative p-2 sm:p-2.5 rounded-2xl border-2 border-[#d4af37]/70 hover:border-[#ffe81f] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_12px_40px_rgba(212,175,55,0.45)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-left cursor-pointer flex flex-col justify-between bg-black/80 backdrop-blur-xl"
+                  >
+                    {/* Visual Image Viewport */}
+                    <div className="relative w-full aspect-video overflow-hidden rounded-xl bg-slate-950">
+                      <img
+                        src={choiceImgUrl}
+                        alt={choiceTitle}
+                        crossOrigin="anonymous"
+                        loading="eager"
+                        className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 ${
+                          darkMode ? '' : 'brightness-110 contrast-[1.02]'
+                        }`}
+                        onError={(e) => {
+                          const imgEl = e.currentTarget;
+                          if (!imgEl.dataset.fallbackApplied) {
+                            imgEl.dataset.fallbackApplied = 'true';
+                            imgEl.src = realmAtlantisJpg;
+                          }
+                        }}
+                      />
+
+                      {/* Top & Bottom Cinematic Gradient Overlays */}
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-t ${
+                          darkMode ? 'from-black/90 via-black/30' : 'from-black/75 via-black/15'
+                        } to-transparent pointer-events-none`}
+                      />
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-b ${
+                          darkMode ? 'from-black/60' : 'from-black/30'
+                        } via-transparent to-transparent pointer-events-none`}
+                      />
+
+                      {/* Top Bar: Action Arrow Indicator */}
+                      <div className="absolute top-2.5 sm:top-3 right-2.5 sm:right-3 flex items-center justify-end z-10 pointer-events-none">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 border border-[#d4af37]/80 text-[#ffe81f] flex items-center justify-center backdrop-blur-md group-hover:bg-[#d4af37] group-hover:text-black transition-colors shadow-md">
+                          <span className="text-xs sm:text-sm font-bold group-hover:translate-x-0.5 transition-transform">
+                            →
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Bottom Info overlay: Localized Title, Subtitle, and Description */}
+                      {(choiceTitle || choiceSubtitle || choiceDescription) && (
+                        <div className="absolute bottom-2.5 sm:bottom-3 left-2.5 sm:left-3 right-2.5 sm:right-3 z-10 pointer-events-none">
+                          {choiceTitle && (
+                            <h4 className="text-sm sm:text-base font-cinzel font-bold text-amber-200 group-hover:text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-1">
+                              {choiceTitle}
+                            </h4>
+                          )}
+                          {choiceSubtitle && (
+                            <div className="text-[11px] sm:text-xs text-[#d4af37] font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] italic line-clamp-1">
+                              {choiceSubtitle}
+                            </div>
+                          )}
+                          {choiceDescription && (
+                            <p className="text-[11px] sm:text-xs text-slate-200 line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] font-sans mt-0.5">
+                              {choiceDescription}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {choice.description && (
-                    <p className="text-xs text-slate-300 leading-relaxed font-sans line-clamp-2">
-                      {choice.description}
-                    </p>
-                  )}
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
 
           </div>
@@ -1611,7 +1908,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                       className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border-2 border-amber-400 bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
                     >
                       <span>
-                        {currentChapterNumber >= chapterConfigs.length
+                        {currentChapterNumber >= maxChapterId
                           ? t('finishBtn', currentLang)
                           : 'Next Chapter'}
                       </span>
@@ -1626,18 +1923,36 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
         {/* C. ACT VIDEO MEDIA (Chapter 1 acts, Chapter 2..N act0, and Choice Acts) */}
         {currentStep !== 'choices' && currentStep !== 'choice_feedback' && (
-          <div className="relative w-full h-full flex items-center justify-center bg-slate-950">
+          <div className="relative w-full h-full flex items-start sm:items-center justify-center overflow-hidden bg-black">
             {!isMediaNotFound ? (
               <video
                 id="act-fullscreen-video"
                 ref={videoRef}
                 key={`${currentActData.chapter}-${currentActData.act}-${currentVideoUrl}`}
                 src={currentVideoUrl}
-                muted={isMuted}
+                muted={Boolean(currentAudioUrl) || isMuted}
                 playsInline
                 crossOrigin="anonymous"
                 preload="auto"
                 onTimeUpdate={(e) => handleTimeUpdate(e.currentTarget.currentTime)}
+                onPlay={() => {
+                  if (audioRef.current && isAutoPlay && !isMuted) {
+                    if (videoRef.current && !isNaN(videoRef.current.currentTime)) {
+                      audioRef.current.currentTime = videoRef.current.currentTime;
+                    }
+                    audioRef.current.play().catch(() => {});
+                  }
+                }}
+                onPause={() => {
+                  if (audioRef.current) {
+                    audioRef.current.pause();
+                  }
+                }}
+                onSeeked={(e) => {
+                  if (audioRef.current) {
+                    audioRef.current.currentTime = e.currentTarget.currentTime;
+                  }
+                }}
                 onEnded={() => {
                   setIsVideoFinished(true);
                   setActiveSubtitle('');
@@ -1646,13 +1961,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     audioRef.current.currentTime = 0;
                   }
                   if (currentStep === 'choice_act') {
-                    // After choice video finishes, display feedback if vtt exists, otherwise go to choices
+                    // After choice video finishes, display feedback if vtt exists, otherwise advance to next chapter
                     if (isAutoPlay) {
                       setTimeout(() => {
                         if (feedbackParagraphs.length > 0) {
                           setCurrentStep('choice_feedback');
                         } else {
-                          setCurrentStep('choices');
+                          advanceChapterOrClose();
                         }
                       }, 1000);
                     }
@@ -1663,7 +1978,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   }
                 }}
                 onError={handleVideoError}
-                className="w-full h-full object-contain z-0"
+                className="w-[calc(100%+80px)] max-w-none -ml-[40px] -mr-[40px] h-full object-cover object-top sm:w-full sm:h-full sm:ml-0 sm:mr-0 sm:object-cover sm:object-center z-0"
               />
             ) : (
               <div className="flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
@@ -1679,9 +1994,28 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               </div>
             )}
 
+            {/* Star Wars Intro Style VTT Subtitle Overlay during Video Playback */}
+            {activeSubtitle && !isVideoFinished && (
+              <div
+                id="vtt-starwars-subtitle-overlay"
+                className="absolute inset-x-0 bottom-24 sm:bottom-28 z-20 flex justify-center pointer-events-none px-4 select-none [perspective:420px]"
+              >
+                <motion.div
+                  key={activeSubtitle}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="origin-[50%_100%] [transform:rotateX(22deg)] max-w-2xl text-center font-cinzel font-black text-lg sm:text-2xl md:text-3xl tracking-wider text-[#ffe81f] drop-shadow-[0_0_15px_rgba(255,232,31,0.85)] [text-shadow:_0_2px_8px_rgb(0_0_0_/_95%),_0_0_20px_rgb(255_232_31_/_60%)] leading-snug px-3 py-1.5"
+                >
+                  {activeSubtitle}
+                </motion.div>
+              </div>
+            )}
+
             {/* Audio Track */}
             {currentAudioUrl && (
               <audio
+                key={`${currentAudioUrl}-${selectedAudioLang}`}
                 id="act-background-audio"
                 ref={audioRef}
                 src={currentAudioUrl}
@@ -1699,7 +2033,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                           if (feedbackParagraphs.length > 0) {
                             setCurrentStep('choice_feedback');
                           } else {
-                            setCurrentStep('choices');
+                            advanceChapterOrClose();
                           }
                         }, 1000);
                       }
@@ -1716,84 +2050,68 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         )}
       </div>
 
-      {/* 3. CENTER LEFT: PREVIOUS `<` BUTTON */}
+      {/* 3. CENTER LEFT: PREVIOUS `<` BUTTON (Cinematic floating chevron, no round circle) */}
       <button
         id="act-prev-button"
         onClick={goToPrev}
         aria-label="Previous Act"
-        className={`absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] ${
+        className={`absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
           darkMode
-            ? 'bg-slate-900/85 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 shadow-2xl'
-            : 'bg-white/98 hover:bg-[#d4af37] text-slate-900 hover:text-slate-950 shadow-xl'
-        } transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group`}
+            ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
+            : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
+        }`}
         title="Previous"
       >
-        <ChevronLeft className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:-translate-x-0.5" />
+        <ChevronLeft className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:-translate-x-1 stroke-[2.5]" />
       </button>
 
-      {/* 4. CENTER RIGHT: NEXT `>` BUTTON */}
+      {/* 4. CENTER RIGHT: NEXT `>` BUTTON (Cinematic floating chevron, no round circle) */}
       <button
         id="act-next-button"
         onClick={goToNext}
         aria-label="Next Act"
-        className={`absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] ${
+        className={`absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
           darkMode
-            ? 'bg-slate-900/85 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 shadow-2xl'
-            : 'bg-white/98 hover:bg-[#d4af37] text-slate-900 hover:text-slate-950 shadow-xl'
-        } transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group`}
+            ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
+            : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
+        }`}
         title="Next"
       >
-        <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:translate-x-0.5" />
+        <ChevronRight className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:translate-x-1 stroke-[2.5]" />
       </button>
 
-      {/* 5. BOTTOM SUBTITLES & COMPLETION CONTROLS BAR */}
-      <motion.div
+      {/* 5. BOTTOM AREA: Always visible throughout the act, transparent background, no skip button, no text on buttons, no round circles */}
+      <div
+        id="act-bottom-controls-bar"
         key={`bottom-bar-${currentChapterNumber}-${currentStep}-${selectedChoiceId}`}
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="relative z-30 w-full flex flex-col justify-end mt-auto"
+        className="absolute bottom-0 left-0 right-0 z-30 w-full flex flex-col justify-end pointer-events-auto bg-transparent pb-3 sm:pb-5 px-3 sm:px-6 select-none"
       >
-        <div
-          className={`w-full ${
-            darkMode
-              ? 'bg-slate-950/95 border-t-2 border-[#d4af37]/70 text-slate-100 shadow-[0_-10px_35px_rgba(0,0,0,0.85)]'
-              : 'bg-white/98 border-t-2 border-[#d4af37] text-slate-900 shadow-[0_-10px_35px_rgba(212,175,55,0.15)]'
-          } backdrop-blur-xl p-3 sm:px-6 sm:py-3.5 relative z-30`}
-        >
-          <div className="min-h-[2.75rem] flex items-center justify-between gap-3 px-1 sm:px-2">
-            <div className="w-8 shrink-0 hidden sm:block" />
+        {/* Center Status / Subtitle Display */}
+        <div className="flex items-center justify-between gap-3 px-1 sm:px-2 min-h-[2rem]">
+          <div className="w-8 shrink-0 hidden sm:block" />
 
-            {/* Subtitle / Status Display in Center */}
-            <div className="flex-1 flex items-center justify-center text-center px-2">
-              {activeSubtitle ? (
-                <p
-                  className={`font-sans text-sm sm:text-base md:text-lg font-medium leading-relaxed tracking-wide text-center max-w-4xl ${
-                    darkMode ? 'text-amber-200 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' : 'text-amber-950 font-bold'
-                  }`}
-                >
-                  {activeSubtitle}
-                </p>
-              ) : (
-                <p
-                  className={`font-sans text-xs sm:text-sm italic text-center ${
-                    darkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
-                  }`}
-                >
-                  {currentStep === 'choices'
-                    ? 'Select an available path to proceed'
-                    : currentStep === 'choice_act'
-                    ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : currentActData.title)
-                    : currentStep === 'choice_feedback'
-                    ? `Language Practice: ${selectedVttLang}`
-                    : isVideoFinished
-                    ? 'Act Completed'
-                    : currentActData.title}
-                </p>
-              )}
-            </div>
+          <div className="flex-1 flex items-center justify-center text-center px-2">
+            <p
+              className={`font-cinzel text-xs sm:text-sm font-bold tracking-wider text-center ${
+                darkMode
+                  ? 'text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
+                  : 'text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]'
+              }`}
+            >
+              {currentStep === 'choices'
+                ? ''
+                : currentStep === 'choice_act'
+                ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : currentActData.title)
+                : currentStep === 'choice_feedback'
+                ? `Language Practice: ${selectedVttLang}`
+                : isVideoFinished
+                ? t('actCompleted', currentLang)
+                : currentActData.title}
+            </p>
+          </div>
 
-            {/* Bottom Right VTT Subtitle Language Selector */}
+          {/* Bottom Right VTT Subtitle Language Selector (Cinematic, no circle) */}
+          {currentStep !== 'choices' && (
             <div className="shrink-0 flex items-center">
               <FlagLanguageDropdown
                 id="act-bottom-vtt-selector"
@@ -1801,101 +2119,73 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 selectedLang={selectedVttLang}
                 onSelectLang={handleVttLanguageSelected}
                 darkMode={darkMode}
+                cinematic={true}
                 availableLangs={availableVttLangs}
                 tooltip={availableVttLangs.length === 0 ? 'No Subtitles Available for this Act' : 'Subtitles / Reading Language (VTT)'}
               />
             </div>
-          </div>
-
-          {/* Completion Action Bar */}
-          <div
-            className={`w-full flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 pt-2.5 pb-1 px-2 sm:px-3 border-t mt-2 rounded-2xl ${
-              darkMode
-                ? 'bg-slate-900/95 border-[#d4af37]/60 text-slate-100'
-                : 'bg-amber-50/95 border-[#d4af37]/40 text-slate-900'
-            }`}
-          >
-            {/* Comment Drawer Button */}
-            <button
-              id="act-write-comment-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowCommentsDrawer(true);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                darkMode
-                  ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
-                  : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950'
-              } text-xs sm:text-sm font-bold transition-all cursor-pointer hover:scale-105 active:scale-95`}
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
-              <span>{t('commentBtn', currentLang)}</span>
-            </button>
-
-            {/* Middle Group: Replay and Skip */}
-            <div className="flex items-center gap-2">
-              {/* Replay */}
-              <button
-                id="act-replay-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleReplay();
-                }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                  darkMode
-                    ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
-                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950'
-                } text-xs sm:text-sm font-bold transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
-                title={t('replayBtn', currentLang)}
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-[#d4af37]" />
-                <span>{t('replayBtn', currentLang)}</span>
-              </button>
-
-              {/* Skip */}
-              <button
-                id="act-skip-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSkipMedia();
-                }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                  darkMode
-                    ? 'bg-slate-950 text-amber-200 hover:bg-[#d4af37] hover:text-slate-950'
-                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
-                } text-xs sm:text-sm font-bold transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
-                title="Skip MP3 and MP4 playback"
-              >
-                <FastForward className="w-3.5 h-3.5 text-[#d4af37]" />
-                <span>{t('skipBtn', currentLang)}</span>
-              </button>
-            </div>
-
-            {/* Next Step / Continue Button */}
-            <button
-              id="act-next-completion-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                goToNext();
-              }}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95"
-            >
-              <span>
-                {currentStep === 'choices'
-                  ? 'Choose Below'
-                  : currentStep === 'choice_act'
-                  ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
-                  : currentStep === 'choice_feedback' && currentChapterNumber >= chapterConfigs.length
-                  ? t('finishBtn', currentLang)
-                  : currentStep === 'choice_feedback'
-                  ? 'Next Chapter'
-                  : t('nextAct', currentLang)}
-              </span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          )}
         </div>
-      </motion.div>
+
+        {/* Completion Action Bar: completely transparent, no skip button, no text on buttons, no round circles */}
+        <div className="w-full flex items-center justify-between gap-4 pt-2 pb-1 px-2 sm:px-4 bg-transparent border-0">
+          {/* Comment Drawer Button */}
+          <button
+            id="act-write-comment-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCommentsDrawer(true);
+            }}
+            className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+              darkMode
+                ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+            }`}
+            title={t('commentBtn', currentLang)}
+            aria-label={t('commentBtn', currentLang)}
+          >
+            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
+          </button>
+
+          {/* Replay Button */}
+          <button
+            id="act-replay-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReplay();
+            }}
+            className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
+            title={t('replayBtn', currentLang)}
+            aria-label={t('replayBtn', currentLang)}
+          >
+            <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
+          </button>
+
+          {/* Next Step / Continue Button */}
+          <button
+            id="act-next-completion-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              goToNext();
+            }}
+            className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
+            title={
+              currentStep === 'choices'
+                ? 'Choose Below'
+                : currentStep === 'choice_act'
+                ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
+                : currentStep === 'choice_feedback' && currentChapterNumber >= chapterConfigs.length
+                ? t('finishBtn', currentLang)
+                : currentStep === 'choice_feedback'
+                ? 'Next Chapter'
+                : t('nextAct', currentLang)
+            }
+            aria-label="Next Step"
+          >
+            <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#d4af37] hover:text-[#ffe81f] transition-colors stroke-[2.5]" />
+          </button>
+        </div>
+      </div>
 
       {/* COMMENTS DRAWER */}
       {showCommentsDrawer && (

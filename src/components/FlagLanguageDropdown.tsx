@@ -10,6 +10,7 @@ export interface FlagDropdownProps {
   darkMode?: boolean;
   availableLangs?: Language[];
   tooltip?: string;
+  cinematic?: boolean;
 }
 
 export const LANGUAGE_METADATA: {
@@ -25,29 +26,41 @@ export const LANGUAGE_METADATA: {
   { code: 'PT', label: 'Portuguese', nativeLabel: 'Português', flagCode: 'PT' },
 ];
 
-export const CircularFlag: React.FC<{ code: Language; size?: number; className?: string }> = ({
+export const CircularFlag: React.FC<{
+  code: Language;
+  size?: number;
+  className?: string;
+  shape?: 'circle' | 'rect';
+}> = ({
   code,
   size = 30,
   className = '',
+  shape = 'circle',
 }) => {
+  const isRect = shape === 'rect';
+  const width = isRect ? Math.round(size * 1.25) : size;
+  const height = isRect ? Math.round(size * 0.8) : size;
+
   return (
     <div
-      className={`relative rounded-full overflow-hidden shrink-0 select-none shadow-[0_2px_6px_rgba(0,0,0,0.35)] ${className}`}
+      className={`relative ${isRect ? 'rounded-xs' : 'rounded-full'} overflow-hidden shrink-0 select-none shadow-[0_2px_6px_rgba(0,0,0,0.35)] ${className}`}
       style={{
-        width: `${size}px`,
-        height: `${size}px`,
+        width: `${width}px`,
+        height: `${height}px`,
         boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 5px rgba(0,0,0,0.3)',
       }}
     >
       {/* 1. Base Flag Graphic */}
       {code === 'EN' && (
         <svg viewBox="0 0 60 60" className="w-full h-full block">
-          <defs>
-            <clipPath id="uk-circle-clip">
-              <circle cx="30" cy="30" r="30" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#uk-circle-clip)">
+          {!isRect && (
+            <defs>
+              <clipPath id="uk-circle-clip">
+                <circle cx="30" cy="30" r="30" />
+              </clipPath>
+            </defs>
+          )}
+          <g clipPath={isRect ? undefined : 'url(#uk-circle-clip)'}>
             {/* Deep Royal Navy */}
             <rect width="60" height="60" fill="#012169" />
             {/* White Diagonals */}
@@ -64,12 +77,14 @@ export const CircularFlag: React.FC<{ code: Language; size?: number; className?:
 
       {code === 'ES' && (
         <svg viewBox="0 0 60 60" className="w-full h-full block">
-          <defs>
-            <clipPath id="es-circle-clip">
-              <circle cx="30" cy="30" r="30" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#es-circle-clip)">
+          {!isRect && (
+            <defs>
+              <clipPath id="es-circle-clip">
+                <circle cx="30" cy="30" r="30" />
+              </clipPath>
+            </defs>
+          )}
+          <g clipPath={isRect ? undefined : 'url(#es-circle-clip)'}>
             <rect width="60" height="15" fill="#AA151B" />
             <rect y="15" width="60" height="30" fill="#F1BF00" />
             <rect y="45" width="60" height="15" fill="#AA151B" />
@@ -84,12 +99,14 @@ export const CircularFlag: React.FC<{ code: Language; size?: number; className?:
 
       {code === 'NL' && (
         <svg viewBox="0 0 60 60" className="w-full h-full block">
-          <defs>
-            <clipPath id="nl-circle-clip">
-              <circle cx="30" cy="30" r="30" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#nl-circle-clip)">
+          {!isRect && (
+            <defs>
+              <clipPath id="nl-circle-clip">
+                <circle cx="30" cy="30" r="30" />
+              </clipPath>
+            </defs>
+          )}
+          <g clipPath={isRect ? undefined : 'url(#nl-circle-clip)'}>
             <rect width="60" height="20" fill="#AE1C28" />
             <rect y="20" width="60" height="20" fill="#FFFFFF" />
             <rect y="40" width="60" height="20" fill="#21468B" />
@@ -99,12 +116,14 @@ export const CircularFlag: React.FC<{ code: Language; size?: number; className?:
 
       {code === 'IT' && (
         <svg viewBox="0 0 60 60" className="w-full h-full block">
-          <defs>
-            <clipPath id="it-circle-clip">
-              <circle cx="30" cy="30" r="30" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#it-circle-clip)">
+          {!isRect && (
+            <defs>
+              <clipPath id="it-circle-clip">
+                <circle cx="30" cy="30" r="30" />
+              </clipPath>
+            </defs>
+          )}
+          <g clipPath={isRect ? undefined : 'url(#it-circle-clip)'}>
             <rect width="20" height="60" fill="#009246" />
             <rect x="20" width="20" height="60" fill="#FFFFFF" />
             <rect x="40" width="20" height="60" fill="#CE2B37" />
@@ -114,12 +133,14 @@ export const CircularFlag: React.FC<{ code: Language; size?: number; className?:
 
       {code === 'PT' && (
         <svg viewBox="0 0 60 60" className="w-full h-full block">
-          <defs>
-            <clipPath id="pt-circle-clip">
-              <circle cx="30" cy="30" r="30" />
-            </clipPath>
-          </defs>
-          <g clipPath="url(#pt-circle-clip)">
+          {!isRect && (
+            <defs>
+              <clipPath id="pt-circle-clip">
+                <circle cx="30" cy="30" r="30" />
+              </clipPath>
+            </defs>
+          )}
+          <g clipPath={isRect ? undefined : 'url(#pt-circle-clip)'}>
             <rect width="24" height="60" fill="#046A38" />
             <rect x="24" width="36" height="60" fill="#DA291C" />
             {/* Portuguese Armillary Sphere Shield */}
@@ -133,17 +154,17 @@ export const CircularFlag: React.FC<{ code: Language; size?: number; className?:
 
       {/* 2. Realistic 3D Convex Gloss / Specular Shine Overlay */}
       <div
-        className="absolute inset-0 rounded-full pointer-events-none"
+        className={`absolute inset-0 ${isRect ? 'rounded-xs' : 'rounded-full'} pointer-events-none`}
         style={{
           background: 'linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 45%, rgba(0,0,0,0.05) 55%, rgba(0,0,0,0.3) 100%)',
         }}
       />
 
-      {/* 3. Gold Beveled Metallic Rim */}
+      {/* 3. Gold Metallic Rim */}
       <div
-        className="absolute inset-0 rounded-full pointer-events-none"
+        className={`absolute inset-0 ${isRect ? 'rounded-xs' : 'rounded-full'} pointer-events-none`}
         style={{
-          border: '2px solid #d4af37',
+          border: '1.5px solid #d4af37',
           boxShadow: 'inset 0 0 3px rgba(212,175,55,0.8), 0 0 2px rgba(255,235,160,0.5)',
         }}
       />
@@ -159,6 +180,7 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
   darkMode = true,
   availableLangs,
   tooltip,
+  cinematic = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -211,7 +233,7 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
       id={id || `flag-dropdown-${type}`}
       className="relative inline-flex items-center select-none"
     >
-      {/* Trigger Button with exact circular flag + golden chevron matching reference image */}
+      {/* Trigger Button */}
       <button
         type="button"
         disabled={isAvailableEmpty}
@@ -221,19 +243,31 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
             setIsOpen(!isOpen);
           }
         }}
-        className={`group flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1 rounded-full border transition-all duration-200 shadow-md ${
-          isAvailableEmpty
-            ? 'opacity-40 cursor-not-allowed border-slate-700 bg-slate-900/50 text-slate-500'
-            : darkMode
-            ? 'bg-slate-900/95 hover:bg-slate-800 border-[#d4af37]/80 text-[#fce0a2] shadow-[0_2px_12px_rgba(0,0,0,0.6)] hover:scale-105 active:scale-95 cursor-pointer'
-            : 'bg-white/98 hover:bg-amber-50/90 border-[#d4af37] text-slate-900 shadow-[0_2px_10px_rgba(212,175,55,0.25)] hover:scale-105 active:scale-95 cursor-pointer'
-        }`}
+        className={
+          cinematic
+            ? `group flex items-center gap-1.5 p-1 bg-transparent border-0 rounded-none transition-all duration-200 ${
+                isAvailableEmpty
+                  ? 'opacity-40 cursor-not-allowed text-slate-500'
+                  : 'cursor-pointer hover:scale-105 active:scale-95 text-[#fce0a2]'
+              } drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]`
+            : `group flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1 rounded-full border transition-all duration-200 shadow-md ${
+                isAvailableEmpty
+                  ? 'opacity-40 cursor-not-allowed border-slate-700 bg-slate-900/50 text-slate-500'
+                  : darkMode
+                  ? 'bg-slate-900/95 hover:bg-slate-800 border-[#d4af37]/80 text-[#fce0a2] shadow-[0_2px_12px_rgba(0,0,0,0.6)] hover:scale-105 active:scale-95 cursor-pointer'
+                  : 'bg-white/98 hover:bg-amber-50/90 border-[#d4af37] text-slate-900 shadow-[0_2px_10px_rgba(212,175,55,0.25)] hover:scale-105 active:scale-95 cursor-pointer'
+              }`
+        }
         title={defaultTooltip}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        {/* Circular Glossy Flag Icon */}
-        <CircularFlag code={currentMeta.code} size={26} />
+        {/* Flag Icon: rect in cinematic mode, circle otherwise */}
+        <CircularFlag
+          code={currentMeta.code}
+          size={cinematic ? 24 : 26}
+          shape={cinematic ? 'rect' : 'circle'}
+        />
 
         {/* Golden Metallic Chevron Down Arrow */}
         <div className="flex items-center justify-center pr-0.5">

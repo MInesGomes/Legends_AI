@@ -60,6 +60,19 @@ export interface Translations {
   skipBtn: string;
   skipMediaBtn: string;
   finishBtn: string;
+  chooseYourPath: string;
+  choice1_title: string;
+  choice1_subtitle: string;
+  choice1_description: string;
+  choice2_title: string;
+  choice2_subtitle: string;
+  choice2_description: string;
+  choice3_title: string;
+  choice3_subtitle: string;
+  choice3_description: string;
+  choice4_title: string;
+  choice4_subtitle: string;
+  choice4_description: string;
 
   // Comments Drawer
   commentsTitle: string;
@@ -189,6 +202,19 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipBtn: 'Skip',
     skipMediaBtn: 'Skip',
     finishBtn: 'Finish',
+    chooseYourPath: 'Choose Your Path',
+    choice1_title: 'Organize the Evacuation',
+    choice1_subtitle: 'Community Leadership',
+    choice1_description: "Don’t ask for permission and risk losing everything.",
+    choice2_title: 'Try to Solve Everything Alone',
+    choice2_subtitle: 'Cautious Heroism',
+    choice2_description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
+    choice3_title: 'Wait for the Council',
+    choice3_subtitle: 'Passive Compliance',
+    choice3_description: 'Delay action until the High Council issues formal evacuation orders.',
+    choice4_title: 'Force the System',
+    choice4_subtitle: 'Act immediately',
+    choice4_description: 'Override security safeguards by force, so all can be saved quickly.',
 
     commentsTitle: 'Comments',
     myComments: 'My Comments',
@@ -312,6 +338,19 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipBtn: 'Saltar',
     skipMediaBtn: 'Saltar',
     finishBtn: 'Finalizar',
+    chooseYourPath: 'Elige tu camino',
+    choice1_title: 'Organizar la evacuación',
+    choice1_subtitle: 'Liderazgo comunitario',
+    choice1_description: 'No pidas permiso y arriésgate a perderlo todo.',
+    choice2_title: 'Intentar resolver todo solo',
+    choice2_subtitle: 'Heroísmo cauteloso',
+    choice2_description: 'Intenta estabilizar el reactor central tú mismo antes de alarmar al público.',
+    choice3_title: 'Esperar al Consejo',
+    choice3_subtitle: 'Cumplimiento pasivo',
+    choice3_description: 'Retrasa la acción hasta que el Alto Consejo emita órdenes formales de evacuación.',
+    choice4_title: 'Forzar el sistema',
+    choice4_subtitle: 'Actuar rápidamente',
+    choice4_description: 'Anula las medidas de seguridad por la fuerza para salvar a todos rápidamente.',
 
     commentsTitle: 'Comentarios',
     myComments: 'Mis Comentarios',
@@ -435,6 +474,19 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipBtn: 'Salta',
     skipMediaBtn: 'Salta',
     finishBtn: 'Termina',
+    chooseYourPath: 'Scegli il tuo percorso',
+    choice1_title: "Organizzare l'evacuazione",
+    choice1_subtitle: 'Leadership comunitaria',
+    choice1_description: 'Non chiedere il permesso e rischia di perdere tutto.',
+    choice2_title: 'Tentare di risolvere tutto da solo',
+    choice2_subtitle: 'Eroismo cauto',
+    choice2_description: 'Tenta di stabilizzare il reattore centrale da solo prima di allarmare la popolazione.',
+    choice3_title: 'Attendere il Consiglio',
+    choice3_subtitle: 'Conformità passiva',
+    choice3_description: "Ritarda l'azione finché l'Alto Consiglio non emette ordini formali di evacuazione.",
+    choice4_title: 'Forzare il sistema',
+    choice4_subtitle: 'Agisci immediatamente',
+    choice4_description: 'Bypassa i sistemi di sicurezza con la forza per salvare tutti rapidamente.',
 
     commentsTitle: 'Commenti',
     myComments: 'I miei commenti',
@@ -558,6 +610,19 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipBtn: 'Pular',
     skipMediaBtn: 'Pular',
     finishBtn: 'Concluir',
+    chooseYourPath: 'Escolha o seu caminho',
+    choice1_title: 'Organizar a evacuação',
+    choice1_subtitle: 'Liderança comunitária',
+    choice1_description: 'Não peça permissão e arrisque perder tudo.',
+    choice2_title: 'Tentar resolver tudo sozinho',
+    choice2_subtitle: 'Heroísmo cauteloso',
+    choice2_description: 'Tente estabilizar o reator central sozinho antes de alarmar a população.',
+    choice3_title: 'Aguardar o Conselho',
+    choice3_subtitle: 'Conformidade passiva',
+    choice3_description: 'Atrase a ação até que o Alto Conselho emita ordens formais de evacuação.',
+    choice4_title: 'Forçar o sistema',
+    choice4_subtitle: 'Age imediatamente',
+    choice4_description: 'Subverta os sistemas de segurança pela força para que todos possam ser salvos rapidamente.',
 
     commentsTitle: 'Comentários',
     myComments: 'Os Meus Comentários',
@@ -681,6 +746,19 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipBtn: 'Overslaan',
     skipMediaBtn: 'Overslaan',
     finishBtn: 'Voltooien',
+    chooseYourPath: 'Kies je pad',
+    choice1_title: 'Organiseer de evacuatie',
+    choice1_subtitle: 'Gemeenschapsleiderschap',
+    choice1_description: 'Vraag niet om toestemming en riskeer alles te verliezen.',
+    choice2_title: 'Probeer alles alleen op te lossen',
+    choice2_subtitle: 'Voorzichtige heldenmoed',
+    choice2_description: 'Probeer de centrale reactor zelf te stabiliseren voordat je paniek veroorzaakt.',
+    choice3_title: 'Wachten op de Raad',
+    choice3_subtitle: 'Passieve volgzaamheid',
+    choice3_description: 'Wacht met handelen totdat de Hoge Raad formele evacuatiebevelen uitvaardigt.',
+    choice4_title: 'Forceer het systeem',
+    choice4_subtitle: 'Handel onmiddellijk',
+    choice4_description: 'Omzeil beveiligingssystemen met geweld, zodat iedereen snel kan worden gered.',
 
     commentsTitle: 'Reacties',
     myComments: 'Mijn reacties',
