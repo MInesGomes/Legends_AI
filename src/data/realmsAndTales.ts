@@ -173,11 +173,11 @@ export const INITIAL_TALES: Tale[] = [
 
   // El Dorado Tales
   {
-    id: 'tale-golden-city',
+    id: 'tale-the-torch',
     realmId: 'realm-el-dorado',
-    title: 'The City of Gold',
+    title: 'The Torch',
     subtitle: 'Wealth of Spirit vs Greed',
-    coverImage: realmElDoradoJpg,
+    coverImage: 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/ElDorado/the_torch.jpg',
     skill: 'Leader',
     viewsCount: 1640,
     likesCount: 450,

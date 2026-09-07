@@ -81,30 +81,52 @@ export function getActBaseFolder(act: Act, customFolder: string = ATLANTIS_5CRYS
 /**
  * Constructs MP3 URL for an Act and Language.
  * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".mp3"
- * => ".../chapter0/female_act/female_act_en.mp3"
+ * or for ElDorado: folderPath + chapter + "/" + act + "_" + langCode + ".mp3"
  */
 export function getActMp3Url(act: Act, lang: Language | string = 'EN', customFolder?: string): string {
-  const base = getActBaseFolder(act, customFolder);
-  const langCode = normalizeLangCode(lang);
-  return `${base}/${act.act}_${langCode}.mp3`;
+  const candidates = getActMp3CandidateUrls(act, lang, customFolder);
+  return candidates[0];
 }
 
 /**
  * Candidate MP3 URLs for act voiceover resilience
  */
 export function getActMp3CandidateUrls(act: Act, lang: Language | string = 'EN', customFolder?: string): string[] {
-  const base = getActBaseFolder(act, customFolder);
+  const folder = (customFolder || ATLANTIS_5CRYSTALS_FOLDER_PATH).replace(/\/+$/, '');
+  const chapterFolder = `${folder}${act.chapter}`;
+  const actName = act.act.replace(/^\/+|\/+$/g, '');
+  const actSubfolder = `${chapterFolder}/${actName}`;
   const langCode = normalizeLangCode(lang);
-  const actName = act.act;
+  const isElDorado = folder.toLowerCase().includes('eldorado');
 
-  const candidates = [
-    `${base}/${actName}_${langCode}.mp3`,
-    `${base}/mp3/${actName}_${langCode}.mp3`,
-    `${base}/${actName}.mp3`,
-    `${base}/mp3/${actName}.mp3`,
-  ];
-  if (langCode === 'en') {
-    candidates.push(`${base}/${actName}_en.mp3`);
+  const candidates: string[] = [];
+  if (isElDorado) {
+    // For ElDorado (e.g. .../ElDorado/the_torch/chapter0/act0_en.mp3)
+    candidates.push(
+      `${chapterFolder}/${actName}_${langCode}.mp3`,
+      `${chapterFolder}/${actName}.mp3`,
+      `${chapterFolder}/mp3/${actName}_${langCode}.mp3`,
+      `${chapterFolder}/mp3/${actName}.mp3`,
+      `${actSubfolder}/${actName}_${langCode}.mp3`,
+      `${actSubfolder}/mp3/${actName}_${langCode}.mp3`,
+      `${actSubfolder}/${actName}.mp3`
+    );
+    if (langCode !== 'en') {
+      candidates.push(`${chapterFolder}/${actName}_en.mp3`);
+      candidates.push(`${actSubfolder}/${actName}_en.mp3`);
+    }
+  } else {
+    candidates.push(
+      `${actSubfolder}/${actName}_${langCode}.mp3`,
+      `${actSubfolder}/mp3/${actName}_${langCode}.mp3`,
+      `${actSubfolder}/${actName}.mp3`,
+      `${actSubfolder}/mp3/${actName}.mp3`,
+      `${chapterFolder}/${actName}_${langCode}.mp3`,
+      `${chapterFolder}/${actName}.mp3`
+    );
+    if (langCode === 'en') {
+      candidates.push(`${actSubfolder}/${actName}_en.mp3`);
+    }
   }
   return Array.from(new Set(candidates));
 }
@@ -112,51 +134,86 @@ export function getActMp3CandidateUrls(act: Act, lang: Language | string = 'EN',
 /**
  * Constructs MP4 video URL for an Act.
  * e.g. folderPath + chapter + "/" + act + "/" + act + ".mp4"
- * => ".../chapter0/female_act/female_act.mp4"
+ * or for ElDorado: folderPath + chapter + "/" + act + ".mp4"
  */
 export function getActMp4Url(act: Act, customFolder?: string): string {
-  const base = getActBaseFolder(act, customFolder);
-  return `${base}/${act.act}.mp4`;
+  const candidates = getActMp4CandidateUrls(act, customFolder);
+  return candidates[0];
 }
 
 /**
  * Candidate MP4 URLs for playback resilience
  */
 export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[] {
-  const base = getActBaseFolder(act, customFolder);
-  const candidates = [
-    `${base}/${act.act}.mp4`,
-    `${base}/${act.act}_en.mp4`,
-  ];
+  const folder = (customFolder || ATLANTIS_5CRYSTALS_FOLDER_PATH).replace(/\/+$/, '');
+  const chapterFolder = `${folder}${act.chapter}`;
+  const actName = act.act.replace(/^\/+|\/+$/g, '');
+  const actSubfolder = `${chapterFolder}/${actName}`;
+  const isElDorado = folder.toLowerCase().includes('eldorado');
+
+  const candidates: string[] = [];
+  if (isElDorado) {
+    // For ElDorado (e.g. .../ElDorado/the_torch/chapter0/act0.mp4)
+    candidates.push(
+      `${chapterFolder}/${actName}.mp4`,
+      `${chapterFolder}/${actName}_en.mp4`,
+      `${actSubfolder}/${actName}.mp4`,
+      `${actSubfolder}/${actName}_en.mp4`
+    );
+  } else {
+    candidates.push(
+      `${actSubfolder}/${actName}.mp4`,
+      `${actSubfolder}/${actName}_en.mp4`,
+      `${chapterFolder}/${actName}.mp4`,
+      `${chapterFolder}/${actName}_en.mp4`
+    );
+  }
   return Array.from(new Set(candidates));
 }
 
 /**
  * Constructs VTT subtitle URL for an Act and Language.
  * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".vtt"
- * => ".../chapter0/female_act/female_act_en.vtt"
+ * or for ElDorado: folderPath + chapter + "/vtt/" + act + "_" + langCode + ".vtt"
  */
 export function getActVttUrl(act: Act, lang: Language | string = 'EN', customFolder?: string): string {
-  const base = getActBaseFolder(act, customFolder);
-  const langCode = normalizeLangCode(lang);
-  return `${base}/${act.act}_${langCode}.vtt`;
+  const candidates = getActVttCandidateUrls(act, lang, customFolder);
+  return candidates[0];
 }
 
 /**
  * Candidate VTT URLs for subtitle fetching resilience
- * (checks direct root, /vtt/ folder, and /vvt/ folder)
+ * (checks direct chapter/vtt/, chapter root, act/vtt/, and act root)
  */
 export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN', customFolder?: string): string[] {
-  const base = getActBaseFolder(act, customFolder);
+  const folder = (customFolder || ATLANTIS_5CRYSTALS_FOLDER_PATH).replace(/\/+$/, '');
+  const chapterFolder = `${folder}${act.chapter}`;
+  const actName = act.act.replace(/^\/+|\/+$/g, '');
+  const actSubfolder = `${chapterFolder}/${actName}`;
   const langCode = normalizeLangCode(lang);
-  const actName = act.act;
+  const isElDorado = folder.toLowerCase().includes('eldorado');
 
-  const candidates = [
-    `${base}/${actName}_${langCode}.vtt`,
-    `${base}/vtt/${actName}_${langCode}.vtt`,
-    `${base}/vvt/${actName}_${langCode}.vtt`,
-  ];
-
+  const candidates: string[] = [];
+  if (isElDorado) {
+    // For ElDorado (e.g. .../ElDorado/the_torch/chapter0/vtt/act0_en.vtt or .../chapter0/act0_en.vtt)
+    candidates.push(
+      `${chapterFolder}/vtt/${actName}_${langCode}.vtt`,
+      `${chapterFolder}/${actName}_${langCode}.vtt`,
+      `${chapterFolder}/vvt/${actName}_${langCode}.vtt`,
+      `${actSubfolder}/vtt/${actName}_${langCode}.vtt`,
+      `${actSubfolder}/${actName}_${langCode}.vtt`,
+      `${chapterFolder}/vtt/${actName}.vtt`,
+      `${chapterFolder}/${actName}.vtt`
+    );
+  } else {
+    candidates.push(
+      `${actSubfolder}/${actName}_${langCode}.vtt`,
+      `${actSubfolder}/vtt/${actName}_${langCode}.vtt`,
+      `${actSubfolder}/vvt/${actName}_${langCode}.vtt`,
+      `${chapterFolder}/vtt/${actName}_${langCode}.vtt`,
+      `${chapterFolder}/${actName}_${langCode}.vtt`
+    );
+  }
   return Array.from(new Set(candidates));
 }
 
@@ -274,6 +331,10 @@ export function getChoiceImageCandidateUrls(
       `${base}/${cName}.jpg`,
       `${base}/${cName}.png`,
       `${base}/${cName}.webp`,
+      `${base}.jpg`,
+      `${SUPABASE_BASE_URL}/${world}/${taleName}/${cName}.jpg`,
+      `${SUPABASE_BASE_URL}/${world}/${taleName}.jpg`,
+      `${SUPABASE_BASE_URL}/${world}/realm_${world.toLowerCase()}.jpg`,
       `${altBase}/${cName}.jpg`,
     ])
   );

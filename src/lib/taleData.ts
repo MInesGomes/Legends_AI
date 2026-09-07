@@ -59,14 +59,16 @@ export function getTaleFolderPath(taleId: string, realmId?: string): string {
     case 'tale-teens':
       return `${SUPABASE_BASE_URL}/DadMom/teens/chapter`;
     case 'tale-el-dorado-gold':
-      return `${SUPABASE_BASE_URL}/ElDorado/city_of_gold/chapter`;
+    case 'tale-the-torch':
+    case 'tale-golden-city':
+      return `${SUPABASE_BASE_URL}/ElDorado/the_torch/chapter`;
     case 'tale-ai-horizon':
       return `${SUPABASE_BASE_URL}/FutureLand/ai_horizon/chapter`;
     default:
       if (realmId === 'realm-work') return `${SUPABASE_BASE_URL}/Work/${taleId}/chapter`;
       if (realmId === 'realm-marriage') return `${SUPABASE_BASE_URL}/Marriage/${taleId}/chapter`;
       if (realmId === 'realm-dad-mom') return `${SUPABASE_BASE_URL}/DadMom/${taleId}/chapter`;
-      if (realmId === 'realm-eldorado') return `${SUPABASE_BASE_URL}/ElDorado/${taleId}/chapter`;
+      if (realmId === 'realm-eldorado' || realmId === 'realm-el-dorado' || realmId?.includes('dorado')) return `${SUPABASE_BASE_URL}/ElDorado/the_torch/chapter`;
       if (realmId === 'realm-futureland') return `${SUPABASE_BASE_URL}/FutureLand/${taleId}/chapter`;
       return `${SUPABASE_BASE_URL}/Atlantis/5crystals/chapter`;
   }

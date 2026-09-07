@@ -52,19 +52,30 @@ import {
 
 export function getTaleWorldAndName(tale: Tale | undefined): { world: string; taleName: string } {
   if (!tale) return { world: 'Atlantis', taleName: '5crystals' };
-  if (tale.realmId === 'realm-work') {
-    return { world: 'Work', taleName: tale.id === 'tale-job-quest' ? 'job_quest' : 'startup_winner' };
+  const realmId = tale.realmId || '';
+  const taleId = tale.id || '';
+  const taleTitle = (tale.title || '').toLowerCase();
+
+  if (realmId === 'realm-work') {
+    return { world: 'Work', taleName: taleId === 'tale-job-quest' ? 'job_quest' : 'startup_winner' };
   }
-  if (tale.realmId === 'realm-marriage') {
-    return { world: 'Marriage', taleName: tale.id === 'tale-one-hart' ? 'one_hart' : 'pride_prejudice' };
+  if (realmId === 'realm-marriage') {
+    return { world: 'Marriage', taleName: taleId === 'tale-one-hart' ? 'one_hart' : 'pride_prejudice' };
   }
-  if (tale.realmId === 'realm-dad-mom') {
-    return { world: 'DadMom', taleName: tale.id === 'tale-baby' ? 'baby' : tale.id === 'tale-teens' ? 'teens' : 'child' };
+  if (realmId === 'realm-dad-mom') {
+    return { world: 'DadMom', taleName: taleId === 'tale-baby' ? 'baby' : taleId === 'tale-teens' ? 'teens' : 'child' };
   }
-  if (tale.realmId === 'realm-eldorado') {
-    return { world: 'ElDorado', taleName: 'city_of_gold' };
+  if (
+    realmId === 'realm-eldorado' ||
+    realmId === 'realm-el-dorado' ||
+    realmId.includes('dorado') ||
+    taleId === 'tale-the-torch' ||
+    taleId === 'tale-golden-city' ||
+    taleTitle.includes('torch')
+  ) {
+    return { world: 'ElDorado', taleName: 'the_torch' };
   }
-  if (tale.realmId === 'realm-futureland') {
+  if (realmId === 'realm-futureland' || realmId === 'realm-future-land') {
     return { world: 'FutureLand', taleName: 'ai_horizon' };
   }
   return { world: 'Atlantis', taleName: '5crystals' };
@@ -131,8 +142,9 @@ export function getChoiceLocalizedDescription(
 }
 
 export interface ChapterConfig {
-  id: number; // 1..N
-  hasAct1?: boolean; // Chapter 1 optional act1
+  id: number; // 0..N
+  hasAct1?: boolean; // Chapter optional act1
+  hasGenderActs?: boolean; // Chapter 0 optional gender acts
   choices: ChapterChoiceConfig[];
 }
 
@@ -288,35 +300,13 @@ function buildFeedbackVttCandidateUrls(
 ): string[] {
   const choiceNumber = choiceId.replace('choice', '') || '1';
   const langCode = normalizeLangCode(lang);
-
-  let world = 'Atlantis';
-  let taleName = '5Ctrystals';
-
-  if (tale) {
-    if (tale.realmId === 'realm-work') {
-      world = 'Work';
-      taleName = tale.id === 'tale-job-quest' ? 'job_quest' : 'startup_winner';
-    } else if (tale.realmId === 'realm-marriage') {
-      world = 'Marriage';
-      taleName = tale.id === 'tale-one-hart' ? 'one_hart' : 'pride_prejudice';
-    } else if (tale.realmId === 'realm-dad-mom') {
-      world = 'DadMom';
-      taleName = tale.id === 'tale-baby' ? 'baby' : tale.id === 'tale-teens' ? 'teens' : 'child';
-    } else if (tale.realmId === 'realm-eldorado') {
-      world = 'ElDorado';
-      taleName = 'city_of_gold';
-    } else if (tale.realmId === 'realm-futureland') {
-      world = 'FutureLand';
-      taleName = 'ai_horizon';
-    } else {
-      world = 'Atlantis';
-      taleName = '5Ctrystals';
-    }
-  }
+  const { world, taleName } = getTaleWorldAndName(tale);
 
   return [
-    // Standard pattern requested with language suffix
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/choice${choiceNumber}_${langCode}.vtt`
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/feedback_${langCode}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/feedback_${langCode}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/choice${choiceNumber}_${langCode}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}_${langCode}.vtt`,
   ];
 }
 
@@ -459,21 +449,83 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechRecognitionRef = useRef<any>(null);
 
+  // Derive world and tale name for Supabase storage paths
+  const { world: currentWorld, taleName: currentTaleName } = useMemo(() => {
+    return getTaleWorldAndName(tale);
+  }, [tale]);
+
   // Find the active chapter configuration
   const currentChapterConfig = useMemo(() => {
-    return (
-      chapterConfigs.find((cfg) => cfg.id === currentChapterNumber) || {
-        id: currentChapterNumber,
-        hasAct1: currentChapterNumber === 0,
-        choices: currentChapterNumber === 0 ? [] : [
-          { id: 'choice1', available: true },
-          { id: 'choice2', available: true },
-          { id: 'choice3', available: true },
-          { id: 'choice4', available: true },
-        ],
+    const isElDoradoTorch = currentWorld === 'ElDorado' && currentTaleName === 'the_torch';
+    const custom = chapterConfigs.find((cfg) => cfg.id === currentChapterNumber);
+
+    if (custom) {
+      if (isElDoradoTorch && currentChapterNumber === 0 && (!custom.choices || custom.choices.length === 0)) {
+        return {
+          ...custom,
+          hasAct1: false,
+          hasGenderActs: false,
+          choices: [
+            {
+              id: 'choice1' as ChoiceId,
+              title: 'Don’t ask for permission',
+              subtitle: 'Community Leadership',
+              description: "Don’t ask for permission and risk losing everything.",
+              available: true,
+            },
+            {
+              id: 'choice2' as ChoiceId,
+              title: 'Try to Solve Everything Alone',
+              subtitle: 'Cautious Heroism',
+              description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
+              available: true,
+            },
+            { id: 'choice3' as ChoiceId, available: false },
+            { id: 'choice4' as ChoiceId, available: false },
+          ],
+        };
       }
-    );
-  }, [chapterConfigs, currentChapterNumber]);
+      return custom;
+    }
+
+    if (isElDoradoTorch) {
+      return {
+        id: currentChapterNumber,
+        hasAct1: false,
+        hasGenderActs: false,
+        choices: currentChapterNumber === 0 ? [
+          {
+            id: 'choice1' as ChoiceId,
+            title: 'Don’t ask for permission',
+            subtitle: 'Community Leadership',
+            description: "Don’t ask for permission and risk losing everything.",
+            available: true,
+          },
+          {
+            id: 'choice2' as ChoiceId,
+            title: 'Try to Solve Everything Alone',
+            subtitle: 'Cautious Heroism',
+            description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
+            available: true,
+          },
+          { id: 'choice3' as ChoiceId, available: false },
+          { id: 'choice4' as ChoiceId, available: false },
+        ] : [],
+      };
+    }
+
+    return {
+      id: currentChapterNumber,
+      hasAct1: currentChapterNumber === 0,
+      hasGenderActs: currentChapterNumber === 0,
+      choices: currentChapterNumber === 0 ? [] : [
+        { id: 'choice1', available: true },
+        { id: 'choice2', available: true },
+        { id: 'choice3', available: true },
+        { id: 'choice4', available: true },
+      ],
+    };
+  }, [chapterConfigs, currentChapterNumber, currentWorld, currentTaleName]);
 
   const maxChapterId = useMemo(() => {
     if (!chapterConfigs || chapterConfigs.length === 0) return 1;
@@ -493,11 +545,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
     return array;
   }, [currentChapterConfig]);
-
-  // Derive world and tale name for Supabase storage paths
-  const { world: currentWorld, taleName: currentTaleName } = useMemo(() => {
-    return getTaleWorldAndName(tale);
-  }, [tale]);
 
   // Construct current Act definition based on flow step
   const currentActData: Act = useMemo(() => {
@@ -985,12 +1032,29 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
     // 3. Chapter 0 Flow:
     if (currentChapterNumber === 0) {
+      const isElDorado = currentWorld === 'ElDorado';
+      const hasGenderActs = currentChapterConfig.hasGenderActs ?? (!isElDorado);
+      const hasAct1 = currentChapterConfig.hasAct1 ?? (!isElDorado);
       const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
       const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
       const hasChoices = Boolean(currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available));
 
       if (currentStep === 'act0') {
-        setCurrentStep(avatarGenderAct);
+        if (hasGenderActs) {
+          setCurrentStep(avatarGenderAct);
+          return;
+        }
+        if (hasAct1) {
+          setCurrentStep('act1');
+          return;
+        }
+        if (hasChoices) {
+          setCurrentStep('choices');
+          return;
+        }
+        // Advance to Chapter 1
+        setCurrentChapterNumber(1);
+        setCurrentStep('act0');
         return;
       }
 
@@ -1000,7 +1064,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
 
       if (currentStep === notAvatarGenderAct) {
-        if (currentChapterConfig.hasAct1) {
+        if (hasAct1) {
           setCurrentStep('act1');
           return;
         }
@@ -1071,14 +1135,19 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
     // Chapter 0 Flow Prev:
     if (currentChapterNumber === 0) {
+      const isElDorado = currentWorld === 'ElDorado';
+      const hasGenderActs = currentChapterConfig.hasGenderActs ?? (!isElDorado);
+      const hasAct1 = currentChapterConfig.hasAct1 ?? (!isElDorado);
       const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
       const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
 
       if (currentStep === 'choices') {
-        if (currentChapterConfig.hasAct1) {
+        if (hasAct1) {
           setCurrentStep('act1');
-        } else {
+        } else if (hasGenderActs) {
           setCurrentStep(notAvatarGenderAct);
+        } else {
+          setCurrentStep('act0');
         }
         return;
       }
