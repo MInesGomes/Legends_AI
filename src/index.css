@@ -146,7 +146,7 @@ video::cue {
     transform: rotateX(25deg) translateY(0);
     opacity: 1;
   }
-  85% {
+  90% {
     opacity: 1;
   }
   100% {
@@ -157,6 +157,6 @@ video::cue {
 }
 
 .animate-starwars-crawl {
-  animation: starWarsIntroCrawl 24s linear forwards;
+  animation: starWarsIntroCrawl 48s linear forwards;
 }
 

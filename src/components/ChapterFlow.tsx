@@ -40,15 +40,21 @@ import {
   Mic,
   MicOff,
   Headphones,
-  Volume1,
   Award,
   FastForward,
   Shuffle,
   Compass,
-  Scroll,
   Play,
   Pause,
 } from 'lucide-react';
+
+const LANGUAGE_FULL_NAMES: Record<string, Record<Language, string>> = {
+  EN: { EN: 'English', ES: 'Inglés', IT: 'Inglese', PT: 'Inglês', NL: 'Engels' },
+  ES: { EN: 'Spanish', ES: 'Español', IT: 'Spagnolo', PT: 'Espanhol', NL: 'Spaans' },
+  IT: { EN: 'Italian', ES: 'Italiano', IT: 'Italiano', PT: 'Italiano', NL: 'Italiaans' },
+  PT: { EN: 'Portuguese', ES: 'Português', IT: 'Portoghese', PT: 'Português', NL: 'Portugees' },
+  NL: { EN: 'Dutch', ES: 'Holandés', IT: 'Olandese', PT: 'Holandês', NL: 'Nederlands' },
+};
 
 export function getTaleWorldAndName(tale: Tale | undefined): { world: string; taleName: string } {
   if (!tale) return { world: 'Atlantis', taleName: '5crystals' };
@@ -98,47 +104,127 @@ export interface ChapterChoiceConfig {
 export function getChoiceLocalizedTitle(
   choice: ChapterChoiceConfig,
   lang: Language | string = 'EN',
-  fallbackIndex = 0
-): string {
+  fallbackIndex = 0,
+  world?: string,
+  taleName?: string,
+  chapterNumber?: number
+): string | undefined {
   const normalizedLang = (lang as Language) || 'EN';
-  if (choice.titleKey && TRANSLATIONS[normalizedLang]?.[choice.titleKey]) {
-    return t(choice.titleKey, normalizedLang);
+  const dict = TRANSLATIONS[normalizedLang];
+  if (!dict) return choice.title || undefined;
+
+  // 1. Explicit titleKey on choice
+  if (choice.titleKey && dict[choice.titleKey]) {
+    const val = dict[choice.titleKey]?.trim();
+    if (val) return val;
   }
-  const defaultKey = `${choice.id}_title` as keyof Translations;
-  if (TRANSLATIONS[normalizedLang]?.[defaultKey]) {
-    return t(defaultKey, normalizedLang);
+
+  // 2. World / act specific key in i18n
+  if (world) {
+    const worldActKey = `${world.toLowerCase()}_act${chapterNumber ?? 0}_${choice.id}_title` as keyof Translations;
+    if (dict[worldActKey]) {
+      const val = dict[worldActKey]?.trim();
+      if (val) return val;
+    }
   }
-  return choice.title || `Choice ${fallbackIndex + 1}`;
+
+  // 3. Fallback for Atlantis Chapter 1
+  if ((world === 'Atlantis' || !world) && (chapterNumber === 1 || chapterNumber === undefined)) {
+    const defaultKey = `${choice.id}_title` as keyof Translations;
+    if (dict[defaultKey]) {
+      return dict[defaultKey]?.trim() || undefined;
+    }
+  }
+
+  if (choice.title && choice.title.trim()) {
+    return choice.title.trim();
+  }
+
+  return undefined;
 }
 
 export function getChoiceLocalizedSubtitle(
   choice: ChapterChoiceConfig,
-  lang: Language | string = 'EN'
+  lang: Language | string = 'EN',
+  world?: string,
+  taleName?: string,
+  chapterNumber?: number
 ): string | undefined {
   const normalizedLang = (lang as Language) || 'EN';
-  if (choice.subtitleKey && TRANSLATIONS[normalizedLang]?.[choice.subtitleKey]) {
-    return t(choice.subtitleKey, normalizedLang);
+  const dict = TRANSLATIONS[normalizedLang];
+  if (!dict) return undefined;
+
+  // 1. Explicit subtitleKey on choice
+  if (choice.subtitleKey && dict[choice.subtitleKey]) {
+    const val = dict[choice.subtitleKey]?.trim();
+    if (val) return val;
   }
-  const defaultKey = `${choice.id}_subtitle` as keyof Translations;
-  if (TRANSLATIONS[normalizedLang]?.[defaultKey]) {
-    return t(defaultKey, normalizedLang);
+
+  // 2. World / act specific key in i18n
+  if (world) {
+    const worldActKey = `${world.toLowerCase()}_act${chapterNumber ?? 0}_${choice.id}_subtitle` as keyof Translations;
+    if (dict[worldActKey]) {
+      const val = dict[worldActKey]?.trim();
+      if (val) return val;
+    }
   }
-  return choice.subtitle;
+
+  // 3. Fallback for Atlantis Chapter 1
+  if ((world === 'Atlantis' || !world) && (chapterNumber === 1 || chapterNumber === undefined)) {
+    const defaultKey = `${choice.id}_subtitle` as keyof Translations;
+    if (dict[defaultKey]) {
+      return dict[defaultKey]?.trim() || undefined;
+    }
+  }
+
+  if (choice.subtitle && choice.subtitle.trim()) {
+    return choice.subtitle.trim();
+  }
+
+  // If there's no subtitle in i18n, don't show
+  return undefined;
 }
 
 export function getChoiceLocalizedDescription(
   choice: ChapterChoiceConfig,
-  lang: Language | string = 'EN'
+  lang: Language | string = 'EN',
+  world?: string,
+  taleName?: string,
+  chapterNumber?: number
 ): string | undefined {
   const normalizedLang = (lang as Language) || 'EN';
-  if (choice.descriptionKey && TRANSLATIONS[normalizedLang]?.[choice.descriptionKey]) {
-    return t(choice.descriptionKey, normalizedLang);
+  const dict = TRANSLATIONS[normalizedLang];
+  if (!dict) return undefined;
+
+  // 1. Explicit descriptionKey on choice
+  if (choice.descriptionKey && dict[choice.descriptionKey]) {
+    const val = dict[choice.descriptionKey]?.trim();
+    if (val) return val;
   }
-  const defaultKey = `${choice.id}_description` as keyof Translations;
-  if (TRANSLATIONS[normalizedLang]?.[defaultKey]) {
-    return t(defaultKey, normalizedLang);
+
+  // 2. World / act specific key in i18n (e.g. eldorado_act0_choice1_description)
+  if (world) {
+    const worldActKey = `${world.toLowerCase()}_act${chapterNumber ?? 0}_${choice.id}_description` as keyof Translations;
+    if (dict[worldActKey]) {
+      const val = dict[worldActKey]?.trim();
+      if (val) return val;
+    }
   }
-  return choice.description;
+
+  // 3. Fallback for Atlantis Chapter 1
+  if ((world === 'Atlantis' || !world) && (chapterNumber === 1 || chapterNumber === undefined)) {
+    const defaultKey = `${choice.id}_description` as keyof Translations;
+    if (dict[defaultKey]) {
+      return dict[defaultKey]?.trim() || undefined;
+    }
+  }
+
+  if (choice.description && choice.description.trim()) {
+    return choice.description.trim();
+  }
+
+  // If there's no description in i18n, don't show
+  return undefined;
 }
 
 export interface ChapterConfig {
@@ -448,6 +534,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [hasClaimedPoints, setHasClaimedPoints] = useState<boolean>(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechRecognitionRef = useRef<any>(null);
+  const crawlContainerRef = useRef<HTMLDivElement | null>(null);
+  const crawlSentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Derive world and tale name for Supabase storage paths
   const { world: currentWorld, taleName: currentTaleName } = useMemo(() => {
@@ -468,16 +556,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           choices: [
             {
               id: 'choice1' as ChoiceId,
-              title: 'Don’t ask for permission',
-              subtitle: 'Community Leadership',
-              description: "Don’t ask for permission and risk losing everything.",
+              descriptionKey: 'eldorado_act0_choice1_description' as keyof Translations,
+              description: 'Give his light',
               available: true,
             },
             {
               id: 'choice2' as ChoiceId,
-              title: 'Try to Solve Everything Alone',
-              subtitle: 'Cautious Heroism',
-              description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
+              descriptionKey: 'eldorado_act0_choice2_description' as keyof Translations,
+              description: 'Afraid to lose his light',
               available: true,
             },
             { id: 'choice3' as ChoiceId, available: false },
@@ -496,16 +582,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         choices: currentChapterNumber === 0 ? [
           {
             id: 'choice1' as ChoiceId,
-            title: 'Don’t ask for permission',
-            subtitle: 'Community Leadership',
-            description: "Don’t ask for permission and risk losing everything.",
+            descriptionKey: 'eldorado_act0_choice1_description' as keyof Translations,
+            description: 'Give his light',
             available: true,
           },
           {
             id: 'choice2' as ChoiceId,
-            title: 'Try to Solve Everything Alone',
-            subtitle: 'Cautious Heroism',
-            description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
+            descriptionKey: 'eldorado_act0_choice2_description' as keyof Translations,
+            description: 'Afraid to lose his light',
             available: true,
           },
           { id: 'choice3' as ChoiceId, available: false },
@@ -531,6 +615,91 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (!chapterConfigs || chapterConfigs.length === 0) return 1;
     return Math.max(...chapterConfigs.map((c) => c.id));
   }, [chapterConfigs]);
+
+  const isFeedbackMode = currentStep === 'choice_feedback';
+  const isFeedbackReadAloud = currentStep === 'choice_feedback' && isCrawlFinished;
+
+  const currentChoiceConfig = useMemo(() => {
+    return currentChapterConfig.choices?.find((c) => c.id === selectedChoiceId);
+  }, [currentChapterConfig, selectedChoiceId]);
+
+  const currentChoiceNum = useMemo(() => {
+    return parseInt(selectedChoiceId.replace('choice', '') || '1', 10);
+  }, [selectedChoiceId]);
+
+  const currentChoiceTitle = useMemo(() => {
+    if (!currentChoiceConfig) return `Choice ${currentChoiceNum}`;
+    return (
+      getChoiceLocalizedTitle(
+        currentChoiceConfig,
+        currentLang,
+        currentChoiceNum - 1,
+        currentWorld,
+        currentTaleName,
+        currentChapterNumber
+      ) ||
+      getChoiceLocalizedDescription(
+        currentChoiceConfig,
+        currentLang,
+        currentWorld,
+        currentTaleName,
+        currentChapterNumber
+      ) ||
+      currentChoiceConfig.title ||
+      `Choice ${currentChoiceNum}`
+    );
+  }, [
+    currentChoiceConfig,
+    currentLang,
+    currentChoiceNum,
+    currentWorld,
+    currentTaleName,
+    currentChapterNumber,
+  ]);
+
+  const activeFeedbackLang = currentLang || selectedVttLang || 'EN';
+
+  const targetLangDisplayName = useMemo(() => {
+    const dict = LANGUAGE_FULL_NAMES[selectedVttLang];
+    return dict?.[activeFeedbackLang] || dict?.[currentLang] || dict?.['EN'] || selectedVttLang;
+  }, [selectedVttLang, activeFeedbackLang, currentLang]);
+
+  const readAloudPromptText = useMemo(() => {
+    return t('readAloudEarnPoints', activeFeedbackLang).replace('{lang}', targetLangDisplayName);
+  }, [activeFeedbackLang, targetLangDisplayName]);
+
+  // When crawl is active, automatically show full text as soon as the last line appears in view
+  useEffect(() => {
+    if (currentStep !== 'choice_feedback' || isCrawlFinished) return;
+
+    let animId: number;
+    let finished = false;
+
+    const checkSentinel = () => {
+      if (finished) return;
+      if (crawlSentinelRef.current && crawlContainerRef.current) {
+        const sentinelRect = crawlSentinelRef.current.getBoundingClientRect();
+        const containerRect = crawlContainerRef.current.getBoundingClientRect();
+
+        // Check if the sentinel has entered the visible viewport of the container
+        if (
+          sentinelRect.top > 0 &&
+          sentinelRect.bottom <= containerRect.bottom - 8
+        ) {
+          finished = true;
+          setIsCrawlFinished(true);
+          return;
+        }
+      }
+      animId = requestAnimationFrame(checkSentinel);
+    };
+
+    animId = requestAnimationFrame(checkSentinel);
+
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [currentStep, isCrawlFinished]);
 
   // Available choices in SHUFFLE order
   // "render buttons for each AVAILABLE choice (in shuffle order choice1, choice2, choice3, choice4)"
@@ -604,7 +773,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       const choiceCfg = currentChapterConfig.choices.find((c) => c.id === selectedChoiceId);
       const choiceNum = selectedChoiceId.replace('choice', '') || '1';
       const choiceTitle = choiceCfg
-        ? getChoiceLocalizedTitle(choiceCfg, currentLang, parseInt(choiceNum, 10) - 1)
+        ? (getChoiceLocalizedTitle(choiceCfg, currentLang, parseInt(choiceNum, 10) - 1, currentWorld, currentTaleName, currentChapterNumber)
+           || getChoiceLocalizedDescription(choiceCfg, currentLang, currentWorld, currentTaleName, currentChapterNumber)
+           || `Chapter ${currentChapterNumber} • Choice ${choiceNum}`)
         : `Chapter ${currentChapterNumber} • Choice ${choiceNum}`;
       return {
         chapter: currentChapterNumber,
@@ -1235,6 +1406,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const handleVttLanguageSelected = (newLang: Language) => {
     setSelectedVttLang(newLang);
+    if (onLanguageChange) onLanguageChange(newLang);
   };
 
   // Speech Recognition (Read Aloud) Implementation
@@ -1354,17 +1526,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   };
 
-  // Native Text-to-Speech (Listen Pronunciation)
-  const speakPassageNative = () => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const textToSpeak = feedbackParagraphs.join('. ');
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = getSpeechLangTag(selectedVttLang);
-    utterance.rate = 0.9;
-    window.speechSynthesis.speak(utterance);
-  };
-
   // Clean chapter / act identifier for comments
   const chapterCommentId = useMemo(() => {
     return `${tale?.id || 'atlantis'}-ch${currentChapterNumber}-${currentStep}-${selectedChoiceId}`;
@@ -1410,59 +1571,61 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         </div>
 
         {/* Right: Audio / Voice & Sound Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Autoplay Toggle */}
-          <button
-            id="act-autoplay-toggle"
-            onClick={() => setIsAutoPlay(!isAutoPlay)}
-            className={`px-2 py-1 text-[11px] sm:text-xs font-bold font-mono tracking-widest transition-all cursor-pointer bg-transparent border-0 rounded-none ${
-              darkMode
-                ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
-                : 'drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-            } ${
-              isAutoPlay
-                ? darkMode
-                  ? 'text-[#ffe81f] font-black underline decoration-[#d4af37] decoration-2 underline-offset-4'
-                  : 'text-amber-800 font-black underline decoration-amber-600 decoration-2 underline-offset-4'
-                : darkMode
-                ? 'text-amber-200/75 hover:text-amber-200'
-                : 'text-amber-800/75 hover:text-amber-950'
-            }`}
-            title="Toggle Auto Advance"
-          >
-            AUTO
-          </button>
+        {!isFeedbackMode && (
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Autoplay Toggle */}
+            <button
+              id="act-autoplay-toggle"
+              onClick={() => setIsAutoPlay(!isAutoPlay)}
+              className={`px-2 py-1 text-[11px] sm:text-xs font-bold font-mono tracking-widest transition-all cursor-pointer bg-transparent border-0 rounded-none ${
+                darkMode
+                  ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
+                  : 'drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+              } ${
+                isAutoPlay
+                  ? darkMode
+                    ? 'text-[#ffe81f] font-black underline decoration-[#d4af37] decoration-2 underline-offset-4'
+                    : 'text-amber-800 font-black underline decoration-amber-600 decoration-2 underline-offset-4'
+                  : darkMode
+                  ? 'text-amber-200/75 hover:text-amber-200'
+                  : 'text-amber-800/75 hover:text-amber-950'
+              }`}
+              title="Toggle Auto Advance"
+            >
+              AUTO
+            </button>
 
-          {/* Sound Toggle */}
-          <button
-            id="act-sound-toggle"
-            onClick={() => setIsMuted(!isMuted)}
-            className={`p-1.5 sm:p-2 transition-all hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
-              darkMode
-                ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
-                : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-            }`}
-            title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-            aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-          >
-            {isMuted ? (
-              <VolumeX className={`w-5 h-5 sm:w-6 sm:h-6 ${darkMode ? 'text-slate-400 hover:text-white' : 'text-stone-400 hover:text-stone-700'} transition-colors`} />
-            ) : (
-              <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
-            )}
-          </button>
+            {/* Sound Toggle */}
+            <button
+              id="act-sound-toggle"
+              onClick={() => setIsMuted(!isMuted)}
+              className={`p-1.5 sm:p-2 transition-all hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                darkMode
+                  ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                  : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+              }`}
+              title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+              aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+            >
+              {isMuted ? (
+                <VolumeX className={`w-5 h-5 sm:w-6 sm:h-6 ${darkMode ? 'text-slate-400 hover:text-white' : 'text-stone-400 hover:text-stone-700'} transition-colors`} />
+              ) : (
+                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
+              )}
+            </button>
 
-          {/* Audio Voice MP3 Language Selector */}
-          <FlagLanguageDropdown
-            id="act-top-mp3-selector"
-            type="mp3"
-            selectedLang={selectedAudioLang}
-            onSelectLang={handleAudioLanguageSelected}
-            darkMode={darkMode}
-            cinematic={true}
-            tooltip="Voice Audio (MP3)"
-          />
-        </div>
+            {/* Audio Voice MP3 Language Selector */}
+            <FlagLanguageDropdown
+              id="act-top-mp3-selector"
+              type="mp3"
+              selectedLang={selectedAudioLang}
+              onSelectLang={handleAudioLanguageSelected}
+              darkMode={darkMode}
+              cinematic={true}
+              tooltip="Voice Audio (MP3)"
+            />
+          </div>
+        )}
       </div>
 
       {/* 2. MAIN VIEWPORT AREA: Full Screen Edge-to-Edge */}
@@ -1522,9 +1685,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     currentChapterNumber,
                     choice.id
                   );
-                const choiceTitle = getChoiceLocalizedTitle(choice, currentLang, idx);
-                const choiceSubtitle = getChoiceLocalizedSubtitle(choice, currentLang);
-                const choiceDescription = getChoiceLocalizedDescription(choice, currentLang);
+                const choiceTitle = getChoiceLocalizedTitle(choice, currentLang, idx, currentWorld, currentTaleName, currentChapterNumber);
+                const choiceSubtitle = getChoiceLocalizedSubtitle(choice, currentLang, currentWorld, currentTaleName, currentChapterNumber);
+                const choiceDescription = getChoiceLocalizedDescription(choice, currentLang, currentWorld, currentTaleName, currentChapterNumber);
 
                 return (
                   <button
@@ -1538,7 +1701,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     <div className="relative w-full aspect-video overflow-hidden rounded-xl bg-slate-950">
                       <img
                         src={choiceImgUrl}
-                        alt={choiceTitle}
+                        alt={choiceTitle || choiceDescription || `Choice ${idx + 1}`}
                         crossOrigin="anonymous"
                         loading="eager"
                         className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 ${
@@ -1577,18 +1740,24 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                       {/* Bottom Info overlay: Localized Title, Subtitle, and Description */}
                       {(choiceTitle || choiceSubtitle || choiceDescription) && (
                         <div className="absolute bottom-2.5 sm:bottom-3 left-2.5 sm:left-3 right-2.5 sm:right-3 z-10 pointer-events-none">
-                          {choiceTitle && (
+                          {choiceTitle && choiceTitle.trim() !== '' && (
                             <h4 className="text-sm sm:text-base font-cinzel font-bold text-amber-200 group-hover:text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-1">
                               {choiceTitle}
                             </h4>
                           )}
-                          {choiceSubtitle && (
+                          {choiceSubtitle && choiceSubtitle.trim() !== '' && (
                             <div className="text-[11px] sm:text-xs text-[#d4af37] font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] italic line-clamp-1">
                               {choiceSubtitle}
                             </div>
                           )}
-                          {choiceDescription && (
-                            <p className="text-[11px] sm:text-xs text-slate-200 line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] font-sans mt-0.5">
+                          {choiceDescription && choiceDescription.trim() !== '' && (
+                            <p
+                              className={`text-slate-200 line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] font-sans mt-0.5 ${
+                                !choiceTitle && !choiceSubtitle
+                                  ? 'text-xs sm:text-sm font-semibold text-amber-100 font-cinzel tracking-wide'
+                                  : 'text-[11px] sm:text-xs'
+                              }`}
+                            >
                               {choiceDescription}
                             </p>
                           )}
@@ -1620,7 +1789,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
             {!isCrawlFinished ? (
               /* STAR WARS 3D PERSPECTIVE INTRO EFFECT WITH DUAL-MODE CONTRAST */
-              <div className="relative w-full h-[70vh] sm:h-[76vh] flex flex-col items-center justify-center overflow-hidden [perspective:420px] select-none">
+              <div
+                ref={crawlContainerRef}
+                className="relative w-full h-[70vh] sm:h-[76vh] flex flex-col items-center justify-center overflow-hidden [perspective:420px] select-none"
+              >
                 {/* Skip / Fast Forward Button */}
                 <button
                   id="starwars-skip-crawl-btn"
@@ -1657,8 +1829,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                           : 'text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)]'
                       }`}
                     >
-                      {currentChapterConfig.choices.find((c) => c.id === selectedChoiceId)?.title ||
-                        `Choice ${selectedChoiceId.replace('choice', '')}`}
+                      {currentChoiceTitle}
                     </h2>
                   </div>
 
@@ -1672,316 +1843,249 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     {feedbackParagraphs.map((para, idx) => (
                       <p key={idx}>{para}</p>
                     ))}
+                    {/* Sentinel placed after last line to detect when text appears and reveal read aloud page */}
+                    <div ref={crawlSentinelRef} className="h-1 w-full" />
                   </div>
                 </div>
               </div>
             ) : (
-              /* AT THE END OF STAR WARS INTRO:
-                 - ALL THE TEXT ON SCREEN WITH HIGH-CONTRAST LIGHT & DARK READABILITY
-                 - FONT SIZING CONTROLS
-                 - NUMBERED PARAGRAPH BLOCKS WITH GOLD ACCENTS
-                 - READ ALOUD BUTTON WITH SPEECH RECOGNITION & SCORE POINTS */
+              /* FEEDBACK READ ALOUD MODE:
+                 - Choice title as heading (Point 3)
+                 - Read aloud button placed near the shortened prompt text instead of path icon (Points 7 & 9)
+                 - Real-time spoken transcript feedback
+                 - NO numbers, NO dividers, all feedback text together (Point 5)
+                 - NO borders or box divs around the text (Point 6)
+                 - Removed "I have read it aloud (Claim points)" (Point 8)
+                 - Removed lang:EN (Point 10)
+                 - Removed finish/next chapter text label, only '>' button (Point 10)
+                 - Font size adjustment (A, A+, A++) at the bottom near the language selector (Point 11)
+              */
               <motion.div
-                initial={{ opacity: 0, scale: 0.96 }}
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.35 }}
-                className={`relative z-30 w-full max-w-3xl max-h-[78vh] sm:max-h-[82vh] flex flex-col rounded-3xl border-2 ${
-                  darkMode
-                    ? 'border-[#d4af37]/70 bg-slate-950/95 text-slate-100 shadow-[0_20px_60px_rgba(0,0,0,0.9)]'
-                    : 'border-[#c69214] bg-white/98 text-slate-900 shadow-[0_20px_50px_rgba(180,130,20,0.18)]'
-                } backdrop-blur-2xl p-4 sm:p-7 overflow-hidden`}
+                className="relative z-30 w-full max-w-3xl flex flex-col p-4 sm:p-6 select-text"
               >
-                {/* Header with target reading language & font size adjustment */}
-                <div
-                  className={`flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b mb-3 sm:mb-4 ${
-                    darkMode ? 'border-[#d4af37]/30' : 'border-amber-200/90'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div
-                      className={`p-2 rounded-xl ${
-                        darkMode ? 'bg-amber-400/15 text-[#d4af37]' : 'bg-amber-100 text-[#8a5d12]'
-                      }`}
-                    >
-                      <Scroll className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3
-                        className={`text-base sm:text-xl font-cinzel font-bold tracking-wide ${
-                          darkMode ? 'text-amber-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]' : 'text-amber-950 font-black'
-                        }`}
-                      >
-                        Feedback: {selectedChoiceId.toUpperCase()}
-                      </h3>
-                      <p
-                        className={`text-[11px] font-sans ${
-                          darkMode ? 'text-slate-400' : 'text-slate-600 font-medium'
-                        }`}
-                      >
-                        Read the passage aloud to earn Language Mastery points
-                      </p>
-                    </div>
-                  </div>
+                {/* Header: Choice Title + Read Aloud prompt with Read Aloud button near text */}
+                <div className="mb-4">
+                  <h2
+                    className={`text-xl sm:text-3xl font-cinzel font-bold tracking-wide ${
+                      darkMode ? 'text-amber-200' : 'text-amber-950 font-black'
+                    }`}
+                  >
+                    {currentChoiceTitle}
+                  </h2>
 
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Replay Crawl Button */}
+                  {/* Read aloud prompt row: Read aloud button placed directly next to the instruction text */}
+                  <div className="mt-3.5 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
                     <button
+                      id="choice-read-aloud-btn"
+                      onClick={isReadingAloud ? stopSpeechRecognition : startSpeechRecognition}
                       type="button"
-                      onClick={() => setIsCrawlFinished(false)}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                        darkMode
-                          ? 'bg-slate-900/90 border-slate-700 hover:border-amber-400/50 text-slate-300 hover:text-amber-200'
-                          : 'bg-amber-50 border-amber-200 hover:border-amber-400 text-amber-900 hover:bg-amber-100'
-                      }`}
-                      title="Watch the 3D Intro Crawl again"
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 ${
+                        isReadingAloud
+                          ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-400 animate-pulse'
+                          : 'bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 border-amber-300'
+                      } font-bold text-xs sm:text-sm shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0`}
+                      title="Read Aloud"
                     >
-                      <RotateCcw className="w-3 h-3" />
-                      <span className="hidden sm:inline">Intro Crawl</span>
+                      {isReadingAloud ? (
+                        <>
+                          <MicOff className="w-4 h-4" />
+                          <span>Listening...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="w-4 h-4" />
+                          <span>Read Aloud</span>
+                        </>
+                      )}
                     </button>
 
-                    {/* Font size control */}
-                    <div
-                      className={`flex items-center rounded-lg border p-0.5 text-xs font-semibold ${
-                        darkMode
-                          ? 'bg-slate-900 border-slate-700 text-slate-300'
-                          : 'bg-amber-50/80 border-amber-200 text-slate-700'
+                    <p
+                      id="choice-read-aloud-prompt"
+                      className={`text-xs sm:text-sm leading-relaxed font-medium flex-1 ${
+                        darkMode ? 'text-amber-200/90' : 'text-amber-950'
                       }`}
                     >
-                      <button
-                        type="button"
-                        onClick={() => setFeedbackFontSize('normal')}
-                        className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
-                          feedbackFontSize === 'normal'
-                            ? darkMode
-                              ? 'bg-amber-400/25 text-amber-200 font-bold'
-                              : 'bg-white text-amber-950 font-bold shadow-xs'
-                            : 'hover:opacity-80'
-                        }`}
-                        title="Standard Text Size"
-                      >
-                        A
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFeedbackFontSize('large')}
-                        className={`px-2 py-0.5 rounded text-sm transition-colors cursor-pointer ${
-                          feedbackFontSize === 'large'
-                            ? darkMode
-                              ? 'bg-amber-400/25 text-amber-200 font-bold'
-                              : 'bg-white text-amber-950 font-bold shadow-xs'
-                            : 'hover:opacity-80'
-                        }`}
-                        title="Large Text Size"
-                      >
-                        A+
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFeedbackFontSize('xlarge')}
-                        className={`px-2 py-0.5 rounded text-base transition-colors cursor-pointer ${
-                          feedbackFontSize === 'xlarge'
-                            ? darkMode
-                              ? 'bg-amber-400/25 text-amber-200 font-bold'
-                              : 'bg-white text-amber-950 font-bold shadow-xs'
-                            : 'hover:opacity-80'
-                        }`}
-                        title="Extra Large Text Size"
-                      >
-                        A++
-                      </button>
-                    </div>
-
-                    {/* Language Badge */}
-                    <div
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold ${
-                        darkMode
-                          ? 'bg-amber-400/10 border-amber-400/30 text-amber-200'
-                          : 'bg-amber-100/90 border-amber-300 text-amber-900'
-                      }`}
-                    >
-                      <span className={darkMode ? 'text-amber-300/70' : 'text-amber-700'}>Lang:</span>
-                      <span className={`font-bold ${darkMode ? 'text-amber-200' : 'text-amber-950'}`}>
-                        {selectedVttLang}
-                      </span>
-                    </div>
+                      {readAloudPromptText}
+                    </p>
                   </div>
                 </div>
 
-                {/* All Text Displayed on Screen */}
+                {/* Spoken Transcript Notification */}
+                {readTranscript && (
+                  <div
+                    className={`mb-3 p-3 rounded-xl border text-xs sm:text-sm ${
+                      darkMode
+                        ? 'bg-amber-950/40 border-amber-400/40 text-amber-100'
+                        : 'bg-amber-50 border-amber-300 text-amber-950 font-medium'
+                    }`}
+                  >
+                    <span className={`font-bold ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
+                      Heard you say:{' '}
+                    </span>
+                    <span className={`italic ${darkMode ? 'text-amber-100' : 'text-stone-900'}`}>
+                      "{readTranscript}"
+                    </span>
+                    {readAccuracy !== null && (
+                      <span
+                        className={`ml-2 font-mono font-bold px-2 py-0.5 rounded text-xs ${
+                          darkMode ? 'bg-amber-400/20 text-amber-200' : 'bg-amber-200 text-amber-950'
+                        }`}
+                      >
+                        Match: {readAccuracy}%
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Points Awarded Badge */}
+                {hasClaimedPoints && (
+                  <div
+                    className={`mb-3 p-2.5 rounded-xl border-2 flex items-center justify-between text-xs sm:text-sm font-bold ${
+                      darkMode
+                        ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-200'
+                        : 'bg-emerald-50 border-emerald-600/70 text-emerald-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Award className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
+                      <span>Language Mastery Verified! +50 Points Awarded in {targetLangDisplayName}</span>
+                    </div>
+                    <CheckCircle2 className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
+                  </div>
+                )}
+
+                {speechError && (
+                  <div
+                    className={`mb-3 p-2.5 rounded-xl border text-xs ${
+                      darkMode
+                        ? 'bg-amber-950/60 border-amber-500/40 text-amber-200'
+                        : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
+                    }`}
+                  >
+                    {speechError}
+                  </div>
+                )}
+
+                {/* All Feedback Text Displayed Together - NO borders, NO container divs, NO numbers */}
                 <div
                   id="choice-feedback-full-text"
-                  className="flex-1 overflow-y-auto pr-2 space-y-3.5 sm:space-y-4 max-h-[38vh] sm:max-h-[44vh] custom-scrollbar"
+                  className={`flex-1 overflow-y-auto pr-2 my-2 max-h-[50vh] sm:max-h-[58vh] custom-scrollbar space-y-4 ${
+                    darkMode ? 'text-slate-100' : 'text-stone-900 font-normal sm:font-medium'
+                  }`}
                 >
                   {feedbackParagraphs.map((para, i) => (
-                    <div
+                    <p
                       key={i}
-                      className={`p-4 sm:p-5 rounded-2xl border-l-4 transition-all ${
-                        darkMode
-                          ? 'bg-slate-900/85 border border-slate-800/80 border-l-[#d4af37] text-slate-100 shadow-sm'
-                          : 'bg-amber-50/40 hover:bg-amber-50/70 border border-amber-200/70 border-l-[#b8860b] text-stone-900 shadow-xs'
+                      style={{
+                        fontSize:
+                          feedbackFontSize === 'normal'
+                            ? '0.9375rem'
+                            : feedbackFontSize === 'large'
+                            ? '1.1875rem'
+                            : '1.45rem',
+                        lineHeight:
+                          feedbackFontSize === 'normal'
+                            ? '1.65'
+                            : feedbackFontSize === 'large'
+                            ? '1.75'
+                            : '1.85',
+                      }}
+                      className={`transition-all duration-150 ${
+                        feedbackFontSize === 'normal'
+                          ? '!text-sm sm:!text-base'
+                          : feedbackFontSize === 'large'
+                          ? '!text-base sm:!text-lg md:!text-xl font-medium'
+                          : '!text-lg sm:!text-xl md:!text-2xl font-medium'
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <span
-                          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono mt-0.5 ${
-                            darkMode
-                              ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
-                              : 'bg-amber-100 text-amber-900 border border-amber-300'
-                          }`}
-                        >
-                          {i + 1}
-                        </span>
-                        <p
-                          className={`${
-                            feedbackFontSize === 'normal'
-                              ? 'text-sm sm:text-base leading-relaxed'
-                              : feedbackFontSize === 'large'
-                              ? 'text-base sm:text-lg leading-relaxed sm:leading-loose'
-                              : 'text-lg sm:text-xl leading-relaxed sm:leading-loose font-medium'
-                          } ${darkMode ? 'text-slate-100' : 'text-stone-900 font-normal sm:font-medium'}`}
-                        >
-                          {para}
-                        </p>
-                      </div>
-                    </div>
+                      {para}
+                    </p>
                   ))}
                 </div>
 
-                {/* Read Aloud & Score Points Verification Hub */}
-                <div
-                  className={`mt-3.5 pt-3 border-t flex flex-col gap-2.5 ${
-                    darkMode ? 'border-[#d4af37]/30' : 'border-amber-200/90'
-                  }`}
-                >
-                  {/* Realtime Spoken Transcript Display */}
-                  {readTranscript && (
-                    <div
-                      className={`p-3 rounded-xl border text-xs sm:text-sm ${
-                        darkMode
-                          ? 'bg-amber-950/40 border-amber-400/40 text-amber-100'
-                          : 'bg-amber-50 border-amber-300 text-amber-950 font-medium'
+                {/* Bottom Bar: Font size (A, A+, A++) at bottom-left, Language Selector & `>` at bottom-right */}
+                <div className="mt-4 pt-2 flex items-center justify-between gap-4">
+                  {/* Bottom Left: Font size adjustment buttons */}
+                  <div
+                    className={`flex items-center rounded-lg border p-0.5 text-xs font-semibold ${
+                      darkMode
+                        ? 'bg-slate-900 border-slate-700 text-slate-300'
+                        : 'bg-amber-50/80 border-amber-200 text-slate-700'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackFontSize('normal')}
+                      className={`px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
+                        feedbackFontSize === 'normal'
+                          ? darkMode
+                            ? 'bg-amber-400/25 text-amber-200 font-bold'
+                            : 'bg-white text-amber-950 font-bold shadow-xs'
+                          : 'hover:opacity-80'
                       }`}
+                      title="Standard Text Size"
                     >
-                      <span className={`font-bold ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
-                        Heard you say:{' '}
-                      </span>
-                      <span className={`italic ${darkMode ? 'text-amber-100' : 'text-stone-900'}`}>
-                        "{readTranscript}"
-                      </span>
-                      {readAccuracy !== null && (
-                        <span
-                          className={`ml-2 font-mono font-bold px-2 py-0.5 rounded text-xs ${
-                            darkMode ? 'bg-amber-400/20 text-amber-200' : 'bg-amber-200 text-amber-950'
-                          }`}
-                        >
-                          Match: {readAccuracy}%
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Success / Points Awarded Badge */}
-                  {hasClaimedPoints && (
-                    <div
-                      className={`p-3 rounded-xl border-2 flex items-center justify-between text-xs sm:text-sm font-bold animate-in fade-in ${
-                        darkMode
-                          ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-200'
-                          : 'bg-emerald-50 border-emerald-600/70 text-emerald-900'
+                      A
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackFontSize('large')}
+                      className={`px-2.5 py-1 rounded text-sm transition-colors cursor-pointer ${
+                        feedbackFontSize === 'large'
+                          ? darkMode
+                            ? 'bg-amber-400/25 text-amber-200 font-bold'
+                            : 'bg-white text-amber-950 font-bold shadow-xs'
+                          : 'hover:opacity-80'
                       }`}
+                      title="Large Text Size"
                     >
-                      <div className="flex items-center gap-2">
-                        <Award className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
-                        <span>Language Mastery Verified! +50 Points Awarded in {selectedVttLang}</span>
-                      </div>
-                      <CheckCircle2 className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
-                    </div>
-                  )}
-
-                  {speechError && (
-                    <div
-                      className={`p-2.5 rounded-xl border text-xs ${
-                        darkMode
-                          ? 'bg-amber-950/60 border-amber-500/40 text-amber-200'
-                          : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
+                      A+
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackFontSize('xlarge')}
+                      className={`px-2.5 py-1 rounded text-base transition-colors cursor-pointer ${
+                        feedbackFontSize === 'xlarge'
+                          ? darkMode
+                            ? 'bg-amber-400/25 text-amber-200 font-bold'
+                            : 'bg-white text-amber-950 font-bold shadow-xs'
+                          : 'hover:opacity-80'
                       }`}
+                      title="Extra Large Text Size"
                     >
-                      {speechError}
-                    </div>
-                  )}
+                      A++
+                    </button>
+                  </div>
 
-                  {/* Action Buttons: Read Aloud + Listen Pronunciation + Next */}
-                  <div className="flex flex-wrap items-center justify-between gap-2.5">
-                    <div className="flex items-center gap-2">
-                      {/* Read Aloud Button */}
-                      <button
-                        id="choice-read-aloud-btn"
-                        onClick={isReadingAloud ? stopSpeechRecognition : startSpeechRecognition}
-                        type="button"
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 ${
-                          isReadingAloud
-                            ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-400 animate-pulse'
-                            : 'bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 border-amber-300'
-                        } font-bold text-xs sm:text-sm shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer`}
-                      >
-                        {isReadingAloud ? (
-                          <>
-                            <MicOff className="w-4 h-4" />
-                            <span>Listening... Press to Finish</span>
-                          </>
-                        ) : (
-                          <>
-                            <Mic className="w-4 h-4" />
-                            <span>Read Aloud</span>
-                          </>
-                        )}
-                      </button>
+                  {/* Bottom Right: Language Selector Dropdown and `>` Chevron Icon Button */}
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <FlagLanguageDropdown
+                      id="act-feedback-bottom-vtt-selector"
+                      type="vtt"
+                      selectedLang={selectedVttLang}
+                      onSelectLang={handleVttLanguageSelected}
+                      darkMode={darkMode}
+                      cinematic={true}
+                      availableLangs={availableVttLangs}
+                      tooltip="Subtitles / Reading Language"
+                    />
 
-                      {/* Listen Native Pronunciation */}
-                      <button
-                        id="choice-listen-tts-btn"
-                        onClick={speakPassageNative}
-                        type="button"
-                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                          darkMode
-                            ? 'bg-slate-900/90 hover:bg-[#d4af37]/20 border-[#d4af37]/60 text-amber-200'
-                            : 'bg-white hover:bg-amber-50 border-amber-400 text-amber-950 shadow-xs'
-                        }`}
-                        title="Listen to native voice pronunciation"
-                      >
-                        <Volume1 className={`w-4 h-4 ${darkMode ? 'text-[#d4af37]' : 'text-[#8a5d12]'}`} />
-                        <span className="hidden sm:inline">Listen Pronunciation</span>
-                      </button>
-                    </div>
-
-                    {/* Manual Claim fallback if microphone not supported */}
-                    {!hasClaimedPoints && (
-                      <button
-                        id="choice-claim-points-btn"
-                        onClick={awardLanguagePoints}
-                        type="button"
-                        className={`text-xs underline cursor-pointer font-medium ${
-                          darkMode
-                            ? 'text-amber-300 hover:text-amber-200'
-                            : 'text-amber-800 hover:text-amber-950 font-semibold'
-                        }`}
-                      >
-                        I have read it aloud (Claim Points)
-                      </button>
-                    )}
-
-                    {/* Direct Next Chapter / Continue Button */}
                     <button
                       id="feedback-next-chapter-action-btn"
                       onClick={goToNext}
                       type="button"
-                      className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border-2 border-amber-400 bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
+                      className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                        darkMode
+                          ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                          : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+                      }`}
+                      title="Next"
+                      aria-label="Next"
                     >
-                      <span>
-                        {currentChapterNumber >= maxChapterId
-                          ? t('finishBtn', currentLang)
-                          : 'Next Chapter'}
-                      </span>
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-8 h-8 sm:w-10 sm:h-10 transition-colors stroke-[2.5]" />
                     </button>
                   </div>
                 </div>
@@ -2120,141 +2224,147 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       </div>
 
       {/* 3. CENTER LEFT: PREVIOUS `<` BUTTON (Cinematic floating chevron, no round circle) */}
-      <button
-        id="act-prev-button"
-        onClick={goToPrev}
-        aria-label="Previous Act"
-        className={`absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
-          darkMode
-            ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
-            : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
-        }`}
-        title="Previous"
-      >
-        <ChevronLeft className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:-translate-x-1 stroke-[2.5]" />
-      </button>
+      {!isFeedbackMode && (
+        <button
+          id="act-prev-button"
+          onClick={goToPrev}
+          aria-label="Previous Act"
+          className={`absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
+            darkMode
+              ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
+              : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
+          }`}
+          title="Previous"
+        >
+          <ChevronLeft className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:-translate-x-1 stroke-[2.5]" />
+        </button>
+      )}
 
       {/* 4. CENTER RIGHT: NEXT `>` BUTTON (Cinematic floating chevron, no round circle) */}
-      <button
-        id="act-next-button"
-        onClick={goToNext}
-        aria-label="Next Act"
-        className={`absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
-          darkMode
-            ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
-            : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
-        }`}
-        title="Next"
-      >
-        <ChevronRight className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:translate-x-1 stroke-[2.5]" />
-      </button>
+      {!isFeedbackMode && (
+        <button
+          id="act-next-button"
+          onClick={goToNext}
+          aria-label="Next Act"
+          className={`absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
+            darkMode
+              ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
+              : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
+          }`}
+          title="Next"
+        >
+          <ChevronRight className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:translate-x-1 stroke-[2.5]" />
+        </button>
+      )}
 
       {/* 5. BOTTOM AREA: Always visible throughout the act, transparent background, no skip button, no text on buttons, no round circles */}
-      <div
-        id="act-bottom-controls-bar"
-        key={`bottom-bar-${currentChapterNumber}-${currentStep}-${selectedChoiceId}`}
-        className="absolute bottom-0 left-0 right-0 z-30 w-full flex flex-col justify-end pointer-events-auto bg-transparent pb-3 sm:pb-5 px-3 sm:px-6 select-none"
-      >
-        {/* Center Status / Subtitle Display */}
-        <div className="flex items-center justify-between gap-3 px-1 sm:px-2 min-h-[2rem]">
-          <div className="w-8 shrink-0 hidden sm:block" />
+      {!isFeedbackMode && (
+        <div
+          id="act-bottom-controls-bar"
+          key={`bottom-bar-${currentChapterNumber}-${currentStep}-${selectedChoiceId}`}
+          className="absolute bottom-0 left-0 right-0 z-30 w-full flex flex-col justify-end pointer-events-auto bg-transparent pb-3 sm:pb-5 px-3 sm:px-6 select-none"
+        >
+          {/* Center Status / Subtitle Display */}
+          <div className="flex items-center justify-between gap-3 px-1 sm:px-2 min-h-[2rem]">
+            <div className="w-8 shrink-0 hidden sm:block" />
 
-          <div className="flex-1 flex items-center justify-center text-center px-2">
-            <p
-              className={`font-cinzel text-xs sm:text-sm font-bold tracking-wider text-center ${
-                darkMode
-                  ? 'text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
-                  : 'text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]'
-              }`}
-            >
-              {currentStep === 'choices'
-                ? ''
-                : currentStep === 'choice_act'
-                ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : currentActData.title)
-                : currentStep === 'choice_feedback'
-                ? `Language Practice: ${selectedVttLang}`
-                : isVideoFinished
-                ? t('actCompleted', currentLang)
-                : currentActData.title}
-            </p>
+            <div className="flex-1 flex items-center justify-center text-center px-2">
+              <p
+                className={`font-cinzel text-xs sm:text-sm font-bold tracking-wider text-center ${
+                  darkMode
+                    ? 'text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
+                    : 'text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]'
+                }`}
+              >
+                {currentStep === 'choices'
+                  ? ''
+                  : currentStep === 'choice_act'
+                  ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : currentActData.title)
+                  : currentStep === 'choice_feedback'
+                  ? `Language Practice: ${selectedVttLang}`
+                  : isVideoFinished
+                  ? t('actCompleted', currentLang)
+                  : currentActData.title}
+              </p>
+            </div>
+
+            {/* Bottom Right VTT Subtitle Language Selector (Cinematic, no circle) */}
+            {currentStep !== 'choices' && (
+              <div className="shrink-0 flex items-center">
+                <FlagLanguageDropdown
+                  id="act-bottom-vtt-selector"
+                  type="vtt"
+                  selectedLang={selectedVttLang}
+                  onSelectLang={handleVttLanguageSelected}
+                  darkMode={darkMode}
+                  cinematic={true}
+                  availableLangs={availableVttLangs}
+                  tooltip={availableVttLangs.length === 0 ? 'No Subtitles Available for this Act' : 'Subtitles / Reading Language (VTT)'}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Bottom Right VTT Subtitle Language Selector (Cinematic, no circle) */}
-          {currentStep !== 'choices' && (
-            <div className="shrink-0 flex items-center">
-              <FlagLanguageDropdown
-                id="act-bottom-vtt-selector"
-                type="vtt"
-                selectedLang={selectedVttLang}
-                onSelectLang={handleVttLanguageSelected}
-                darkMode={darkMode}
-                cinematic={true}
-                availableLangs={availableVttLangs}
-                tooltip={availableVttLangs.length === 0 ? 'No Subtitles Available for this Act' : 'Subtitles / Reading Language (VTT)'}
-              />
-            </div>
-          )}
+          {/* Completion Action Bar: completely transparent, no skip button, no text on buttons, no round circles */}
+          <div className="w-full flex items-center justify-between gap-4 pt-2 pb-1 px-2 sm:px-4 bg-transparent border-0">
+            {/* Comment Drawer Button */}
+            <button
+              id="act-write-comment-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCommentsDrawer(true);
+              }}
+              className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                darkMode
+                  ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                  : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+              }`}
+              title={t('commentBtn', currentLang)}
+              aria-label={t('commentBtn', currentLang)}
+            >
+              <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
+            </button>
+
+            {/* Replay Button */}
+            <button
+              id="act-replay-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReplay();
+              }}
+              className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
+              title={t('replayBtn', currentLang)}
+              aria-label={t('replayBtn', currentLang)}
+            >
+              <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
+            </button>
+
+            {/* Next Step / Continue Button */}
+            <button
+              id="act-next-completion-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
+              className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
+              title={
+                currentStep === 'choices'
+                  ? 'Choose Below'
+                  : currentStep === 'choice_act'
+                  ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
+                  : currentStep === 'choice_feedback' && currentChapterNumber >= chapterConfigs.length
+                  ? t('finishBtn', currentLang)
+                  : currentStep === 'choice_feedback'
+                  ? 'Next Chapter'
+                  : t('nextAct', currentLang)
+              }
+              aria-label="Next Step"
+            >
+              <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#d4af37] hover:text-[#ffe81f] transition-colors stroke-[2.5]" />
+            </button>
+          </div>
         </div>
-
-        {/* Completion Action Bar: completely transparent, no skip button, no text on buttons, no round circles */}
-        <div className="w-full flex items-center justify-between gap-4 pt-2 pb-1 px-2 sm:px-4 bg-transparent border-0">
-          {/* Comment Drawer Button */}
-          <button
-            id="act-write-comment-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCommentsDrawer(true);
-            }}
-            className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
-              darkMode
-                ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
-                : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-            }`}
-            title={t('commentBtn', currentLang)}
-            aria-label={t('commentBtn', currentLang)}
-          >
-            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
-          </button>
-
-          {/* Replay Button */}
-          <button
-            id="act-replay-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleReplay();
-            }}
-            className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
-            title={t('replayBtn', currentLang)}
-            aria-label={t('replayBtn', currentLang)}
-          >
-            <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
-          </button>
-
-          {/* Next Step / Continue Button */}
-          <button
-            id="act-next-completion-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              goToNext();
-            }}
-            className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
-            title={
-              currentStep === 'choices'
-                ? 'Choose Below'
-                : currentStep === 'choice_act'
-                ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
-                : currentStep === 'choice_feedback' && currentChapterNumber >= chapterConfigs.length
-                ? t('finishBtn', currentLang)
-                : currentStep === 'choice_feedback'
-                ? 'Next Chapter'
-                : t('nextAct', currentLang)
-            }
-            aria-label="Next Step"
-          >
-            <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#d4af37] hover:text-[#ffe81f] transition-colors stroke-[2.5]" />
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* COMMENTS DRAWER */}
       {showCommentsDrawer && (
