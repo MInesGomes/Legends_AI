@@ -60,6 +60,7 @@ export interface Tale {
   authorName?: string;
   isApproved?: boolean;
   createdAt?: string;
+  isComingSoon?: boolean;
 }
 
 export interface DialogueLine {

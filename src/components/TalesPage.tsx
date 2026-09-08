@@ -38,6 +38,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [limitModalOpen, setLimitModalOpen] = useState(false);
+  const [comingSoonTale, setComingSoonTale] = useState<Tale | null>(null);
 
   const effectiveLang: Language = currentLang || user?.language || 'EN';
 
@@ -91,6 +92,10 @@ export const TalesPage: React.FC<TalesPageProps> = ({
   };
 
   const handleCardClick = (tale: Tale) => {
+    if (tale.isComingSoon) {
+      setComingSoonTale(tale);
+      return;
+    }
     // Check if the user is allowed to read this tale
     const reached = hasReachedDailyTaleLimit(user, dailyLogs, tale.id);
     if (reached) {
@@ -121,7 +126,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               <h2 className={`text-2xl sm:text-3xl font-bold font-cinzel ${
                 darkMode ? 'gold-gradient-text' : 'text-[#8a5d12]'
               }`}>
-                {realm.title} {t('talesTitleSuffix', effectiveLang)}
+                {t(('realm_' + realm.key) as any, effectiveLang) || realm.title}
               </h2>
               {realm.audienceLabel && (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border border-[#fff9e6] shadow-sm text-[11px] font-cinzel font-bold tracking-wider uppercase">
@@ -180,28 +185,6 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     referrerPolicy="no-referrer"
                   />
 
-                  {/* Corner Filigree Flourish Accents */}
-                  <div className="absolute top-1.5 left-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M2 10V2h8M2 2l8 8" />
-                    </svg>
-                  </div>
-                  <div className="absolute top-1.5 right-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M22 10V2h-8M22 2l-8 8" />
-                    </svg>
-                  </div>
-                  <div className="absolute bottom-1.5 left-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] z-10">
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M2 14v8h8M2 22l8-8" />
-                    </svg>
-                  </div>
-                  <div className="absolute bottom-1.5 right-1.5 pointer-events-none text-[#fce0a2]/90 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] z-10">
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M22 14v8h-8M22 22l-8-8" />
-                    </svg>
-                  </div>
-
                   {/* Custom Tale Moderation Status Badges */}
                   {isPendingCustomTale && (
                     <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
@@ -221,8 +204,18 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     </div>
                   )}
 
+                  {/* Top Coming Soon Indicator Badge */}
+                  {tale.isComingSoon && (
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 pointer-events-none">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border-2 border-[#fff9e6] shadow-[0_4px_16px_rgba(0,0,0,0.35),0_0_12px_rgba(212,175,55,0.4)] text-[10px] sm:text-[11px] font-cinzel font-bold tracking-wider uppercase drop-shadow-sm">
+                        <Clock className="w-3.5 h-3.5 text-[#7a4d04]" />
+                        {t('comingSoon', effectiveLang)}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Top Read Today Indicator without blur */}
-                  {alreadyReadToday && (
+                  {!tale.isComingSoon && alreadyReadToday && (
                     <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
                       <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/60 text-[10px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
                         {t('unlockedToday', effectiveLang)}
@@ -333,6 +326,47 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                         ? 'border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
                         : 'border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200'
                     }`}
+                  >
+                    {t('returnToTales', effectiveLang)}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Coming Soon Tale Modal */}
+        {comingSoonTale && (
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+            <div className={`w-full max-w-md p-6 rounded-2xl border border-[#d4af37]/60 shadow-2xl relative space-y-4 ${
+              darkMode ? 'bg-[#121824] text-slate-100' : 'bg-[#fbf9f4] text-slate-900'
+            }`}>
+              <button
+                onClick={() => setComingSoonTale(null)}
+                className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="text-center space-y-3">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-[#d4af37] p-0.5 mx-auto flex items-center justify-center shadow-lg">
+                  <div className="w-full h-full rounded-full bg-[#121824] flex items-center justify-center text-[#d4af37]">
+                    <Clock className="w-7 h-7" />
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-bold font-cinzel text-[#fce0a2]">
+                  {comingSoonTale.title}
+                </h3>
+
+                <p className="text-sm sm:text-base text-slate-200 leading-relaxed">
+                  {t('comingSoonDesc', effectiveLang).replace('{title}', comingSoonTale.title)}
+                </p>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => setComingSoonTale(null)}
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#d4af37] text-slate-950 font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 transition-all cursor-pointer"
                   >
                     {t('returnToTales', effectiveLang)}
                   </button>

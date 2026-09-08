@@ -160,7 +160,8 @@ export const INITIAL_TALES: Tale[] = [
     skill: 'Leader',
     viewsCount: 3100,
     likesCount: 1120,
-    commentsCount: 89
+    commentsCount: 89,
+    isComingSoon: true,
   },
   {
     id: 'tale-job-quest',
