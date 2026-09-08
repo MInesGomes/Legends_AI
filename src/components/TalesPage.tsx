@@ -129,14 +129,36 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                   {realm.audienceLabel[effectiveLang] || realm.audienceLabel.EN}
                 </span>
               )}
+              {realm.isComingSoon && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border border-[#fff9e6] shadow-sm text-[11px] font-cinzel font-bold tracking-wider uppercase">
+                  <Clock className="w-3.5 h-3.5 text-[#7a4d04]" />
+                  {t('comingSoon', effectiveLang)}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Tales Cards Grid (Matching reference screenshots 2AtlantisTales, 2Dad&MomTales, 2MarriageTales, 2WorkTales) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          
-          {realmTales.map((tale) => {
+        {/* Tales Cards Grid or Coming Soon Empty State */}
+        {realmTales.length === 0 ? (
+          <div className="py-20 text-center space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-[#d4af37]/20 border border-[#d4af37]/50 flex items-center justify-center text-[#d4af37] shadow-lg shadow-[#d4af37]/10">
+              <Clock className="w-8 h-8" />
+            </div>
+            <h3 className={`text-xl sm:text-2xl font-cinzel font-bold ${
+              darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+            }`}>
+              {t('comingSoon', effectiveLang)}
+            </h3>
+            <p className={`text-sm max-w-md mx-auto ${
+              darkMode ? 'text-slate-300' : 'text-stone-600'
+            }`}>
+              {t('comingSoonDesc', effectiveLang).replace('{title}', realm.title)}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {realmTales.map((tale) => {
             const alreadyReadToday = todayTalesList.includes(tale.id);
             const isPendingCustomTale = Boolean(tale.isCustomUserTale && !tale.isApproved);
             const isApprovedCustomTale = Boolean(tale.isCustomUserTale && tale.isApproved);
@@ -239,7 +261,8 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {/* Daily Tale Limit Reached Warning Modal */}
         {limitModalOpen && (

@@ -31,7 +31,8 @@ export const REALMS: Realm[] = [
     title: 'MARRIAGE',
     isAdultOnly: true,
     bgImage: realmMarriageJpg,
-    iconName: 'HeartHandshake'
+    iconName: 'HeartHandshake',
+    isComingSoon: true,
   },
   {
     id: 'realm-dad-mom',
@@ -39,7 +40,8 @@ export const REALMS: Realm[] = [
     title: 'DAD & MOM',
     isAdultOnly: true,
     bgImage: realmDadMomJpg,
-    iconName: 'Users'
+    iconName: 'Users',
+    isComingSoon: true,
   },
   {
     id: 'realm-atlantis',
@@ -70,7 +72,8 @@ export const REALMS: Realm[] = [
     title: 'FUTURE LAND',
     isAdultOnly: false,
     bgImage: realmFutureLandJpg,
-    iconName: 'Building2'
+    iconName: 'Building2',
+    isComingSoon: true,
   }
 ];
 

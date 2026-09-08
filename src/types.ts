@@ -41,6 +41,7 @@ export interface Realm {
   bgImage: string;
   iconName: string;
   audienceLabel?: Record<Language, string>;
+  isComingSoon?: boolean;
 }
 
 export interface Tale {

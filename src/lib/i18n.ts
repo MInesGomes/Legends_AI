@@ -199,7 +199,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     selectSubtitlesVtt: 'Select Subtitles (VTT) & Play',
     previousAct: 'Previous Act',
     nextAct: 'Next Act',
-    comingSoon: 'Coming soon',
+    comingSoon: 'Coming Soon',
     comingSoonDesc: '{title} is currently in production and will be available soon.',
     actCompleted: 'Act completed',
     commentBtn: 'Comment',

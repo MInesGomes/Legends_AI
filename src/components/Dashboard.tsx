@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChapterComment, Language, Realm, UserProfile } from '../types';
 import { REALMS } from '../data/realmsAndTales';
-import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2, MessageSquare } from 'lucide-react';
+import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2, MessageSquare, Clock } from 'lucide-react';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit } from '../lib/supabase';
 import { CommentsDrawer } from './CommentsDrawer';
 import { t } from '../lib/i18n';
@@ -326,6 +326,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <Sparkles className="w-3.5 h-3.5 text-[#7a4d04]" />
                       <span className="text-[11px] sm:text-xs font-cinzel font-bold tracking-wider uppercase drop-shadow-sm">
                         {realm.audienceLabel[effectiveLang] || realm.audienceLabel.EN}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Coming Soon Label Badge (for Marriage, Dad&Mom, FutureLand) */}
+                {realm.isComingSoon && (
+                  <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-10 pointer-events-none">
+                    <div className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border-2 border-[#fff9e6] shadow-[0_4px_16px_rgba(0,0,0,0.35),0_0_12px_rgba(212,175,55,0.4)]">
+                      <Clock className="w-3.5 h-3.5 text-[#7a4d04]" />
+                      <span className="text-[11px] sm:text-xs font-cinzel font-bold tracking-wider uppercase drop-shadow-sm">
+                        {t('comingSoon', effectiveLang)}
                       </span>
                     </div>
                   </div>
