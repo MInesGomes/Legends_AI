@@ -7,7 +7,6 @@ import {
   syncUserProfileToSupabase,
   syncSkillPointsToSupabase,
   syncChapterLikeToSupabase,
-  syncChapterViewToSupabase,
   syncCommentToSupabase,
   syncUpdateCommentToSupabase,
   syncDeleteCommentToSupabase,
@@ -16,6 +15,8 @@ import {
   getTodayTalesRead,
   getTodayTalesCount,
   getEffectiveDailyLimit,
+  incrementUserStatInSupabase,
+  fetchUserStatsFromSupabase,
 } from './lib/supabase';
 import { REALMS, INITIAL_TALES } from './data/realmsAndTales';
 import { Header } from './components/Header';
@@ -122,6 +123,24 @@ export default function App() {
   useEffect(() => {
     saveLocalDb(dbState);
   }, [dbState]);
+
+  // Fetch user_stats from Supabase if logged in
+  useEffect(() => {
+    const userId = dbState.user_profile?.user_id;
+    if (userId && userId !== 'guest') {
+      fetchUserStatsFromSupabase(userId).then((serverStats) => {
+        if (serverStats && Object.keys(serverStats).length > 0) {
+          setDbState((prev) => ({
+            ...prev,
+            user_stats: {
+              ...(prev.user_stats || {}),
+              ...serverStats,
+            },
+          }));
+        }
+      });
+    }
+  }, [dbState.user_profile?.user_id]);
 
   // Language Change handler (persisted in DB & user profile)
   const handleLanguageChange = (lang: Language) => {
@@ -235,7 +254,6 @@ export default function App() {
 
   // Record Chapter View (tracks both overall and per-language chapter views)
   const handleRecordView = useCallback((chapterId: string, lang: Language = currentLang) => {
-    const userId = dbState.user_profile?.user_id || 'guest';
     setDbState((prev) => {
       const existingGlobal = prev.chapters_id_Views || [];
       const currentLangViews = prev.language_chapters_viewed?.[lang] || [];
@@ -266,14 +284,13 @@ export default function App() {
         [lang]: newLangViews,
       };
 
-      syncChapterViewToSupabase(userId, chapterId);
       return {
         ...prev,
         chapters_id_Views: newGlobal,
         language_chapters_viewed: updatedLanguageViews,
       };
     });
-  }, [currentLang, dbState.user_profile?.user_id]);
+  }, [currentLang]);
 
   // Add Comment (up to 10 comments per day limit enforced in drawer)
   const handleAddComment = (chapterId: string, text: string) => {
@@ -366,6 +383,29 @@ export default function App() {
       };
     });
   };
+
+  // Increment user_stats view count when best choice is chosen for a skill in a language
+  const handleChooseBestChoice = useCallback((skill: SkillType, lang: Language = currentLang) => {
+    const userId = dbState.user_profile?.user_id || 'guest';
+    const statKey = `${lang}:${skill}`;
+
+    setDbState((prev) => {
+      const currentStats = prev.user_stats || {};
+      const currentCount = currentStats[statKey] || 0;
+      const nextCount = currentCount + 1;
+      const updatedStats = {
+        ...currentStats,
+        [statKey]: nextCount,
+      };
+
+      incrementUserStatInSupabase(userId, lang, skill);
+
+      return {
+        ...prev,
+        user_stats: updatedStats,
+      };
+    });
+  }, [currentLang, dbState.user_profile?.user_id]);
 
   // Update User Avatar and optionally gender
   const handleUpdateAvatar = (newAvatarUrl: string, newGender?: 'female' | 'male') => {
@@ -461,6 +501,7 @@ export default function App() {
             onDeleteComment={handleDeleteComment}
             onClose={() => setCurrentPage('tails')}
             onEarnSkillPoint={handleEarnSkillPoint}
+            onChooseBestChoice={handleChooseBestChoice}
             onRecordView={handleRecordView}
             darkMode={darkMode}
           />
@@ -485,6 +526,7 @@ export default function App() {
         <ProfileDrawer
           user={dbState.user_profile}
           skillsPoints={dbState.user_skills_points}
+          userStats={dbState.user_stats}
           languageChaptersViewed={dbState.language_chapters_viewed}
           likedCount={dbState.chapters_id_Liked.length}
           viewedCount={dbState.chapters_id_Views.length}

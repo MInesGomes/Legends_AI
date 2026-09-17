@@ -38,16 +38,7 @@ CREATE TABLE IF NOT EXISTS public.chapters_id_liked (
     UNIQUE(user_id, chapter_id)
 );
 
--- 4. CHAPTERS VIEWS TABLE (chapters_id_Views)
--- Tracks chapter view history per user
-CREATE TABLE IF NOT EXISTS public.chapters_id_views (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id TEXT NOT NULL,
-    chapter_id TEXT NOT NULL,
-    viewed_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 5. CHAPTER COMMENTS TABLE (chapters_id_Comments & user_comments)
+-- 4. CHAPTER COMMENTS TABLE (chapters_id_Comments & user_comments)
 -- Stores comments left on chapter legends
 CREATE TABLE IF NOT EXISTS public.user_comments (
     id TEXT PRIMARY KEY,
@@ -59,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public.user_comments (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. TALES TEXTS TABLE (Custom User Tales & Story Content)
+-- 5. TALES TEXTS TABLE (Custom User Tales & Story Content)
 -- Stores user-submitted custom tales and story texts
 CREATE TABLE IF NOT EXISTS public.tales_texts (
     id TEXT PRIMARY KEY,
@@ -76,13 +67,26 @@ CREATE TABLE IF NOT EXISTS public.tales_texts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 6. USER STATS TABLE (user_stats)
+-- Tracks the number of views for each language and skill combination
+CREATE TABLE IF NOT EXISTS public.user_stats (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id TEXT NOT NULL,
+    language TEXT NOT NULL,
+    skill TEXT NOT NULL,
+    views_count INTEGER NOT NULL DEFAULT 0,
+    count INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, language, skill)
+);
+
 -- Enable Row Level Security (RLS) for public access
 ALTER TABLE public.user_profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_skills_points ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chapters_id_liked ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.chapters_id_views ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tales_texts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_stats ENABLE ROW LEVEL SECURITY;
 
 -- Allow anonymous read/write access policies
 CREATE POLICY "Allow public select user_profile" ON public.user_profile FOR SELECT USING (true);
@@ -96,11 +100,12 @@ CREATE POLICY "Allow public select chapters_id_liked" ON public.chapters_id_like
 CREATE POLICY "Allow public insert chapters_id_liked" ON public.chapters_id_liked FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public delete chapters_id_liked" ON public.chapters_id_liked FOR DELETE USING (true);
 
-CREATE POLICY "Allow public select chapters_id_views" ON public.chapters_id_views FOR SELECT USING (true);
-CREATE POLICY "Allow public insert chapters_id_views" ON public.chapters_id_views FOR INSERT WITH CHECK (true);
-
 CREATE POLICY "Allow public select user_comments" ON public.user_comments FOR SELECT USING (true);
 CREATE POLICY "Allow public insert user_comments" ON public.user_comments FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Allow public select tales_texts" ON public.tales_texts FOR SELECT USING (true);
 CREATE POLICY "Allow public insert tales_texts" ON public.tales_texts FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public select user_stats" ON public.user_stats FOR SELECT USING (true);
+CREATE POLICY "Allow public insert user_stats" ON public.user_stats FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update user_stats" ON public.user_stats FOR UPDATE USING (true);

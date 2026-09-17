@@ -157,6 +157,6 @@ video::cue {
 }
 
 .animate-starwars-crawl {
-  animation: starWarsIntroCrawl 48s linear forwards;
+  animation: starWarsIntroCrawl 20s linear forwards;
 }
 

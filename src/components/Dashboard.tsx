@@ -307,15 +307,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onSelectRealm(realm);
                 }
               }}
-              className="p-[3.5px] rounded-[30px] sm:rounded-[32px] bg-gradient-to-b from-[#ffe59e] via-[#d4af37] via-[#c49226] to-[#7d4d0b] shadow-[0_12px_32px_rgba(0,0,0,0.18),0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)] transition-all duration-300 group cursor-pointer active:scale-[0.985]"
+              className={`p-[3.5px] rounded-[30px] sm:rounded-[32px] transition-all duration-300 group cursor-pointer active:scale-[0.985] ${
+                realm.isComingSoon
+                  ? 'bg-gradient-to-b from-[#8a6b2d] via-[#523d14] to-[#241a06] shadow-[0_12px_32px_rgba(0,0,0,0.5)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.65)]'
+                  : 'bg-gradient-to-b from-[#ffe59e] via-[#d4af37] via-[#c49226] to-[#7d4d0b] shadow-[0_12px_32px_rgba(0,0,0,0.18),0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)]'
+              }`}
             >
               {/* Inner card with gold hairline border */}
-              <div className="relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden bg-transparent text-left border-2 border-[#fff3cc]/80">
+              <div className={`relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden text-left ${
+                realm.isComingSoon
+                  ? 'bg-black border-2 border-[#8a6b2d]/70'
+                  : 'bg-transparent border-2 border-[#fff3cc]/80'
+              }`}>
                 {/* Background Cover Image */}
                 <img
                   src={realm.bgImage}
                   alt={realm.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter brightness-[0.98] group-hover:brightness-100"
+                  className={`w-full h-full object-cover transition-transform duration-700 ${
+                    realm.isComingSoon
+                      ? 'filter brightness-[0.32] contrast-[1.1] grayscale-[35%]'
+                      : 'group-hover:scale-105 filter brightness-[0.98] group-hover:brightness-100'
+                  }`}
                   referrerPolicy="no-referrer"
                 />
 
@@ -331,23 +343,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 )}
 
-                {/* Coming Soon Label Badge (for Marriage, Dad&Mom, FutureLand) */}
+                {/* Subtle Bottom Vignette Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
+
+                {/* Coming Soon Dark Overlay & Covering Letters */}
                 {realm.isComingSoon && (
-                  <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-10 pointer-events-none">
-                    <div className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border-2 border-[#fff9e6] shadow-[0_4px_16px_rgba(0,0,0,0.35),0_0_12px_rgba(212,175,55,0.4)]">
-                      <Clock className="w-3.5 h-3.5 text-[#7a4d04]" />
-                      <span className="text-[11px] sm:text-xs font-cinzel font-bold tracking-wider uppercase drop-shadow-sm">
+                  <div className="absolute inset-0 z-20 bg-black/55 backdrop-blur-[1px] flex items-center justify-center p-3 pointer-events-none">
+                    <div className="w-full text-center py-4 sm:py-5 px-2 bg-gradient-to-r from-black/20 via-black/85 to-black/20 border-y-2 border-[#d4af37]/80 shadow-[0_4px_24px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                      <span className="block text-xl sm:text-2xl md:text-3xl font-cinzel font-black tracking-[0.25em] sm:tracking-[0.3em] text-[#fce0a2] uppercase drop-shadow-[0_3px_12px_rgba(0,0,0,1)]">
                         {t('comingSoon', effectiveLang)}
                       </span>
                     </div>
                   </div>
                 )}
-
-                {/* Subtle Bottom Vignette Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
                 
                 {/* Ornamental Cartouche Plaque Banner (Matching DadMom.png reference exactly) */}
-                <div className="absolute bottom-3.5 sm:bottom-4 inset-x-0 flex items-center justify-center pointer-events-none">
+                <div className={`absolute bottom-3.5 sm:bottom-4 inset-x-0 flex items-center justify-center pointer-events-none z-30 ${
+                  realm.isComingSoon ? 'opacity-80' : ''
+                }`}>
                   <CartouchePlaque
                     icon={getIcon(realm.key)}
                     title={t(('realm_' + realm.key) as any, effectiveLang) || realm.title}

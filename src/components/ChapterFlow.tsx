@@ -99,6 +99,7 @@ export interface ChapterChoiceConfig {
   descriptionKey?: keyof Translations;
   description?: string;
   imageUrl?: string;
+  isBest?: boolean;
 }
 
 export function getChoiceLocalizedTitle(
@@ -244,6 +245,7 @@ export interface ChapterFlowProps {
   onClose?: () => void;
   onEarnSkillPoint?: (skill: SkillType) => void;
   onEarnLanguagePoints?: (lang: Language, points: number) => void;
+  onChooseBestChoice?: (skill: SkillType, lang: Language) => void;
   onRecordView?: (chapterId: string, lang: Language) => void;
   commentsMap?: Record<string, ChapterComment[]>;
   onAddComment?: (chapterId: string, text: string) => void;
@@ -268,6 +270,7 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
         subtitle: 'Community Leadership',
         description: "Don’t ask for permission and risk losing everything.",
         available: true,
+        isBest: true,
       },
       {
         id: 'choice2',
@@ -458,6 +461,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   onClose,
   onEarnSkillPoint,
   onEarnLanguagePoints,
+  onChooseBestChoice,
   onRecordView,
   commentsMap,
   onAddComment,
@@ -499,11 +503,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [availableVttLangs, setAvailableVttLangs] = useState<Language[]>(ALL_SUPPORTED_LANGUAGES);
   const [isCheckingVttLangs, setIsCheckingVttLangs] = useState<boolean>(false);
 
-  // Synchronize audio and subtitle languages when parent currentLang prop updates
+  // Synchronize audio language when parent currentLang prop updates; keep VTT independent
   useEffect(() => {
     if (currentLang) {
       setSelectedAudioLang((prev) => (prev !== currentLang ? currentLang : prev));
-      setSelectedVttLang((prev) => (prev !== currentLang ? currentLang : prev));
       setCandidateAudioIdx(0);
     }
   }, [currentLang]);
@@ -559,12 +562,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               descriptionKey: 'eldorado_act0_choice1_description' as keyof Translations,
               description: 'Give his light',
               available: true,
+              isBest: true,
             },
             {
               id: 'choice2' as ChoiceId,
               descriptionKey: 'eldorado_act0_choice2_description' as keyof Translations,
               description: 'Afraid to lose his light',
               available: true,
+              isBest: false,
             },
             { id: 'choice3' as ChoiceId, available: false },
             { id: 'choice4' as ChoiceId, available: false },
@@ -585,12 +590,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             descriptionKey: 'eldorado_act0_choice1_description' as keyof Translations,
             description: 'Give his light',
             available: true,
+            isBest: true,
           },
           {
             id: 'choice2' as ChoiceId,
             descriptionKey: 'eldorado_act0_choice2_description' as keyof Translations,
             description: 'Afraid to lose his light',
             available: true,
+            isBest: false,
           },
           { id: 'choice3' as ChoiceId, available: false },
           { id: 'choice4' as ChoiceId, available: false },
@@ -603,10 +610,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       hasAct1: currentChapterNumber === 0,
       hasGenderActs: currentChapterNumber === 0,
       choices: currentChapterNumber === 0 ? [] : [
-        { id: 'choice1', available: true },
-        { id: 'choice2', available: true },
-        { id: 'choice3', available: true },
-        { id: 'choice4', available: true },
+        { id: 'choice1', available: true, isBest: true },
+        { id: 'choice2', available: true, isBest: false },
+        { id: 'choice3', available: true, isBest: false },
+        { id: 'choice4', available: true, isBest: false },
       ],
     };
   }, [chapterConfigs, currentChapterNumber, currentWorld, currentTaleName]);
@@ -1185,19 +1192,26 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
    * 'CHOICES': Choices screen -> 'choice_act' (video & audio) -> 'choice_feedback' (if hasFeedback crawl & read)
    */
   const goToNext = () => {
-    // 1. If currently playing a choice act video, advance to its feedback screen if vtt exists, else advance to next chapter
+    // 1. If currently playing a choice act video, advance to its feedback screen if vtt exists, else return to choices
     if (currentStep === 'choice_act') {
       if (feedbackParagraphs.length > 0) {
         setCurrentStep('choice_feedback');
       } else {
-        advanceChapterOrClose();
+        setCurrentStep('choices');
       }
       return;
     }
 
-    // 2. If on choice feedback screen, advance to the next chapter or finish
+    // 2. If on choice feedback screen, return to choices mode
     if (currentStep === 'choice_feedback') {
-      advanceChapterOrClose();
+      setIsReadingAloud(false);
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch {}
+      }
+      setIsCrawlFinished(false);
+      setCurrentStep('choices');
       return;
     }
 
@@ -1382,6 +1396,16 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Choice selection handler: plays the chosen act video and audio
   const handleSelectChoice = (choiceId: ChoiceId) => {
+    // Check if the selected choice is the best choice for this chapter
+    const choiceCfg = currentChapterConfig.choices?.find((c) => c.id === choiceId);
+    const isBest = choiceCfg?.isBest ?? (choiceId === 'choice1');
+
+    if (isBest && onChooseBestChoice) {
+      const activeSkill: SkillType = tale?.skill || 'Leader';
+      const activeLanguage: Language = currentLang || selectedVttLang || 'EN';
+      onChooseBestChoice(activeSkill, activeLanguage);
+    }
+
     setSelectedChoiceId(choiceId);
     setCandidateVideoIdx(0);
     setCandidateAudioIdx(0);
@@ -1389,24 +1413,24 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     setIsMediaNotFound(false);
     setVttRawText('');
     setFeedbackParagraphs([]);
+    setIsCrawlFinished(false);
+    setReadTranscript('');
+    setReadAccuracy(null);
+    setSpeechError(null);
     setCurrentStep('choice_act');
   };
 
-  // Language selectors
+  // Language selectors: audio (MP3) and subtitles (VTT) are completely independent
   const handleAudioLanguageSelected = (newLang: Language) => {
     setSelectedAudioLang(newLang);
     setCandidateAudioIdx(0);
     setIsAutoPlay(true);
     setIsVideoFinished(false);
-    if (availableVttLangs.includes(newLang)) {
-      setSelectedVttLang(newLang);
-    }
     if (onLanguageChange) onLanguageChange(newLang);
   };
 
   const handleVttLanguageSelected = (newLang: Language) => {
     setSelectedVttLang(newLang);
-    if (onLanguageChange) onLanguageChange(newLang);
   };
 
   // Speech Recognition (Read Aloud) Implementation
@@ -2082,8 +2106,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                           ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
                           : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
                       }`}
-                      title="Next"
-                      aria-label="Next"
+                      title={t('chooseYourPath', currentLang)}
+                      aria-label={t('chooseYourPath', currentLang)}
                     >
                       <ChevronRight className="w-8 h-8 sm:w-10 sm:h-10 transition-colors stroke-[2.5]" />
                     </button>
@@ -2134,13 +2158,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     audioRef.current.currentTime = 0;
                   }
                   if (currentStep === 'choice_act') {
-                    // After choice video finishes, display feedback if vtt exists, otherwise advance to next chapter
+                    // After choice video finishes, display feedback if vtt exists, otherwise return to choices
                     if (isAutoPlay) {
                       setTimeout(() => {
                         if (feedbackParagraphs.length > 0) {
                           setCurrentStep('choice_feedback');
                         } else {
-                          advanceChapterOrClose();
+                          setCurrentStep('choices');
                         }
                       }, 1000);
                     }
@@ -2206,7 +2230,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                           if (feedbackParagraphs.length > 0) {
                             setCurrentStep('choice_feedback');
                           } else {
-                            advanceChapterOrClose();
+                            setCurrentStep('choices');
                           }
                         }, 1000);
                       }
@@ -2352,10 +2376,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   ? 'Choose Below'
                   : currentStep === 'choice_act'
                   ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
-                  : currentStep === 'choice_feedback' && currentChapterNumber >= chapterConfigs.length
-                  ? t('finishBtn', currentLang)
                   : currentStep === 'choice_feedback'
-                  ? 'Next Chapter'
+                  ? t('chooseYourPath', currentLang)
                   : t('nextAct', currentLang)
               }
               aria-label="Next Step"

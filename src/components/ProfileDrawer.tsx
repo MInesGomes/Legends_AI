@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { UserProfile, UserSkillsPoints, Language, SUPPORTED_LANGUAGES, SkillType } from '../types';
+import { UserProfile, UserSkillsPoints, Language, SUPPORTED_LANGUAGES, SkillType, UserStatsMap } from '../types';
 import { FEMALE_AVATARS, MALE_AVATARS, getAvatarByUrlOrId } from '../data/avatars';
-import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award } from 'lucide-react';
+import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award, BarChart2 } from 'lucide-react';
 import { t } from '../lib/i18n';
 
 interface ProfileDrawerProps {
   user: UserProfile | null;
   skillsPoints?: UserSkillsPoints;
+  userStats?: UserStatsMap;
   languageChaptersViewed?: Record<Language, string[]>;
   likedCount?: number;
   viewedCount?: number;
@@ -23,6 +24,7 @@ interface ProfileDrawerProps {
 export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   user,
   skillsPoints,
+  userStats,
   languageChaptersViewed,
   currentLang,
   onLanguageChange,
@@ -32,6 +34,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   darkMode = true,
 }) => {
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [statsLang, setStatsLang] = useState<Language>(currentLang);
   const [activeGenderTab, setActiveGenderTab] = useState<'female' | 'male'>(
     user?.gender || 'female'
   );
@@ -316,6 +319,79 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                           : 'text-slate-500 bg-slate-100 border-slate-200'
                     }`}>
                       +{points}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* User Stats: Views per Language & Skill */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
+                darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+              }`}>
+                <BarChart2 className="w-4 h-4 text-[#d4af37]" /> Best Choices / Skill Views
+              </h5>
+              <span className={`text-[11px] font-mono font-semibold ${
+                darkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+                user_stats
+              </span>
+            </div>
+
+            {/* Language Selector Tabs */}
+            <div className="flex items-center gap-1 p-1 rounded-lg border border-[#d4af37]/20 bg-black/10 overflow-x-auto">
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => setStatsLang(lang.code)}
+                  className={`px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    statsLang === lang.code
+                      ? darkMode
+                        ? 'bg-[#d4af37] text-slate-950 shadow-sm'
+                        : 'bg-[#d4af37] text-slate-950 shadow-sm'
+                      : darkMode
+                        ? 'text-slate-400 hover:text-slate-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {lang.flag} {lang.code}
+                </button>
+              ))}
+            </div>
+
+            {/* Skill Views for Selected Language */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+              {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
+                const key = `${statsLang}:${skillName}`;
+                const viewsCount = userStats?.[key] || 0;
+                const skillLabelKey = `skill_${skillName}` as const;
+
+                return (
+                  <div
+                    key={skillName}
+                    className={`p-2 rounded-lg border flex items-center justify-between ${
+                      darkMode
+                        ? 'bg-[#182130]/80 border-[#d4af37]/15'
+                        : 'bg-white border-[#d4af37]/20'
+                    }`}
+                  >
+                    <span className={`font-medium truncate ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      {t(skillLabelKey, currentLang)}
+                    </span>
+                    <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] shrink-0 ml-1.5 ${
+                      viewsCount > 0
+                        ? darkMode
+                          ? 'text-[#fce0a2] bg-[#d4af37]/20 border border-[#d4af37]/30'
+                          : 'text-[#8a5d12] bg-[#f4e8c1] border border-[#d4af37]/40'
+                        : darkMode
+                          ? 'text-slate-500 bg-slate-800/40 border border-slate-700/40'
+                          : 'text-slate-400 bg-slate-100 border border-slate-200'
+                    }`}>
+                      {viewsCount} {viewsCount === 1 ? 'view' : 'views'}
                     </span>
                   </div>
                 );

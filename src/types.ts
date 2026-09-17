@@ -132,10 +132,22 @@ export interface DailyTaleLog {
   timestamp: string;
 }
 
+export interface UserStatRecord {
+  user_id: string;
+  language: Language;
+  skill: SkillType;
+  views_count: number;
+  count: number;
+  updated_at?: string;
+}
+
+export type UserStatsMap = Record<string, number>; // key format: `${Language}:${SkillType}`
+
 export interface DatabaseState {
   user_profile: UserProfile | null;
   user_comments: ChapterComment[];
   user_skills_points: UserSkillsPoints;
+  user_stats?: UserStatsMap;
   chapters_id_Liked: string[];
   chapters_id_Views: string[];
   language_chapters_viewed?: Record<Language, string[]>;

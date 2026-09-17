@@ -172,16 +172,26 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               <div
                 key={tale.id}
                 onClick={() => handleCardClick(tale)}
-                className="group relative cursor-pointer p-[3px] rounded-[18px] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99]"
+                className={`group relative cursor-pointer p-[3px] rounded-[18px] transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99] ${
+                  tale.isComingSoon
+                    ? 'bg-gradient-to-b from-[#8a6b2d] via-[#523d14] to-[#241a06] shadow-xl hover:shadow-[#4d3d19]/40'
+                    : 'bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30'
+                }`}
               >
                 {/* Inner Card Box without background color */}
-                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden bg-transparent text-left flex flex-col justify-between">
+                <div className={`relative h-72 sm:h-80 rounded-[15px] overflow-hidden text-left flex flex-col justify-between ${
+                  tale.isComingSoon ? 'bg-black' : 'bg-transparent'
+                }`}>
                   
-                  {/* Background Image without filters */}
+                  {/* Background Image */}
                   <img
                     src={tale.coverImage}
                     alt={tale.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className={`w-full h-full object-cover transition-transform duration-700 ${
+                      tale.isComingSoon
+                        ? 'filter brightness-[0.32] contrast-[1.05] grayscale-[30%]'
+                        : 'group-hover:scale-105'
+                    }`}
                     referrerPolicy="no-referrer"
                   />
 
@@ -204,16 +214,6 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     </div>
                   )}
 
-                  {/* Top Coming Soon Indicator Badge */}
-                  {tale.isComingSoon && (
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 pointer-events-none">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fce0a2] to-[#b8860b] text-[#3d2400] border-2 border-[#fff9e6] shadow-[0_4px_16px_rgba(0,0,0,0.35),0_0_12px_rgba(212,175,55,0.4)] text-[10px] sm:text-[11px] font-cinzel font-bold tracking-wider uppercase drop-shadow-sm">
-                        <Clock className="w-3.5 h-3.5 text-[#7a4d04]" />
-                        {t('comingSoon', effectiveLang)}
-                      </span>
-                    </div>
-                  )}
-
                   {/* Top Read Today Indicator without blur */}
                   {!tale.isComingSoon && alreadyReadToday && (
                     <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
@@ -223,8 +223,21 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     </div>
                   )}
 
+                  {/* Coming Soon Dark Overlay & Covering Letters */}
+                  {tale.isComingSoon && (
+                    <div className="absolute inset-0 z-20 bg-black/55 backdrop-blur-[1px] flex items-center justify-center p-3 pointer-events-none">
+                      <div className="w-full text-center py-4 px-2 bg-gradient-to-r from-black/20 via-black/85 to-black/20 border-y-2 border-[#d4af37]/80 shadow-[0_4px_24px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                        <span className="block text-xl sm:text-2xl font-cinzel font-black tracking-[0.25em] text-[#fce0a2] uppercase drop-shadow-[0_3px_12px_rgba(0,0,0,1)]">
+                          {t('comingSoon', effectiveLang)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Bottom Gold Title Banner with clear high-contrast text */}
-                  <div className="relative z-10 px-4 pt-2 pb-5 sm:pb-6 text-center flex flex-col items-center justify-end">
+                  <div className={`relative z-10 px-4 pt-2 pb-5 sm:pb-6 text-center flex flex-col items-center justify-end ${
+                    tale.isComingSoon ? 'opacity-80' : ''
+                  }`}>
                     <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                       {tale.title}
                     </h3>

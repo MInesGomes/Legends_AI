@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { DatabaseState, UserProfile, ChapterComment, UserSkillsPoints, Tale, DailyTaleLog } from '../types';
+import { DatabaseState, UserProfile, ChapterComment, UserSkillsPoints, Tale, DailyTaleLog, Language, SkillType, UserStatsMap } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://fygcrtlqrsjzjocckkhe.supabase.co';
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_SCec_Ofgz4bGHaZYjWgqsA_piUHfmfA';
@@ -18,6 +18,11 @@ const defaultState: DatabaseState = {
     Win4All: 5,
     Listen: 4,
     Recharge: 2,
+  },
+  user_stats: {
+    'EN:Leader': 1,
+    'EN:Plan': 1,
+    'EN:Win4All': 1,
   },
   chapters_id_Liked: ['atlantis-ch1'],
   chapters_id_Views: ['atlantis-ch1', 'atlantis-ch2'],
@@ -71,6 +76,10 @@ export function getLocalDb(): DatabaseState {
     return {
       ...defaultState,
       ...parsed,
+      user_stats: {
+        ...(defaultState.user_stats || {}),
+        ...(parsed.user_stats || {}),
+      },
       language_chapters_viewed: {
         ...defaultState.language_chapters_viewed,
         ...(parsed.language_chapters_viewed || {
@@ -255,20 +264,6 @@ export async function syncChapterLikeToSupabase(userId: string, chapterId: strin
 }
 
 /**
- * Record chapter view in chapters_id_views table
- */
-export async function syncChapterViewToSupabase(userId: string, chapterId: string): Promise<void> {
-  try {
-    await supabase.from('chapters_id_views').insert({
-      user_id: userId,
-      chapter_id: chapterId,
-    });
-  } catch (e) {
-    console.warn('Supabase views sync fallback:', e);
-  }
-}
-
-/**
  * Sync comment to user_comments table
  */
 export async function syncCommentToSupabase(comment: ChapterComment): Promise<void> {
@@ -332,6 +327,81 @@ export async function syncTaleToSupabase(tale: Tale): Promise<void> {
     });
   } catch (e) {
     console.warn('Supabase tale sync fallback:', e);
+  }
+}
+
+/**
+ * Increment view count in user_stats table for a user, language, and skill
+ */
+export async function incrementUserStatInSupabase(
+  userId: string,
+  language: Language,
+  skill: SkillType
+): Promise<number> {
+  try {
+    const { data } = await supabase
+      .from('user_stats')
+      .select('views_count, count')
+      .eq('user_id', userId)
+      .eq('language', language)
+      .eq('skill', skill)
+      .maybeSingle();
+
+    const currentCount = data ? (data.views_count ?? data.count ?? 0) : 0;
+    const nextCount = currentCount + 1;
+
+    const { error } = await supabase
+      .from('user_stats')
+      .upsert(
+        {
+          user_id: userId,
+          language,
+          skill,
+          views_count: nextCount,
+          count: nextCount,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,language,skill' }
+      );
+
+    if (error) {
+      console.warn('Supabase user_stats upsert warning:', error.message);
+    }
+    return nextCount;
+  } catch (e) {
+    console.warn('Supabase user_stats sync fallback:', e);
+    return 1;
+  }
+}
+
+/**
+ * Fetch all user_stats records for a user from Supabase
+ */
+export async function fetchUserStatsFromSupabase(
+  userId: string
+): Promise<Record<string, number>> {
+  try {
+    const { data, error } = await supabase
+      .from('user_stats')
+      .select('language, skill, views_count, count')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.warn('Supabase user_stats fetch warning:', error.message);
+      return {};
+    }
+
+    const map: Record<string, number> = {};
+    if (data && Array.isArray(data)) {
+      for (const row of data) {
+        const val = row.views_count ?? row.count ?? 0;
+        map[`${row.language}:${row.skill}`] = val;
+      }
+    }
+    return map;
+  } catch (e) {
+    console.warn('Supabase user_stats fetch fallback:', e);
+    return {};
   }
 }
 

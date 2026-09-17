@@ -228,10 +228,9 @@ export const ActPage: React.FC<ActPageProps> = ({
   const currentAct = actItems[currentIndex] || actItems[0];
   const currentChapterId = tale ? `${tale.id}-ch${currentAct.chapterNumber}` : `atlantis-ch${currentAct.chapterNumber}`;
 
-  // Synchronize audio and VTT language initially from currentLang
+  // Synchronize audio language initially from currentLang; keep VTT independent
   useEffect(() => {
     setSelectedAudioLang(currentLang);
-    setSelectedVttLang(currentLang);
   }, [currentLang]);
 
   // Check available VTT languages for the current act
