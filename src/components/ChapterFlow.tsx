@@ -270,8 +270,11 @@ async function checkVttUrl(url: string): Promise<boolean> {
   if (vttUrlCache.has(url)) {
     return vttUrlCache.get(url)!;
   }
+  // Fetch Priority API (Chrome/Edge): tells the browser these subtitle probes
+  // matter less than the mp3/mp4 already in flight. Ignored where unsupported.
+  const lowPriorityInit: RequestInit = { priority: 'low' } as RequestInit;
   try {
-    const headRes = await fetch(url, { method: 'HEAD' });
+    const headRes = await fetch(url, { method: 'HEAD', ...lowPriorityInit });
     if (headRes.ok && headRes.status === 200) {
       vttUrlCache.set(url, true);
       return true;
@@ -281,7 +284,7 @@ async function checkVttUrl(url: string): Promise<boolean> {
       return false;
     }
     // Fallback to GET
-    const getRes = await fetch(url);
+    const getRes = await fetch(url, lowPriorityInit);
     if (getRes.ok && getRes.status === 200) {
       const text = await getRes.text();
       const isValid = text.includes('WEBVTT') || text.includes('-->');
@@ -392,6 +395,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [hasClaimedPoints, setHasClaimedPoints] = useState<boolean>(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const speechRecognitionRef = useRef<any>(null);
+  const lastAudioResyncAtRef = useRef<number>(0);
   const crawlContainerRef = useRef<HTMLDivElement | null>(null);
   const crawlSentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -653,10 +657,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
     }
 
-    checkLanguages();
+    // Give the mp3/mp4 requests a head start on mobile's limited concurrent
+    // connections before firing off up to 5 languages worth of VTT probes —
+    // otherwise this competes for bandwidth right when audio most needs to
+    // start loading, which reads as the audio "cutting out".
+    const kickoff = setTimeout(checkLanguages, 300);
 
     return () => {
       isMounted = false;
+      clearTimeout(kickoff);
     };
   }, [
     currentActData,
@@ -722,7 +731,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     async function loadStandardVtt() {
       for (const url of vttCandidates) {
         try {
-          const res = await fetch(url);
+          const res = await fetch(url, { priority: 'low' } as RequestInit);
           if (res.ok) {
             const text = await res.text();
             if (isMounted) {
@@ -776,7 +785,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     async function fetchFeedbackVtt() {
       for (const url of candidateUrls) {
         try {
-          const res = await fetch(url);
+          const res = await fetch(url, { priority: 'low' } as RequestInit);
           if (res.ok) {
             const text = await res.text();
             if (isMounted && text && text.includes('WEBVTT')) {
@@ -816,6 +825,33 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     currentWorld,
     currentTaleName,
   ]);
+
+  // Synchronize video loading and playback with the current src.
+  // (No `key` prop on the <video> element — see note on the JSX below for why.)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !currentVideoUrl) return;
+
+    try {
+      video.load();
+    } catch {}
+
+    const tryPlay = () => {
+      if (isAutoPlay) {
+        video.play().catch(() => {});
+      }
+    };
+
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.addEventListener('canplay', tryPlay, { once: true });
+    }
+
+    return () => {
+      video.removeEventListener('canplay', tryPlay);
+    };
+  }, [currentVideoUrl, isAutoPlay]);
 
   // Synchronize audio loading and playback with video
   useEffect(() => {
@@ -870,9 +906,42 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   }, [isMuted, currentAudioUrl]);
 
+  // Mobile browsers frequently pause <video>/<audio> when the tab is
+  // backgrounded (app-switch, screen lock, incoming call) and do not resume
+  // it on their own. Without this, coming back to the tab looks exactly like
+  // "the audio got interrupted and never came back".
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible' || !isAutoPlay) return;
+      const video = videoRef.current;
+      const audio = audioRef.current;
+      if (video && video.paused && !isVideoFinished) {
+        video.play().catch(() => {});
+      }
+      if (audio && audio.paused && !isMuted && video && !video.paused) {
+        try {
+          audio.currentTime = video.currentTime;
+        } catch {}
+        audio.play().catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isAutoPlay, isMuted, isVideoFinished]);
+
   const handleTimeUpdate = (curr: number) => {
-    if (audioRef.current && videoRef.current && !audioRef.current.paused && Math.abs(audioRef.current.currentTime - curr) > 0.3) {
-      audioRef.current.currentTime = curr;
+    // Only nudge the audio element back in sync when it's genuinely drifted
+    // (>0.75s) AND we haven't just done so — reseeking an <audio> element is
+    // not free on mobile browsers, it causes a brief re-buffer/mute, so
+    // correcting on every timeupdate tick (which fires several times a
+    // second) is itself a source of audible "interruption".
+    if (audioRef.current && videoRef.current && !audioRef.current.paused) {
+      const drift = Math.abs(audioRef.current.currentTime - curr);
+      const now = performance.now();
+      if (drift > 0.75 && now - lastAudioResyncAtRef.current > 2000) {
+        audioRef.current.currentTime = curr;
+        lastAudioResyncAtRef.current = now;
+      }
     }
 
     if (!subtitles || subtitles.length === 0) {
@@ -1741,7 +1810,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               <video
                 id="act-fullscreen-video"
                 ref={videoRef}
-                key={`${currentActData.chapter}-${currentActData.act}-${currentVideoUrl}`}
                 src={currentVideoUrl}
                 muted={Boolean(currentAudioUrl) || isMuted}
                 playsInline
@@ -1828,7 +1896,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             {/* Audio Track */}
             {currentAudioUrl && (
               <audio
-                key={`${currentAudioUrl}-${selectedAudioLang}`}
                 id="act-background-audio"
                 ref={audioRef}
                 src={currentAudioUrl}
