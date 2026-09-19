@@ -171,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-2 sm:gap-3">
             <img
               src="https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/favicons/android-chrome-192x192.png"
-              alt="Learn with Legends"
+              alt="Legends"
               className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain shrink-0 filter drop-shadow-[0_2px_4px_rgba(140,85,10,0.45)]"
               referrerPolicy="no-referrer"
             />
@@ -184,7 +184,8 @@ export const Header: React.FC<HeaderProps> = ({
                 filter: 'drop-shadow(0 1.5px 2px rgba(110, 68, 8, 0.45))',
               }}
             >
-              Learn with legends
+              <span className="inline sm:hidden">Legends</span>
+              <span className="hidden sm:inline">Learn with Legends</span>
             </h1>
           </div>
 

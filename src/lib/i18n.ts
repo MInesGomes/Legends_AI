@@ -112,6 +112,8 @@ export interface Translations {
   signOut: string;
   saveChanges: string;
   skillsProgress: string;
+  readAloudSkillViews: string;
+  readAloudSkillViewsDesc: string;
   languagesTitle: string;
   chaptersSeen: string;
   totalPts: string;
@@ -255,6 +257,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     signOut: 'Sign Out',
     saveChanges: 'Save',
     skillsProgress: 'Skills Progress',
+    readAloudSkillViews: 'Read Aloud / Skill Views',
+    readAloudSkillViewsDesc: 'Views incremented whenever you read aloud ANY choice for a skill in that language',
     languagesTitle: 'Languages',
     chaptersSeen: 'Chapters Seen',
     totalPts: 'Total: {pts} pts',
@@ -357,9 +361,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice3_subtitle: 'Cumplimiento pasivo',
     choice3_description: 'Retrasa la acción hasta que el Alto Consejo emita órdenes formales de evacuación.',
     choice4_title: 'Forzar el sistema',
-    choice4_subtitle: 'Actuar rápidamente',
+    choice4_subtitle: 'Actúa de inmediato',
     choice4_description: 'Anula las medidas de seguridad por la fuerza para salvar a todos rápidamente.',
-    eldorado_act0_choice1_description: 'Dale tu luz',
+    eldorado_act0_choice1_description: 'Da su luz',
     eldorado_act0_choice2_description: 'Miedo a perder su luz',
     readAloudEarnPoints: 'Entrena la articulación para {lang} y gana puntos. Exagera drásticamente la pronunciación de cada sílaba. Mueve la mandíbula, los labios y la lengua con exageración teatral. Esto crea memoria muscular',
 
@@ -394,13 +398,15 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     signOut: 'Cerrar sesión',
     saveChanges: 'Guardar',
     skillsProgress: 'Progreso de habilidades',
+    readAloudSkillViews: 'Lectura en voz alta / Vistas de habilidad',
+    readAloudSkillViewsDesc: 'Vistas aumentadas cada vez que lees en voz alta CUALQUIER opción para una habilidad en ese idioma',
     languagesTitle: 'Idiomas',
     chaptersSeen: 'Capítulos vistos',
     totalPts: 'Total: {pts} pts',
     chapterUnit: 'capítulo',
     chaptersUnit: 'capítulos',
     activeStatus: 'Activo',
-    hideAvatarChoices: 'Ocultar avatares',
+    hideAvatarChoices: 'Ocultar opciones de avatar',
     changeAvatarChoices: 'Cambiar avatar (8 opciones)',
 
     textSizeReadability: 'Tamaño de texto y legibilidad',
@@ -498,7 +504,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_title: 'Forzare il sistema',
     choice4_subtitle: 'Agisci immediatamente',
     choice4_description: 'Bypassa i sistemi di sicurezza con la forza per salvare tutti rapidamente.',
-    eldorado_act0_choice1_description: 'Dai la tua luce',
+    eldorado_act0_choice1_description: 'Dà la sua luce',
     eldorado_act0_choice2_description: 'Ha paura di perdere la sua luce',
     readAloudEarnPoints: "Allena l'articolazione per {lang} e guadagna punti. Pronuncia drasticamente ogni singola sillaba in modo esagerato. Muovi la mandibola, le labbra e la lingua con esagerazione teatrale. Questo sviluppa la memoria muscolare",
 
@@ -533,13 +539,15 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     signOut: 'Disconnetti',
     saveChanges: 'Salva',
     skillsProgress: 'Progresso abilità',
+    readAloudSkillViews: 'Lettura ad alta voce / Visualizzazioni abilità',
+    readAloudSkillViewsDesc: 'Visualizzazioni incrementate ogni volta che leggi ad alta voce QUALSIASI scelta per un\'abilità in quella lingua',
     languagesTitle: 'Lingue',
     chaptersSeen: 'Capitoli visti',
-    totalPts: 'Totale: {pts} pti',
+    totalPts: 'Totale: {pts} pt',
     chapterUnit: 'capitolo',
     chaptersUnit: 'capitoli',
     activeStatus: 'Attivo',
-    hideAvatarChoices: 'Nascondi avatar',
+    hideAvatarChoices: 'Nascondi opzioni avatar',
     changeAvatarChoices: 'Cambia avatar (8 scelte)',
 
     textSizeReadability: 'Dimensione testo e leggibilità',
@@ -547,7 +555,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     largeSize: 'Grande',
     xlargeSize: 'Molto grande',
     sizeLabel: 'Dimensione',
-    openHub: 'Apri pannello di leggibilità',
+    openHub: 'Apri il pannello di dimensione del testo e leggibilità',
     decreaseSize: 'Riduci dimensione',
     increaseSize: 'Aumenta dimensione',
 
@@ -558,7 +566,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     orWithEmail: 'Oppure con email',
     emailAddress: 'Indirizzo email',
     password: 'Password',
-    signInToDashboard: 'Accedi alla bacheca',
+    signInToDashboard: 'Accedi alla dashboard',
     yourFullName: 'Il tuo nome completo',
     dateOfBirth: 'Data di nascita',
 
@@ -637,7 +645,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_title: 'Forçar o sistema',
     choice4_subtitle: 'Age imediatamente',
     choice4_description: 'Subverta os sistemas de segurança pela força para que todos possam ser salvos rapidamente.',
-    eldorado_act0_choice1_description: 'Dá-lhe a tua luz',
+    eldorado_act0_choice1_description: 'Dá a sua luz',
     eldorado_act0_choice2_description: 'Com medo de perder a sua luz',
     readAloudEarnPoints: 'Treina a articulação para {lang} e ganha pontos. Exagera drasticamente a pronúncia de cada sílaba. Move o maxilar, os lábios e a língua com exagero teatral. Isto desenvolve a memória muscular',
 
@@ -667,18 +675,20 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     femaleTab: 'Feminino',
     maleTab: 'Masculino',
     languageLabel: 'Idioma',
-    skillPointsLabel: 'Pontos de habilidade',
+    skillPointsLabel: 'Pontos de competência',
     dailyTalesLimitLabel: 'Limite diário de histórias',
     signOut: 'Terminar sessão',
     saveChanges: 'Guardar',
-    skillsProgress: 'Progresso de habilidades',
+    skillsProgress: 'Progresso de competências',
+    readAloudSkillViews: 'Leitura em voz alta / Visualizações de competência',
+    readAloudSkillViewsDesc: 'Visualizações aumentadas sempre que lê em voz alta QUALQUER escolha para uma competência nesse idioma',
     languagesTitle: 'Idiomas',
     chaptersSeen: 'Capítulos vistos',
     totalPts: 'Total: {pts} pts',
     chapterUnit: 'capítulo',
     chaptersUnit: 'capítulos',
     activeStatus: 'Ativo',
-    hideAvatarChoices: 'Ocultar avatares',
+    hideAvatarChoices: 'Ocultar opções de avatar',
     changeAvatarChoices: 'Alterar avatar (8 opções)',
 
     textSizeReadability: 'Tamanho de texto e legibilidade',
@@ -686,7 +696,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     largeSize: 'Grande',
     xlargeSize: 'Extra grande',
     sizeLabel: 'Tamanho',
-    openHub: 'Abrir painel de legibilidade',
+    openHub: 'Abrir painel de tamanho de texto e legibilidade',
     decreaseSize: 'Diminuir tamanho',
     increaseSize: 'Aumentar tamanho',
 
@@ -770,13 +780,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice2_title: 'Probeer alles alleen op te lossen',
     choice2_subtitle: 'Voorzichtige heldenmoed',
     choice2_description: 'Probeer de centrale reactor zelf te stabiliseren voordat je paniek veroorzaakt.',
-    choice3_title: 'Wachten op de Raad',
+    choice3_title: 'Wacht op de Raad',
     choice3_subtitle: 'Passieve volgzaamheid',
     choice3_description: 'Wacht met handelen totdat de Hoge Raad formele evacuatiebevelen uitvaardigt.',
     choice4_title: 'Forceer het systeem',
     choice4_subtitle: 'Handel onmiddellijk',
     choice4_description: 'Omzeil beveiligingssystemen met geweld, zodat iedereen snel kan worden gered.',
-    eldorado_act0_choice1_description: 'Geef je licht',
+    eldorado_act0_choice1_description: 'Geeft zijn licht',
     eldorado_act0_choice2_description: 'Bang om zijn licht te verliezen',
     readAloudEarnPoints: 'Train articulatie voor {lang} en verdien punten. Overdrijf de uitspraak van elke afzonderlijke lettergreep drastisch. Beweeg je kaak, lippen en tong met theatrale overdrijving. Dit bouwt spiergeheugen op',
 
@@ -811,6 +821,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     signOut: 'Uitloggen',
     saveChanges: 'Opslaan',
     skillsProgress: 'Vaardigheidsvoortgang',
+    readAloudSkillViews: 'Hardop lezen / Vaardigheidsweergaven',
+    readAloudSkillViewsDesc: 'Weergaven verhoogd telkens wanneer je EEN willekeurige keuze hardop leest voor een vaardigheid in die taal',
     languagesTitle: 'Talen',
     chaptersSeen: 'Hoofdstukken bekeken',
     totalPts: 'Totaal: {pts} ptn',

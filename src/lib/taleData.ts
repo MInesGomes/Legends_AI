@@ -83,7 +83,7 @@ export function getTaleActs(tale: Tale): Act[] {
     {
       chapter: 0,
       act: 'act0',
-      title: `${tale.title}: Act 1`,
+      title: `${tale.title}: Prologue`,
       type: 'narrative',
     },
     {
@@ -99,12 +99,6 @@ export function getTaleActs(tale: Tale): Act[] {
       title: `${tale.title}: Daniel's Vision`,
       gender: 'male',
       type: 'character',
-    },
-    {
-      chapter: 0,
-      act: 'act1',
-      title: `${tale.title}: The Decision`,
-      type: 'narrative',
     },
     {
       chapter: 1,

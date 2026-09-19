@@ -18,6 +18,29 @@ import {
 
 export const REALMS: Realm[] = [
   {
+    id: 'realm-atlantis',
+    key: 'atlantis',
+    title: 'ATLANTIS',
+    isAdultOnly: false,
+    bgImage: realmAtlantisJpg,
+    iconName: 'Trident'
+  },
+  {
+    id: 'realm-el-dorado',
+    key: 'el_dorado',
+    title: 'EL DORADO',
+    isAdultOnly: false,
+    bgImage: realmElDoradoJpg,
+    iconName: 'Pyramid',
+    audienceLabel: {
+      EN: 'Child',
+      ES: 'Infantil',
+      IT: 'Bambini',
+      PT: 'Infantil',
+      NL: 'Kind',
+    },
+  },
+  {
     id: 'realm-work',
     key: 'work',
     title: 'WORK',
@@ -42,29 +65,6 @@ export const REALMS: Realm[] = [
     bgImage: realmDadMomJpg,
     iconName: 'Users',
     isComingSoon: true,
-  },
-  {
-    id: 'realm-atlantis',
-    key: 'atlantis',
-    title: 'ATLANTIS',
-    isAdultOnly: false,
-    bgImage: realmAtlantisJpg,
-    iconName: 'Trident'
-  },
-  {
-    id: 'realm-el-dorado',
-    key: 'el_dorado',
-    title: 'EL DORADO',
-    isAdultOnly: false,
-    bgImage: realmElDoradoJpg,
-    iconName: 'Pyramid',
-    audienceLabel: {
-      EN: 'Child',
-      ES: 'Infantil',
-      IT: 'Bambini',
-      PT: 'Infantil',
-      NL: 'Kind',
-    },
   },
   {
     id: 'realm-future-land',

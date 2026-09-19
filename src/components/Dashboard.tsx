@@ -3,6 +3,7 @@ import { ChapterComment, Language, Realm, UserProfile } from '../types';
 import { REALMS } from '../data/realmsAndTales';
 import { ShieldAlert, Sparkles, BookOpen, ShieldCheck, Settings, CheckCircle2, MessageSquare, Clock } from 'lucide-react';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit } from '../lib/supabase';
+import { isUserOver16 } from '../lib/googleAgeSignals';
 import { CommentsDrawer } from './CommentsDrawer';
 import { t } from '../lib/i18n';
 
@@ -104,7 +105,7 @@ const CartouchePlaque: React.FC<{
   title: string;
 }> = ({ icon, title }) => {
   return (
-    <div className="relative w-full max-w-[92%] sm:max-w-[88%] h-14 sm:h-16 flex items-center justify-center filter drop-shadow-[0_6px_14px_rgba(0,0,0,0.3)] transition-all duration-300 transform group-hover:scale-[1.02]">
+    <div className="relative w-full max-w-[94%] sm:max-w-[90%] h-13 sm:h-14 md:h-15 flex items-center justify-center filter drop-shadow-[0_6px_14px_rgba(0,0,0,0.3)] transition-all duration-300 transform group-hover:scale-[1.02]">
       {/* SVG Ornamental Background Plaque with gold double border and bracket ends */}
       <svg
         className="absolute inset-0 w-full h-full"
@@ -147,11 +148,11 @@ const CartouchePlaque: React.FC<{
       </svg>
 
       {/* Content inside plaque: Icon + Title */}
-      <div className="relative z-10 flex items-center justify-center gap-3 sm:gap-4 px-6 sm:px-8">
-        <div className="shrink-0 flex items-center justify-center">
+      <div className="relative z-10 flex items-center justify-center gap-2 sm:gap-2.5 px-3.5 sm:px-5 max-w-full">
+        <div className="shrink-0 flex items-center justify-center scale-90 sm:scale-95">
           {icon}
         </div>
-        <span className="font-serif text-lg sm:text-xl md:text-2xl font-bold tracking-wider text-[#122d52] uppercase select-none">
+        <span className="font-serif text-xs sm:text-sm md:text-base font-bold tracking-wide text-[#122d52] uppercase select-none whitespace-nowrap leading-none">
           {title}
         </span>
       </div>
@@ -173,6 +174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [showCommentsDrawer, setShowCommentsDrawer] = useState(false);
   const feedbackComments = commentsMap?.['dashboard_feedback'] || [];
+  const canAccessComments = isUserOver16(user);
 
   const effectiveLang: Language = currentLang || user?.language || 'EN';
 
@@ -307,27 +309,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onSelectRealm(realm);
                 }
               }}
-              className={`p-[3.5px] rounded-[30px] sm:rounded-[32px] transition-all duration-300 group cursor-pointer active:scale-[0.985] ${
-                realm.isComingSoon
-                  ? 'bg-gradient-to-b from-[#8a6b2d] via-[#523d14] to-[#241a06] shadow-[0_12px_32px_rgba(0,0,0,0.5)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.65)]'
-                  : 'bg-gradient-to-b from-[#ffe59e] via-[#d4af37] via-[#c49226] to-[#7d4d0b] shadow-[0_12px_32px_rgba(0,0,0,0.18),0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)]'
-              }`}
+              className="p-[3.5px] rounded-[30px] sm:rounded-[32px] transition-all duration-300 group cursor-pointer active:scale-[0.985] bg-gradient-to-b from-[#ffe59e] via-[#d4af37] via-[#c49226] to-[#7d4d0b] shadow-[0_12px_32px_rgba(0,0,0,0.18),0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_16px_40px_rgba(212,175,55,0.4)]"
             >
               {/* Inner card with gold hairline border */}
-              <div className={`relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden text-left ${
-                realm.isComingSoon
-                  ? 'bg-black border-2 border-[#8a6b2d]/70'
-                  : 'bg-transparent border-2 border-[#fff3cc]/80'
-              }`}>
+              <div className="relative h-64 sm:h-72 md:h-[310px] rounded-[26px] sm:rounded-[28px] overflow-hidden text-left bg-transparent border-2 border-[#fff3cc]/80">
                 {/* Background Cover Image */}
                 <img
                   src={realm.bgImage}
                   alt={realm.title}
-                  className={`w-full h-full object-cover transition-transform duration-700 ${
-                    realm.isComingSoon
-                      ? 'filter brightness-[0.32] contrast-[1.1] grayscale-[35%]'
-                      : 'group-hover:scale-105 filter brightness-[0.98] group-hover:brightness-100'
-                  }`}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter brightness-[0.98] group-hover:brightness-100"
                   referrerPolicy="no-referrer"
                 />
 
@@ -346,11 +336,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {/* Subtle Bottom Vignette Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
 
-                {/* Coming Soon Dark Overlay & Covering Letters */}
+                {/* Coming Soon Badge (Smaller, elegant, no dark overlay covering the card) */}
                 {realm.isComingSoon && (
-                  <div className="absolute inset-0 z-20 bg-black/55 backdrop-blur-[1px] flex items-center justify-center p-3 pointer-events-none">
-                    <div className="w-full text-center py-4 sm:py-5 px-2 bg-gradient-to-r from-black/20 via-black/85 to-black/20 border-y-2 border-[#d4af37]/80 shadow-[0_4px_24px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                      <span className="block text-xl sm:text-2xl md:text-3xl font-cinzel font-black tracking-[0.25em] sm:tracking-[0.3em] text-[#fce0a2] uppercase drop-shadow-[0_3px_12px_rgba(0,0,0,1)]">
+                  <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none p-3">
+                    <div className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/65 border border-[#d4af37]/80 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_10px_rgba(212,175,55,0.3)] backdrop-blur-sm">
+                      <span className="block text-xs sm:text-sm font-cinzel font-bold tracking-[0.2em] text-[#fce0a2] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                         {t('comingSoon', effectiveLang)}
                       </span>
                     </div>
@@ -358,9 +348,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 )}
                 
                 {/* Ornamental Cartouche Plaque Banner (Matching DadMom.png reference exactly) */}
-                <div className={`absolute bottom-3.5 sm:bottom-4 inset-x-0 flex items-center justify-center pointer-events-none z-30 ${
-                  realm.isComingSoon ? 'opacity-80' : ''
-                }`}>
+                <div className="absolute bottom-3.5 sm:bottom-4 inset-x-0 flex items-center justify-center pointer-events-none z-30">
                   <CartouchePlaque
                     icon={getIcon(realm.key)}
                     title={t(('realm_' + realm.key) as any, effectiveLang) || realm.title}
@@ -371,42 +359,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ))}
         </div>
 
-        {/* Feedback Action Section at Bottom of Dashboard */}
-        <div className="flex flex-col items-center justify-center gap-2 pt-6 pb-2">
-          <button
-            id="dashboard-feedback-btn"
-            type="button"
-            onClick={() => setShowCommentsDrawer(true)}
-            className={`group relative flex items-center gap-2.5 px-6 py-2.5 rounded-full border-2 transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97] shadow-lg cursor-pointer ${
-              darkMode
-                ? 'bg-gradient-to-r from-[#1b2536] via-[#101726] to-[#1b2536] border-[#d4af37] text-[#fce0a2] hover:border-[#fce0a2] hover:shadow-[0_4px_25px_rgba(212,175,55,0.3)] shadow-[0_4px_16px_rgba(0,0,0,0.4)]'
-                : 'bg-gradient-to-r from-[#fff9eb] via-[#fff4d6] to-[#fff9eb] border-[#b8860b] text-[#78350f] hover:border-[#78350f] hover:shadow-[0_4px_25px_rgba(184,134,11,0.25)] shadow-[0_4px_16px_rgba(184,134,11,0.15)]'
-            }`}
-          >
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center shrink-0">
-              <div className={`w-full h-full rounded-full flex items-center justify-center ${
-                darkMode ? 'bg-[#101726]' : 'bg-white'
-              }`}>
-                <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
-              </div>
-            </div>
-            <span className="text-xs sm:text-sm font-bold font-cinzel tracking-wider uppercase">
-              {t('feedbackBtn', effectiveLang)}
-            </span>
-            {feedbackComments.length > 0 && (
-              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+        {/* Feedback Action Section at Bottom of Dashboard - Gated for users > 16 */}
+        {canAccessComments && (
+          <div className="flex flex-col items-center justify-center gap-2 pt-6 pb-2">
+            <button
+              id="dashboard-feedback-btn"
+              type="button"
+              onClick={() => setShowCommentsDrawer(true)}
+              className={`group relative flex items-center gap-2.5 px-6 py-2.5 rounded-full border-2 transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97] shadow-lg cursor-pointer ${
                 darkMode
-                  ? 'bg-[#d4af37]/20 border-[#d4af37]/60 text-[#fce0a2]'
-                  : 'bg-[#b8860b]/20 border-[#b8860b]/60 text-[#78350f]'
-              }`}>
-                {feedbackComments.length}
+                  ? 'bg-gradient-to-r from-[#1b2536] via-[#101726] to-[#1b2536] border-[#d4af37] text-[#fce0a2] hover:border-[#fce0a2] hover:shadow-[0_4px_25px_rgba(212,175,55,0.3)] shadow-[0_4px_16px_rgba(0,0,0,0.4)]'
+                  : 'bg-gradient-to-r from-[#fff9eb] via-[#fff4d6] to-[#fff9eb] border-[#b8860b] text-[#78350f] hover:border-[#78350f] hover:shadow-[0_4px_25px_rgba(184,134,11,0.25)] shadow-[0_4px_16px_rgba(184,134,11,0.15)]'
+              }`}
+            >
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#996515] p-0.5 flex items-center justify-center shrink-0">
+                <div className={`w-full h-full rounded-full flex items-center justify-center ${
+                  darkMode ? 'bg-[#101726]' : 'bg-white'
+                }`}>
+                  <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
+                </div>
+              </div>
+              <span className="text-xs sm:text-sm font-bold font-cinzel tracking-wider uppercase">
+                {t('feedbackBtn', effectiveLang)}
               </span>
-            )}
-          </button>
-          <span className={`text-[11px] font-sans ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            {t('feedbackDesc', effectiveLang)}
-          </span>
-        </div>
+              {feedbackComments.length > 0 && (
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                  darkMode
+                    ? 'bg-[#d4af37]/20 border-[#d4af37]/60 text-[#fce0a2]'
+                    : 'bg-[#b8860b]/20 border-[#b8860b]/60 text-[#78350f]'
+                }`}>
+                  {feedbackComments.length}
+                </span>
+              )}
+            </button>
+            <span className={`text-[11px] font-sans ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              {t('feedbackDesc', effectiveLang)}
+            </span>
+          </div>
+        )}
 
         {/* Footer Subtitle */}
         <div className="text-center pt-6 pb-4 border-t border-[#d4af37]/20 flex items-center justify-center gap-3">
@@ -422,7 +412,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Feedback Comments Drawer */}
-      {showCommentsDrawer && (
+      {showCommentsDrawer && canAccessComments && (
         <CommentsDrawer
           chapterId="dashboard_feedback"
           chapterTitle={t('dashboardFeedbackTitle', effectiveLang)}

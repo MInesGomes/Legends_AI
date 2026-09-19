@@ -2,7 +2,7 @@ import { Language } from '../types';
 
 export interface Act {
   chapter: number; // e.g. values 0, 1, 2
-  act: 'female_act' | 'male_act' | 'act0' | 'act1'| 'choice1' | 'choice2'| 'choice3' | 'choice4';
+  act: 'female_act' | 'male_act' | 'act0' | 'choice1' | 'choice2'| 'choice3' | 'choice4';
   title?: string;
   characterName?: string;
   gender?: 'female' | 'male';
@@ -242,12 +242,6 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
     characterName: 'Elion',
     gender: 'male',
     type: 'character',
-  },
-  {
-    chapter: 0,
-    act: 'act1',
-    title: 'The Heart Choice',
-    type: 'narrative',
   },
   {
     chapter: 1,

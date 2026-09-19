@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Realm, Tale, UserProfile, DailyTaleLog, ChapterComment, Language } from '../types';
 import { AddTaleModal } from './AddTaleModal';
 import { getEffectiveDailyLimit, getMaxAllowedDailyLimit, hasReachedDailyTaleLimit } from '../lib/supabase';
+import { isUserOver16, isUserUnder18 } from '../lib/googleAgeSignals';
 import { t } from '../lib/i18n';
 import { ArrowLeft, Plus, Eye, Heart, MessageSquare, Sparkles, BookOpen, ShieldCheck, Settings, X, Clock, Lock } from 'lucide-react';
 
@@ -52,8 +53,9 @@ export const TalesPage: React.FC<TalesPageProps> = ({
   }, [realm.id]);
 
   const effectiveLimit = getEffectiveDailyLimit(user);
-  const maxAllowed = getMaxAllowedDailyLimit(user?.age);
-  const isUnder18 = (user?.age ?? 20) < 18;
+  const maxAllowed = getMaxAllowedDailyLimit(user);
+  const isUnder18 = isUserUnder18(user);
+  const canViewComments = isUserOver16(user);
 
   // Filter tales belonging to this realm:
   // Custom user tales are hidden from all other users until approved.
@@ -172,26 +174,16 @@ export const TalesPage: React.FC<TalesPageProps> = ({
               <div
                 key={tale.id}
                 onClick={() => handleCardClick(tale)}
-                className={`group relative cursor-pointer p-[3px] rounded-[18px] transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99] ${
-                  tale.isComingSoon
-                    ? 'bg-gradient-to-b from-[#8a6b2d] via-[#523d14] to-[#241a06] shadow-xl hover:shadow-[#4d3d19]/40'
-                    : 'bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30'
-                }`}
+                className="group relative cursor-pointer p-[3px] rounded-[18px] transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30"
               >
                 {/* Inner Card Box without background color */}
-                <div className={`relative h-72 sm:h-80 rounded-[15px] overflow-hidden text-left flex flex-col justify-between ${
-                  tale.isComingSoon ? 'bg-black' : 'bg-transparent'
-                }`}>
+                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden text-left flex flex-col justify-between bg-transparent">
                   
                   {/* Background Image */}
                   <img
                     src={tale.coverImage}
                     alt={tale.title}
-                    className={`w-full h-full object-cover transition-transform duration-700 ${
-                      tale.isComingSoon
-                        ? 'filter brightness-[0.32] contrast-[1.05] grayscale-[30%]'
-                        : 'group-hover:scale-105'
-                    }`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter brightness-[0.98] group-hover:brightness-100"
                     referrerPolicy="no-referrer"
                   />
 
@@ -223,11 +215,11 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     </div>
                   )}
 
-                  {/* Coming Soon Dark Overlay & Covering Letters */}
+                  {/* Coming Soon Badge (Smaller, elegant, no dark overlay covering the card) */}
                   {tale.isComingSoon && (
-                    <div className="absolute inset-0 z-20 bg-black/55 backdrop-blur-[1px] flex items-center justify-center p-3 pointer-events-none">
-                      <div className="w-full text-center py-4 px-2 bg-gradient-to-r from-black/20 via-black/85 to-black/20 border-y-2 border-[#d4af37]/80 shadow-[0_4px_24px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                        <span className="block text-xl sm:text-2xl font-cinzel font-black tracking-[0.25em] text-[#fce0a2] uppercase drop-shadow-[0_3px_12px_rgba(0,0,0,1)]">
+                    <div className="absolute inset-0 z-20 flex items-center justify-center p-3 pointer-events-none">
+                      <div className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/65 border border-[#d4af37]/80 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_10px_rgba(212,175,55,0.3)] backdrop-blur-sm">
+                        <span className="block text-xs sm:text-sm font-cinzel font-bold tracking-[0.2em] text-[#fce0a2] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                           {t('comingSoon', effectiveLang)}
                         </span>
                       </div>
@@ -235,9 +227,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                   )}
 
                   {/* Bottom Gold Title Banner with clear high-contrast text */}
-                  <div className={`relative z-10 px-4 pt-2 pb-5 sm:pb-6 text-center flex flex-col items-center justify-end ${
-                    tale.isComingSoon ? 'opacity-80' : ''
-                  }`}>
+                  <div className="relative z-10 px-4 pt-2 pb-5 sm:pb-6 text-center flex flex-col items-center justify-end">
                     <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                       {tale.title}
                     </h3>
@@ -259,7 +249,11 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     <div className="flex items-center justify-center gap-4 text-xs text-[#fce0a2] mt-1 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                       <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
                       <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
-                      <span className="flex items-center gap-1" title={t('userCommentsTooltip', effectiveLang)}><MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {getTaleUserCommentsCount(tale)}</span>
+                      {canViewComments && (
+                        <span className="flex items-center gap-1" title={t('userCommentsTooltip', effectiveLang)}>
+                          <MessageSquare className="w-3.5 h-3.5 text-[#fce0a2]" /> {getTaleUserCommentsCount(tale)}
+                        </span>
+                      )}
                     </div>
                   </div>
 

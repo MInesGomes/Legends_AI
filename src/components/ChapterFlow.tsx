@@ -25,6 +25,7 @@ import {
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
+import { isUserOver16 } from '../lib/googleAgeSignals';
 import { t, Translations, TRANSLATIONS } from '../lib/i18n';
 import {
   X as CloseIcon,
@@ -230,7 +231,6 @@ export function getChoiceLocalizedDescription(
 
 export interface ChapterConfig {
   id: number; // 0..N
-  hasAct1?: boolean; // Chapter optional act1
   hasGenderActs?: boolean; // Chapter 0 optional gender acts
   choices: ChapterChoiceConfig[];
 }
@@ -246,6 +246,7 @@ export interface ChapterFlowProps {
   onEarnSkillPoint?: (skill: SkillType) => void;
   onEarnLanguagePoints?: (lang: Language, points: number) => void;
   onChooseBestChoice?: (skill: SkillType, lang: Language) => void;
+  onReadAloudChoice?: (skill: SkillType, lang: Language) => void;
   onRecordView?: (chapterId: string, lang: Language) => void;
   commentsMap?: Record<string, ChapterComment[]>;
   onAddComment?: (chapterId: string, text: string) => void;
@@ -259,7 +260,6 @@ export interface ChapterFlowProps {
 export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
-    hasAct1: true,
     choices: [],
   },
   {
@@ -462,6 +462,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   onEarnSkillPoint,
   onEarnLanguagePoints,
   onChooseBestChoice,
+  onReadAloudChoice,
   onRecordView,
   commentsMap,
   onAddComment,
@@ -482,14 +483,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [currentChapterNumber, setCurrentChapterNumber] = useState<number>(initialChapterId);
 
   // Active step within the chapter:
-  // Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
+  // Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'CHOICES' (if hasChoices) -> Chapter 1
   // Chapters 1..N: 'act0' -> CHOICES -> Chapter n+1
   // 'CHOICES': Choices screen -> 'choice_act' (video & audio) -> 'choice_feedback' (if hasFeedback crawl & read)
   type FlowStep =
     | 'act0'
     | 'male_act'
     | 'female_act'
-    | 'act1'
     | 'choices'
     | 'choice_act'
     | 'choice_feedback';
@@ -525,6 +525,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
   const [activeSubtitle, setActiveSubtitle] = useState<string>('');
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
+  const canAccessComments = isUserOver16(user);
 
   // Choice page Star Wars crawl & Read Aloud state
   const [vttRawText, setVttRawText] = useState<string>('');
@@ -540,6 +541,23 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const crawlContainerRef = useRef<HTMLDivElement | null>(null);
   const crawlSentinelRef = useRef<HTMLDivElement | null>(null);
 
+  // Track read aloud tracking per choice session
+  const hasRecordedReadAloudStatRef = useRef<boolean>(false);
+
+  const recordReadAloudStat = useCallback(() => {
+    if (hasRecordedReadAloudStatRef.current) return;
+    hasRecordedReadAloudStatRef.current = true;
+
+    const activeSkill: SkillType = tale?.skill || 'Leader';
+    const activeLanguage: Language = selectedVttLang || currentLang || 'EN';
+
+    if (onReadAloudChoice) {
+      onReadAloudChoice(activeSkill, activeLanguage);
+    } else if (onChooseBestChoice) {
+      onChooseBestChoice(activeSkill, activeLanguage);
+    }
+  }, [tale?.skill, selectedVttLang, currentLang, onReadAloudChoice, onChooseBestChoice]);
+
   // Derive world and tale name for Supabase storage paths
   const { world: currentWorld, taleName: currentTaleName } = useMemo(() => {
     return getTaleWorldAndName(tale);
@@ -554,7 +572,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       if (isElDoradoTorch && currentChapterNumber === 0 && (!custom.choices || custom.choices.length === 0)) {
         return {
           ...custom,
-          hasAct1: false,
           hasGenderActs: false,
           choices: [
             {
@@ -582,7 +599,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (isElDoradoTorch) {
       return {
         id: currentChapterNumber,
-        hasAct1: false,
         hasGenderActs: false,
         choices: currentChapterNumber === 0 ? [
           {
@@ -607,7 +623,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
     return {
       id: currentChapterNumber,
-      hasAct1: currentChapterNumber === 0,
       hasGenderActs: currentChapterNumber === 0,
       choices: currentChapterNumber === 0 ? [] : [
         { id: 'choice1', available: true, isBest: true },
@@ -766,13 +781,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               gender: 'female',
               type: 'character',
             };
-      }
-      if (currentStep === 'act1') {
-        return {
-          chapter: 0,
-          act: 'act1',
-          type: 'narrative',
-        };
       }
     }
 
@@ -1180,12 +1188,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   /**
    * Primary FLOW TRANSITION LOGIC
    *
-   * Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
+   * Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'CHOICES' (if hasChoices) -> Chapter 1
    *   1- male_act then female_act or female_act then male_act according to avatar gender
    *   e.g.: If avatar male:
-   *   'act0' -> male_act -> female_act -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
+   *   'act0' -> male_act -> female_act -> 'CHOICES' (if hasChoices) -> Chapter 1
    *   e.g.: If avatar female:
-   *   'act0' -> female_act -> male_act -> 'act1' (if hasAct1) -> 'CHOICES' (if hasChoices) -> Chapter 1
+   *   'act0' -> female_act -> male_act -> 'CHOICES' (if hasChoices) -> Chapter 1
    *
    * Chapters 1..N: 'act0' -> CHOICES -> Chapter n+1
    *
@@ -1219,7 +1227,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (currentChapterNumber === 0) {
       const isElDorado = currentWorld === 'ElDorado';
       const hasGenderActs = currentChapterConfig.hasGenderActs ?? (!isElDorado);
-      const hasAct1 = currentChapterConfig.hasAct1 ?? (!isElDorado);
       const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
       const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
       const hasChoices = Boolean(currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available));
@@ -1227,10 +1234,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       if (currentStep === 'act0') {
         if (hasGenderActs) {
           setCurrentStep(avatarGenderAct);
-          return;
-        }
-        if (hasAct1) {
-          setCurrentStep('act1');
           return;
         }
         if (hasChoices) {
@@ -1249,21 +1252,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
 
       if (currentStep === notAvatarGenderAct) {
-        if (hasAct1) {
-          setCurrentStep('act1');
-          return;
-        }
-        if (hasChoices) {
-          setCurrentStep('choices');
-          return;
-        }
-        // Advance to Chapter 1
-        setCurrentChapterNumber(1);
-        setCurrentStep('act0');
-        return;
-      }
-
-      if (currentStep === 'act1') {
         if (hasChoices) {
           setCurrentStep('choices');
           return;
@@ -1322,23 +1310,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (currentChapterNumber === 0) {
       const isElDorado = currentWorld === 'ElDorado';
       const hasGenderActs = currentChapterConfig.hasGenderActs ?? (!isElDorado);
-      const hasAct1 = currentChapterConfig.hasAct1 ?? (!isElDorado);
       const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
       const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
 
       if (currentStep === 'choices') {
-        if (hasAct1) {
-          setCurrentStep('act1');
-        } else if (hasGenderActs) {
+        if (hasGenderActs) {
           setCurrentStep(notAvatarGenderAct);
         } else {
           setCurrentStep('act0');
         }
-        return;
-      }
-
-      if (currentStep === 'act1') {
-        setCurrentStep(notAvatarGenderAct);
         return;
       }
 
@@ -1375,8 +1355,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           const hasChoices = Boolean(ch0Config?.choices && ch0Config.choices.some((c) => c.available));
           if (hasChoices) {
             setCurrentStep('choices');
-          } else if (ch0Config?.hasAct1 ?? true) {
-            setCurrentStep('act1');
           } else {
             const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
             setCurrentStep(notAvatarGenderAct);
@@ -1396,16 +1374,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Choice selection handler: plays the chosen act video and audio
   const handleSelectChoice = (choiceId: ChoiceId) => {
-    // Check if the selected choice is the best choice for this chapter
-    const choiceCfg = currentChapterConfig.choices?.find((c) => c.id === choiceId);
-    const isBest = choiceCfg?.isBest ?? (choiceId === 'choice1');
-
-    if (isBest && onChooseBestChoice) {
-      const activeSkill: SkillType = tale?.skill || 'Leader';
-      const activeLanguage: Language = currentLang || selectedVttLang || 'EN';
-      onChooseBestChoice(activeSkill, activeLanguage);
-    }
-
+    hasRecordedReadAloudStatRef.current = false;
     setSelectedChoiceId(choiceId);
     setCandidateVideoIdx(0);
     setCandidateAudioIdx(0);
@@ -1435,6 +1404,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Speech Recognition (Read Aloud) Implementation
   const startSpeechRecognition = () => {
+    recordReadAloudStat();
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRec) {
@@ -1541,6 +1511,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Award Points
   const awardLanguagePoints = () => {
+    recordReadAloudStat();
     setHasClaimedPoints(true);
     if (onEarnLanguagePoints) {
       onEarnLanguagePoints(selectedVttLang, 50);
@@ -1983,13 +1954,25 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
                 {speechError && (
                   <div
-                    className={`mb-3 p-2.5 rounded-xl border text-xs ${
+                    className={`mb-3 p-2.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
                       darkMode
                         ? 'bg-amber-950/60 border-amber-500/40 text-amber-200'
                         : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
                     }`}
                   >
-                    {speechError}
+                    <span>{speechError}</span>
+                    {!hasClaimedPoints && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          recordReadAloudStat();
+                          awardLanguagePoints();
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shrink-0 cursor-pointer shadow-sm transition-all"
+                      >
+                        Claim Points
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -2331,23 +2314,27 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
           {/* Completion Action Bar: completely transparent, no skip button, no text on buttons, no round circles */}
           <div className="w-full flex items-center justify-between gap-4 pt-2 pb-1 px-2 sm:px-4 bg-transparent border-0">
-            {/* Comment Drawer Button */}
-            <button
-              id="act-write-comment-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowCommentsDrawer(true);
-              }}
-              className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
-                darkMode
-                  ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
-                  : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-              }`}
-              title={t('commentBtn', currentLang)}
-              aria-label={t('commentBtn', currentLang)}
-            >
-              <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
-            </button>
+            {/* Comment Drawer Button - Only visible if user is > 16 */}
+            {canAccessComments ? (
+              <button
+                id="act-write-comment-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCommentsDrawer(true);
+                }}
+                className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                  darkMode
+                    ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                    : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+                }`}
+                title={t('commentBtn', currentLang)}
+                aria-label={t('commentBtn', currentLang)}
+              >
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
+              </button>
+            ) : (
+              <div className="w-9" />
+            )}
 
             {/* Replay Button */}
             <button
@@ -2389,7 +2376,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       )}
 
       {/* COMMENTS DRAWER */}
-      {showCommentsDrawer && (
+      {showCommentsDrawer && canAccessComments && (
         <CommentsDrawer
           chapterId={chapterCommentId}
           chapterTitle={`Chapter ${currentChapterNumber}: ${tale?.title || 'Atlantis'}`}

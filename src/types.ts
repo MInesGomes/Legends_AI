@@ -12,12 +12,15 @@ export type SkillType = 'Leader' | 'Plan' | 'Win4All' | 'Listen' | 'Recharge';
 
 export type ChoiceOptionType = 'Best' | 'Safe' | 'Weak' | 'Harmful';
 
+export type AgeSignal = '>18' | '>16' | '<13';
+
 export interface UserProfile {
   user_id: string;
   name: string;
   email: string;
   gender: 'female' | 'male';
-  date_of_birth: string; // YYYY-MM-DD
+  age_signal: AgeSignal; // Google Play Age Signals API: '>18' | '>16' | '<13' (No DOB stored)
+  date_of_birth?: string; // Optional legacy field - Not stored for new users
   age: number;
   language: Language;
   avatar_url: string;

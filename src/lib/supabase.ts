@@ -104,7 +104,10 @@ export function saveLocalDb(state: DatabaseState): void {
   }
 }
 
-export function calculateAge(dobString: string): number {
+export { isUserOver16, isUserUnder16, isUserOver18, isUserUnder13, getApproximateAgeFromSignal } from './googleAgeSignals';
+import { isUserOver18 } from './googleAgeSignals';
+
+export function calculateAge(dobString?: string): number {
   if (!dobString) return 20; // Default adult if missing
   const birthDate = new Date(dobString);
   const today = new Date();
@@ -121,12 +124,19 @@ export function calculateAge(dobString: string): number {
 // ========================================================
 
 /**
- * Returns the maximum daily tales limit allowed based on age:
- * - Adults (age >= 18): max 5 tales per day
- * - Minors (age < 18): limit is fixed to 1 tale per day
+ * Returns the maximum daily tales limit allowed based on age signal or numeric age:
+ * - Adults (signal '>18' or age >= 18): max 5 tales per day
+ * - Minors (signal '>16' or '<13' or age < 18): limit is fixed to 1 tale per day
  */
-export function getMaxAllowedDailyLimit(age?: number): number {
-  if (age !== undefined && age < 18) {
+export function getMaxAllowedDailyLimit(ageOrUser?: number | UserProfile | null): number {
+  if (!ageOrUser) return 5;
+  if (typeof ageOrUser === 'number') {
+    return ageOrUser < 18 ? 1 : 5;
+  }
+  if (ageOrUser.age_signal) {
+    return ageOrUser.age_signal === '>18' ? 5 : 1;
+  }
+  if (ageOrUser.age !== undefined && ageOrUser.age < 18) {
     return 1;
   }
   return 5;
@@ -137,8 +147,11 @@ export function getMaxAllowedDailyLimit(age?: number): number {
  * Takes into account the user's custom configuration while enforcing the age ceiling.
  */
 export function getEffectiveDailyLimit(user?: UserProfile | null): number {
-  const maxLimit = getMaxAllowedDailyLimit(user?.age);
+  const maxLimit = getMaxAllowedDailyLimit(user);
   if (!user) return maxLimit;
+  if (user.age_signal && user.age_signal !== '>18') {
+    return 1;
+  }
   if (user.age !== undefined && user.age < 18) {
     return 1;
   }
@@ -212,7 +225,7 @@ export async function syncUserProfileToSupabase(profile: UserProfile): Promise<v
       name: profile.name,
       email: profile.email,
       gender: profile.gender,
-      date_of_birth: profile.date_of_birth,
+      age_signal: profile.age_signal,
       age: profile.age,
       language: profile.language,
       avatar_url: profile.avatar_url,

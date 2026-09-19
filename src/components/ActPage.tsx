@@ -9,6 +9,7 @@ import {
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
+import { isUserOver16 } from '../lib/googleAgeSignals';
 import { t } from '../lib/i18n';
 import {
   X as CloseIcon,
@@ -201,6 +202,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
+  const canAccessComments = isUserOver16(user);
 
   // Video and Audio Language tracks
   const [selectedAudioLang, setSelectedAudioLang] = useState<Language>(currentLang);
@@ -663,24 +665,26 @@ export const ActPage: React.FC<ActPageProps> = ({
 
       {/* 4. TOP RIGHT: COMMENTS, AUTOPLAY TOGGLE, SOUND TOGGLE & MP3 AUDIO SELECTOR */}
       <div className="flex absolute top-3 right-3 sm:top-6 sm:right-6 z-30 items-center gap-2">
-        {/* Comments Drawer Button */}
-        <button
-          id="act-top-comments-btn"
-          onClick={() => setShowCommentsDrawer(true)}
-          className={`p-2 sm:p-3 rounded-full border sm:border-2 border-[#d4af37]/70 ${
-            darkMode
-              ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
-              : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
-          } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center relative`}
-          title={t('comments', currentLang)}
-        >
-          <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
-          {currentComments.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-[#d4af37] text-slate-950 text-[9px] sm:text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center shadow">
-              {currentComments.length}
-            </span>
-          )}
-        </button>
+        {/* Comments Drawer Button - Only visible if user is > 16 */}
+        {canAccessComments && (
+          <button
+            id="act-top-comments-btn"
+            onClick={() => setShowCommentsDrawer(true)}
+            className={`p-2 sm:p-3 rounded-full border sm:border-2 border-[#d4af37]/70 ${
+              darkMode
+                ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
+                : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
+            } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center relative`}
+            title={t('comments', currentLang)}
+          >
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
+            {currentComments.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#d4af37] text-slate-950 text-[9px] sm:text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center shadow">
+                {currentComments.length}
+              </span>
+            )}
+          </button>
+        )}
 
         {/* Autoplay Toggle Button */}
         <button
@@ -1020,22 +1024,24 @@ export const ActPage: React.FC<ActPageProps> = ({
                 : 'bg-amber-50/95 border-[#d4af37]/40 text-slate-900 shadow-sm'
             }`}
           >
-            {/* Comment Button */}
-            <button
-              id="act-write-comment-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowCommentsDrawer(true);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                darkMode
-                  ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
-                  : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
-              } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
-              <span>{t('commentBtn', currentLang)}</span>
-            </button>
+            {/* Comment Button - Only visible if user is > 16 */}
+            {canAccessComments && (
+              <button
+                id="act-write-comment-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCommentsDrawer(true);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#d4af37] ${
+                  darkMode
+                    ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
+                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
+                } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
+                <span>{t('commentBtn', currentLang)}</span>
+              </button>
+            )}
 
             {/* Middle Action Group: Replay and Skip MP3 & MP4 */}
             <div className="flex items-center gap-2">
@@ -1107,7 +1113,7 @@ export const ActPage: React.FC<ActPageProps> = ({
       </motion.div>
 
       {/* COMMENTS DRAWER */}
-      {showCommentsDrawer && (
+      {showCommentsDrawer && canAccessComments && (
         <CommentsDrawer
           chapterId={currentChapterId}
           chapterTitle={currentAct.chapterTitle || 'The Heart of Atlantis'}

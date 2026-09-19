@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile, UserSkillsPoints, Language, SUPPORTED_LANGUAGES, SkillType, UserStatsMap } from '../types';
 import { FEMALE_AVATARS, MALE_AVATARS, getAvatarByUrlOrId } from '../data/avatars';
-import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award, BarChart2 } from 'lucide-react';
+import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award, BarChart2, ShieldCheck, Lock } from 'lucide-react';
 import { t } from '../lib/i18n';
 
 interface ProfileDrawerProps {
@@ -98,7 +98,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               </h4>
         
               
-              <div className="flex items-center justify-center gap-2 mt-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                 <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-semibold ${
                   darkMode
                     ? 'bg-[#d4af37]/20 border-[#d4af37]/40 text-[#fce0a2]'
@@ -106,7 +106,15 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 }`}>
                   {activeAvatarObj?.title || `${user?.gender === 'female' ? 'Lady' : 'Gentlemen'} Avatar`}
                 </span>
-            
+
+                <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-semibold flex items-center gap-1 ${
+                  darkMode
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                    : 'bg-emerald-50 border-emerald-500/50 text-emerald-800'
+                }`} title="Google Play Age Signals API verified. No DOB stored.">
+                  <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                  Signal: {user?.age_signal || '>18'}
+                </span>
               </div>
             </div>
 
@@ -199,78 +207,6 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
             </div>
           )}
 
-          {/* Languages & Chapters Explored */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
-                darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
-              }`}>
-                <Globe className="w-4 h-4 text-[#d4af37]" /> {t('languagesTitle', currentLang)}
-              </h5>
-              <span className={`text-[11px] font-mono font-semibold ${
-                darkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
-                {t('chaptersSeen', currentLang)}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 text-xs">
-              {SUPPORTED_LANGUAGES.map((lang) => {
-                const count = languageChaptersViewed?.[lang.code]?.length || 0;
-                const isCurrent = currentLang === lang.code;
-
-                return (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => onLanguageChange(lang.code)}
-                    className={`p-2.5 rounded-xl border flex items-center justify-between transition-all text-left cursor-pointer ${
-                      isCurrent
-                        ? darkMode
-                          ? 'bg-[#1e293b] border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-md'
-                          : 'bg-amber-50 border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
-                        : darkMode
-                          ? 'bg-[#182130] border-[#d4af37]/20 hover:border-[#d4af37]/50 hover:bg-[#1e293b]/70'
-                          : 'bg-white border-[#d4af37]/30 shadow-sm hover:bg-amber-50/50'
-                    }`}
-                    title={`Switch to ${lang.label}`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-lg leading-none shrink-0">{lang.flag}</span>
-                      <div className="truncate">
-                        <span className={`font-semibold text-xs block truncate ${
-                          darkMode ? 'text-slate-200' : 'text-slate-800'
-                        }`}>
-                          {lang.label}
-                        </span>
-                        <span className={`text-[10px] font-mono uppercase ${
-                          isCurrent ? 'text-[#d4af37] font-bold' : darkMode ? 'text-slate-400' : 'text-slate-500'
-                        }`}>
-                          {lang.code} {isCurrent ? `• ${t('activeStatus', currentLang)}` : ''}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className={`font-bold font-mono px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1.5 ${
-                        count > 0
-                          ? darkMode
-                            ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
-                            : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
-                          : darkMode
-                            ? 'text-slate-400 bg-slate-800/60 border-slate-700/60'
-                            : 'text-slate-500 bg-slate-100 border-slate-200'
-                      }`}>
-                        <BookOpen className="w-3.5 h-3.5 text-[#d4af37]" />
-                        <span>{count} {count === 1 ? t('chapterUnit', currentLang) : t('chaptersUnit', currentLang)}</span>
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Skill Points Progress */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -318,7 +254,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                           ? 'text-slate-400 bg-slate-800/60 border-slate-700/60'
                           : 'text-slate-500 bg-slate-100 border-slate-200'
                     }`}>
-                      +{points}
+                      {points}
                     </span>
                   </div>
                 );
@@ -326,19 +262,93 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
             </div>
           </div>
 
-          {/* User Stats: Views per Language & Skill */}
+          {/* Languages & Chapters Seen */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
               }`}>
-                <BarChart2 className="w-4 h-4 text-[#d4af37]" /> Best Choices / Skill Views
+                <Globe className="w-4 h-4 text-[#d4af37]" /> {t('languagesTitle', currentLang)}
               </h5>
               <span className={`text-[11px] font-mono font-semibold ${
                 darkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
-                user_stats
+                {t('chaptersSeen', currentLang)}
               </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const count = languageChaptersViewed?.[lang.code]?.length || 0;
+                const isCurrent = currentLang === lang.code;
+
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => onLanguageChange(lang.code)}
+                    className={`p-2 rounded-lg border flex items-center justify-between transition-all text-left cursor-pointer ${
+                      isCurrent
+                        ? darkMode
+                          ? 'bg-[#1e293b] border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
+                          : 'bg-amber-50 border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
+                        : darkMode
+                          ? 'bg-[#182130]/80 border-[#d4af37]/15 hover:border-[#d4af37]/40 hover:bg-[#1e293b]/50'
+                          : 'bg-white border-[#d4af37]/20 hover:bg-amber-50/40 shadow-xs'
+                    }`}
+                    title={`Switch to ${lang.label}`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base leading-none shrink-0">{lang.flag}</span>
+                      <span className={`font-medium truncate ${
+                        isCurrent
+                          ? darkMode ? 'text-[#fce0a2] font-semibold' : 'text-[#8a5d12] font-semibold'
+                          : darkMode ? 'text-slate-300' : 'text-slate-700'
+                      }`}>
+                        {lang.label}
+                      </span>
+                    </div>
+
+                    <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] shrink-0 ml-1.5 ${
+                      count > 0
+                        ? darkMode
+                          ? 'text-[#fce0a2] bg-[#d4af37]/20 border border-[#d4af37]/30'
+                          : 'text-[#8a5d12] bg-[#f4e8c1] border border-[#d4af37]/40'
+                        : darkMode
+                          ? 'text-slate-500 bg-slate-800/40 border border-slate-700/40'
+                          : 'text-slate-400 bg-slate-100 border border-slate-200'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* User Stats: Views per Language & Skill */}
+          <div className="space-y-3 pt-2">
+            <div>
+              <div className="flex items-center justify-between">
+                <h5 className={`text-xs font-bold font-cinzel uppercase tracking-wider flex items-center gap-1.5 ${
+                  darkMode ? 'text-[#fce0a2]' : 'text-[#8a5d12]'
+                }`}>
+                  <BarChart2 className="w-4 h-4 text-[#d4af37]" /> {t('readAloudSkillViews', currentLang)}
+                </h5>
+                <span className={`text-[11px] font-mono font-semibold ${
+                  darkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>
+                  {t('totalPts', currentLang, {
+                    pts: (['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).reduce(
+                      (sum, skillName) => sum + (Number(userStats?.[`${statsLang}:${skillName}`]) || 0),
+                      0
+                    ),
+                  })}
+                </span>
+              </div>
+              <p className={`text-[11px] mt-0.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                {t('readAloudSkillViewsDesc', currentLang)}
+              </p>
             </div>
 
             {/* Language Selector Tabs */}
@@ -391,7 +401,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                           ? 'text-slate-500 bg-slate-800/40 border border-slate-700/40'
                           : 'text-slate-400 bg-slate-100 border border-slate-200'
                     }`}>
-                      {viewsCount} {viewsCount === 1 ? 'view' : 'views'}
+                      {viewsCount} 
                     </span>
                   </div>
                 );

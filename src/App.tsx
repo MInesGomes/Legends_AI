@@ -18,6 +18,7 @@ import {
   incrementUserStatInSupabase,
   fetchUserStatsFromSupabase,
 } from './lib/supabase';
+import { isUserOver16 } from './lib/googleAgeSignals';
 import { REALMS, INITIAL_TALES } from './data/realmsAndTales';
 import { Header } from './components/Header';
 import { AuthScreen } from './components/AuthScreen';
@@ -51,6 +52,16 @@ export default function App() {
     const saved = localStorage.getItem('legends_font_scale');
     return (saved === 'large' || saved === 'xlarge' || saved === 'normal') ? saved : 'normal';
   });
+
+  // App Initial Loading Screen
+  const [isAppLoading, setIsAppLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsAppLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Apply font scale to document element
   useEffect(() => {
@@ -292,9 +303,12 @@ export default function App() {
     });
   }, [currentLang]);
 
-  // Add Comment (up to 10 comments per day limit enforced in drawer)
+  // Add Comment (up to 10 comments per day limit enforced in drawer, allowed only if > 16)
   const handleAddComment = (chapterId: string, text: string) => {
     const user = dbState.user_profile;
+    if (!isUserOver16(user)) {
+      return;
+    }
     const newComment = {
       id: `comm_${Date.now()}`,
       chapter_id: chapterId,
@@ -384,8 +398,8 @@ export default function App() {
     });
   };
 
-  // Increment user_stats view count when best choice is chosen for a skill in a language
-  const handleChooseBestChoice = useCallback((skill: SkillType, lang: Language = currentLang) => {
+  // Increment user_stats view count whenever a user reads aloud ANY choice for a skill in a language
+  const handleReadAloudChoice = useCallback((skill: SkillType, lang: Language = currentLang) => {
     const userId = dbState.user_profile?.user_id || 'guest';
     const statKey = `${lang}:${skill}`;
 
@@ -406,6 +420,8 @@ export default function App() {
       };
     });
   }, [currentLang, dbState.user_profile?.user_id]);
+
+  const handleChooseBestChoice = handleReadAloudChoice;
 
   // Update User Avatar and optionally gender
   const handleUpdateAvatar = (newAvatarUrl: string, newGender?: 'female' | 'male') => {
@@ -430,6 +446,33 @@ export default function App() {
   // Daily tales calculation
   const todayTalesList = getTodayTalesRead(dbState.daily_tales_log);
   const todayTalesCount = todayTalesList.length;
+
+  if (isAppLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-[#0f141c] text-[#fce0a2] z-50 select-none">
+        <div className="flex flex-col items-center justify-center text-center px-6 py-8">
+          <img
+            src="https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/favicons/android-chrome-192x192.png"
+            alt="Legends"
+            className="w-[72px] h-[72px] sm:w-[84px] sm:h-[84px] object-contain filter drop-shadow-[0_4px_14px_rgba(212,175,55,0.45)] animate-pulse"
+            referrerPolicy="no-referrer"
+          />
+          <h1
+            className="mt-4 font-serif-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide"
+            style={{
+              background: 'linear-gradient(180deg, #f7e098 0%, #e0aa37 38%, #b97c14 72%, #7f4b02 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7))',
+            }}
+          >
+            Learn with Legends
+          </h1>
+          <div className="mt-3.5 w-12 sm:w-16 h-0.5 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent rounded-full animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-[#18202f] text-slate-100' : 'bg-[#fcfbf9] text-slate-900'} antialiased selection:bg-[#d4af37] selection:text-black font-sans`}>
@@ -502,6 +545,7 @@ export default function App() {
             onClose={() => setCurrentPage('tails')}
             onEarnSkillPoint={handleEarnSkillPoint}
             onChooseBestChoice={handleChooseBestChoice}
+            onReadAloudChoice={handleReadAloudChoice}
             onRecordView={handleRecordView}
             darkMode={darkMode}
           />
