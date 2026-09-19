@@ -58,8 +58,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
   const canViewComments = isUserOver16(user);
 
   // Filter tales belonging to this realm:
-  // Custom user tales are hidden from all other users until approved.
-  const currentUserId = user?.user_id || 'guest';
+  // Custom user tales are hidden until approved (cards under review are removed).
   const realmTales = tales.filter((t) => {
     const isCurrentRealm = t.realmId === realm.id || t.realmId === realm.key;
     if (!isCurrentRealm) return false;
@@ -67,12 +66,8 @@ export const TalesPage: React.FC<TalesPageProps> = ({
     // Official realm tales are visible to all users
     if (!t.isCustomUserTale) return true;
 
-    // Approved custom tales are visible to everyone
-    if (t.isApproved === true) return true;
-
-    // Unapproved / pending custom tales are ONLY visible to the author/creator
-    const isAuthor = t.authorId ? t.authorId === currentUserId : true;
-    return isAuthor;
+    // Only approved custom tales are visible; pending/under-review tales are removed
+    return t.isApproved === true;
   });
 
   // Calculate user-submitted comments for this tale
@@ -167,7 +162,6 @@ export const TalesPage: React.FC<TalesPageProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {realmTales.map((tale) => {
             const alreadyReadToday = todayTalesList.includes(tale.id);
-            const isPendingCustomTale = Boolean(tale.isCustomUserTale && !tale.isApproved);
             const isApprovedCustomTale = Boolean(tale.isCustomUserTale && tale.isApproved);
 
             return (
@@ -188,15 +182,6 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                   />
 
                   {/* Custom Tale Moderation Status Badges */}
-                  {isPendingCustomTale && (
-                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
-                      <span className="px-2.5 py-1 rounded-full bg-amber-950/90 border border-amber-500/80 text-[10px] font-bold text-amber-200 uppercase tracking-wider shadow-lg flex items-center gap-1 backdrop-blur-sm">
-                        <Clock className="w-3 h-3 text-amber-400" />
-                        {t('underReview', effectiveLang)}
-                      </span>
-                    </div>
-                  )}
-
                   {isApprovedCustomTale && (
                     <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
                       <span className="px-2.5 py-1 rounded-full bg-[#182130]/90 border border-[#d4af37]/80 text-[10px] font-bold text-[#fce0a2] uppercase tracking-wider shadow-lg flex items-center gap-1 backdrop-blur-sm">

@@ -75,8 +75,8 @@ export interface Translations {
   choice4_description: string;
 
   // El Dorado Act 0 Choices
-  eldorado_act0_choice1_description: string;
-  eldorado_act0_choice2_description: string;
+  eldorado_act0_choice1_title: string;
+  eldorado_act0_choice2_title: string;
   readAloudEarnPoints: string;
 
   // Comments Drawer
@@ -222,8 +222,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_title: 'Force the System',
     choice4_subtitle: 'Act immediately',
     choice4_description: 'Override security safeguards by force, so all can be saved quickly.',
-    eldorado_act0_choice1_description: 'Give his light',
-    eldorado_act0_choice2_description: 'Afraid to lose his light',
+    eldorado_act0_choice1_title: 'Give his light',
+    eldorado_act0_choice2_title: 'Afraid to lose his light',
     readAloudEarnPoints: 'Train articulation for {lang} and earn points. Drastically over-pronouncing every single syllable. Move your jaw, lips, and tongue with theatrical exaggeration. This builds muscle memory',
 
     commentsTitle: 'Comments',
@@ -363,8 +363,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_title: 'Forzar el sistema',
     choice4_subtitle: 'Actúa de inmediato',
     choice4_description: 'Anula las medidas de seguridad por la fuerza para salvar a todos rápidamente.',
-    eldorado_act0_choice1_description: 'Da su luz',
-    eldorado_act0_choice2_description: 'Miedo a perder su luz',
+    eldorado_act0_choice1_title: 'Da su luz',
+    eldorado_act0_choice2_title: 'Miedo a perder su luz',
     readAloudEarnPoints: 'Entrena la articulación para {lang} y gana puntos. Exagera drásticamente la pronunciación de cada sílaba. Mueve la mandíbula, los labios y la lengua con exageración teatral. Esto crea memoria muscular',
 
     commentsTitle: 'Comentarios',
@@ -504,8 +504,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_title: 'Forzare il sistema',
     choice4_subtitle: 'Agisci immediatamente',
     choice4_description: 'Bypassa i sistemi di sicurezza con la forza per salvare tutti rapidamente.',
-    eldorado_act0_choice1_description: 'Dà la sua luce',
-    eldorado_act0_choice2_description: 'Ha paura di perdere la sua luce',
+    eldorado_act0_choice1_title: 'Dà la sua luce',
+    eldorado_act0_choice2_title: 'Ha paura di perdere la sua luce',
     readAloudEarnPoints: "Allena l'articolazione per {lang} e guadagna punti. Pronuncia drasticamente ogni singola sillaba in modo esagerato. Muovi la mandibola, le labbra e la lingua con esagerazione teatrale. Questo sviluppa la memoria muscolare",
 
     commentsTitle: 'Commenti',
@@ -645,8 +645,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_title: 'Forçar o sistema',
     choice4_subtitle: 'Age imediatamente',
     choice4_description: 'Subverta os sistemas de segurança pela força para que todos possam ser salvos rapidamente.',
-    eldorado_act0_choice1_description: 'Dá a sua luz',
-    eldorado_act0_choice2_description: 'Com medo de perder a sua luz',
+    eldorado_act0_choice1_title: 'Dá a sua luz',
+    eldorado_act0_choice2_title: 'Com medo de perder a sua luz',
     readAloudEarnPoints: 'Treina a articulação para {lang} e ganha pontos. Exagera drasticamente a pronúncia de cada sílaba. Move o maxilar, os lábios e a língua com exagero teatral. Isto desenvolve a memória muscular',
 
     commentsTitle: 'Comentários',
@@ -786,8 +786,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_title: 'Forceer het systeem',
     choice4_subtitle: 'Handel onmiddellijk',
     choice4_description: 'Omzeil beveiligingssystemen met geweld, zodat iedereen snel kan worden gered.',
-    eldorado_act0_choice1_description: 'Geeft zijn licht',
-    eldorado_act0_choice2_description: 'Bang om zijn licht te verliezen',
+    eldorado_act0_choice1_title: 'Geeft zijn licht',
+    eldorado_act0_choice2_title: 'Bang om zijn licht te verliezen',
     readAloudEarnPoints: 'Train articulatie voor {lang} en verdien punten. Overdrijf de uitspraak van elke afzonderlijke lettergreep drastisch. Beweeg je kaak, lippen en tong met theatrale overdrijving. Dit bouwt spiergeheugen op',
 
     commentsTitle: 'Reacties',

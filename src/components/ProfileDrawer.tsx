@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile, UserSkillsPoints, Language, SUPPORTED_LANGUAGES, SkillType, UserStatsMap } from '../types';
 import { FEMALE_AVATARS, MALE_AVATARS, getAvatarByUrlOrId } from '../data/avatars';
-import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award, BarChart2, ShieldCheck, Lock } from 'lucide-react';
+import { X, Globe, BookOpen, LogOut, Sparkles, Check, ChevronDown, ChevronUp, Award, BarChart2, ShieldCheck, Lock, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { t } from '../lib/i18n';
 
 interface ProfileDrawerProps {
@@ -18,6 +18,7 @@ interface ProfileDrawerProps {
   onUpdateDailyLimit?: (limit: number) => void;
   onClose: () => void;
   onSignOut: () => void;
+  onDeleteAccount?: () => void;
   darkMode?: boolean;
 }
 
@@ -31,6 +32,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   onUpdateAvatar,
   onClose,
   onSignOut,
+  onDeleteAccount,
   darkMode = true,
 }) => {
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -38,7 +40,10 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   const [activeGenderTab, setActiveGenderTab] = useState<'female' | 'male'>(
     user?.gender || 'female'
   );
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  const isGuest = !user || user.user_id === 'guest' || user.user_id === 'guest_user' || (user as any).is_guest === true || user.name?.toLowerCase() === 'guest';
   const activeAvatarObj = user?.avatar_url ? getAvatarByUrlOrId(user.avatar_url) : null;
   const avatarList = activeGenderTab === 'female' ? FEMALE_AVATARS : MALE_AVATARS;
 
@@ -218,48 +223,59 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               <span className={`text-[11px] font-mono font-semibold ${
                 darkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
-                {t('totalPts', currentLang, {
-                  pts: Number(
-                    Object.values(skillsPoints || {}).reduce<number>(
-                      (sum, val) => sum + (Number(val) || 0),
-                      0
-                    )
-                  ),
-                })}
+                {isGuest
+                  ? t('availableIfLogin', currentLang)
+                  : t('totalPts', currentLang, {
+                      pts: Number(
+                        Object.values(skillsPoints || {}).reduce<number>(
+                          (sum, val) => sum + (Number(val) || 0),
+                          0
+                        )
+                      ),
+                    })}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-              {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
-                const points = skillsPoints?.[skillName] || 0;
-                const skillLabelKey = `skill_${skillName}` as const;
-                return (
-                  <div
-                    key={skillName}
-                    className={`p-2.5 rounded-xl border flex items-center justify-between ${
-                      darkMode
-                        ? 'bg-[#182130] border-[#d4af37]/20'
-                        : 'bg-white border-[#d4af37]/30 shadow-sm'
-                    }`}
-                  >
-                    <span className={`font-medium truncate ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                      {t(skillLabelKey, currentLang)}
-                    </span>
-                    <span className={`font-bold font-mono px-2 py-0.5 rounded border text-[11px] shrink-0 ml-1.5 ${
-                      points > 0
-                        ? darkMode
-                          ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
-                          : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
-                        : darkMode
-                          ? 'text-slate-400 bg-slate-800/60 border-slate-700/60'
-                          : 'text-slate-500 bg-slate-100 border-slate-200'
-                    }`}>
-                      {points}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            {isGuest ? (
+              <div className={`p-4 rounded-xl border text-center flex flex-col items-center justify-center gap-1.5 ${
+                darkMode ? 'bg-[#182130]/60 border-[#d4af37]/25 text-slate-300' : 'bg-amber-50/60 border-[#d4af37]/30 text-amber-900'
+              }`}>
+                <Lock className="w-4 h-4 text-[#d4af37]" />
+                <span className="text-xs font-semibold">{t('availableIfLogin', currentLang)}</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
+                  const points = skillsPoints?.[skillName] || 0;
+                  const skillLabelKey = `skill_${skillName}` as const;
+                  return (
+                    <div
+                      key={skillName}
+                      className={`p-2.5 rounded-xl border flex items-center justify-between ${
+                        darkMode
+                          ? 'bg-[#182130] border-[#d4af37]/20'
+                          : 'bg-white border-[#d4af37]/30 shadow-sm'
+                      }`}
+                    >
+                      <span className={`font-medium truncate ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                        {t(skillLabelKey, currentLang)}
+                      </span>
+                      <span className={`font-bold font-mono px-2 py-0.5 rounded border text-[11px] shrink-0 ml-1.5 ${
+                        points > 0
+                          ? darkMode
+                            ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
+                            : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
+                          : darkMode
+                            ? 'text-slate-400 bg-slate-800/60 border-slate-700/60'
+                            : 'text-slate-500 bg-slate-100 border-slate-200'
+                      }`}>
+                        {points}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Languages & Chapters Seen */}
@@ -273,57 +289,93 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               <span className={`text-[11px] font-mono font-semibold ${
                 darkMode ? 'text-slate-400' : 'text-slate-500'
               }`}>
-                {t('chaptersSeen', currentLang)}
+                {isGuest ? t('availableIfLogin', currentLang) : t('chaptersSeen', currentLang)}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-              {SUPPORTED_LANGUAGES.map((lang) => {
-                const count = languageChaptersViewed?.[lang.code]?.length || 0;
-                const isCurrent = currentLang === lang.code;
+            {isGuest ? (
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+                  {SUPPORTED_LANGUAGES.map((lang) => {
+                    const isCurrent = currentLang === lang.code;
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => onLanguageChange(lang.code)}
+                        className={`p-2 rounded-lg border flex items-center gap-2 transition-all text-left cursor-pointer ${
+                          isCurrent
+                            ? darkMode
+                              ? 'bg-[#1e293b] border-[#d4af37] text-[#fce0a2] ring-1 ring-[#d4af37]'
+                              : 'bg-amber-50 border-[#d4af37] text-[#8a5d12] ring-1 ring-[#d4af37]'
+                            : darkMode
+                              ? 'bg-[#182130]/80 border-[#d4af37]/15 text-slate-300 hover:border-[#d4af37]/40'
+                              : 'bg-white border-[#d4af37]/20 text-slate-700 hover:bg-amber-50/40'
+                        }`}
+                        title={`Switch to ${lang.label}`}
+                      >
+                        <span className="text-base leading-none shrink-0">{lang.flag}</span>
+                        <span className="font-medium truncate">{lang.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className={`p-3 rounded-xl border text-center flex items-center justify-center gap-2 ${
+                  darkMode ? 'bg-[#182130]/60 border-[#d4af37]/25 text-slate-300' : 'bg-amber-50/60 border-[#d4af37]/30 text-amber-900'
+                }`}>
+                  <Lock className="w-3.5 h-3.5 text-[#d4af37]" />
+                  <span className="text-xs font-semibold">{t('availableIfLogin', currentLang)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+                {SUPPORTED_LANGUAGES.map((lang) => {
+                  const count = languageChaptersViewed?.[lang.code]?.length || 0;
+                  const isCurrent = currentLang === lang.code;
 
-                return (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => onLanguageChange(lang.code)}
-                    className={`p-2 rounded-lg border flex items-center justify-between transition-all text-left cursor-pointer ${
-                      isCurrent
-                        ? darkMode
-                          ? 'bg-[#1e293b] border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
-                          : 'bg-amber-50 border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
-                        : darkMode
-                          ? 'bg-[#182130]/80 border-[#d4af37]/15 hover:border-[#d4af37]/40 hover:bg-[#1e293b]/50'
-                          : 'bg-white border-[#d4af37]/20 hover:bg-amber-50/40 shadow-xs'
-                    }`}
-                    title={`Switch to ${lang.label}`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-base leading-none shrink-0">{lang.flag}</span>
-                      <span className={`font-medium truncate ${
+                  return (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => onLanguageChange(lang.code)}
+                      className={`p-2 rounded-lg border flex items-center justify-between transition-all text-left cursor-pointer ${
                         isCurrent
-                          ? darkMode ? 'text-[#fce0a2] font-semibold' : 'text-[#8a5d12] font-semibold'
-                          : darkMode ? 'text-slate-300' : 'text-slate-700'
-                      }`}>
-                        {lang.label}
-                      </span>
-                    </div>
+                          ? darkMode
+                            ? 'bg-[#1e293b] border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
+                            : 'bg-amber-50 border-[#d4af37] ring-1 ring-[#d4af37]/50 shadow-sm'
+                          : darkMode
+                            ? 'bg-[#182130]/80 border-[#d4af37]/15 hover:border-[#d4af37]/40 hover:bg-[#1e293b]/50'
+                            : 'bg-white border-[#d4af37]/20 hover:bg-amber-50/40 shadow-xs'
+                      }`}
+                      title={`Switch to ${lang.label}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base leading-none shrink-0">{lang.flag}</span>
+                        <span className={`font-medium truncate ${
+                          isCurrent
+                            ? darkMode ? 'text-[#fce0a2] font-semibold' : 'text-[#8a5d12] font-semibold'
+                            : darkMode ? 'text-slate-300' : 'text-slate-700'
+                        }`}>
+                          {lang.label}
+                        </span>
+                      </div>
 
-                    <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] shrink-0 ml-1.5 ${
-                      count > 0
-                        ? darkMode
-                          ? 'text-[#fce0a2] bg-[#d4af37]/20 border border-[#d4af37]/30'
-                          : 'text-[#8a5d12] bg-[#f4e8c1] border border-[#d4af37]/40'
-                        : darkMode
-                          ? 'text-slate-500 bg-slate-800/40 border border-slate-700/40'
-                          : 'text-slate-400 bg-slate-100 border border-slate-200'
-                    }`}>
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                      <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] shrink-0 ml-1.5 ${
+                        count > 0
+                          ? darkMode
+                            ? 'text-[#fce0a2] bg-[#d4af37]/20 border border-[#d4af37]/30'
+                            : 'text-[#8a5d12] bg-[#f4e8c1] border border-[#d4af37]/40'
+                          : darkMode
+                            ? 'text-slate-500 bg-slate-800/40 border border-slate-700/40'
+                            : 'text-slate-400 bg-slate-100 border border-slate-200'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* User Stats: Views per Language & Skill */}
@@ -338,12 +390,14 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 <span className={`text-[11px] font-mono font-semibold ${
                   darkMode ? 'text-slate-400' : 'text-slate-500'
                 }`}>
-                  {t('totalPts', currentLang, {
-                    pts: (['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).reduce(
-                      (sum, skillName) => sum + (Number(userStats?.[`${statsLang}:${skillName}`]) || 0),
-                      0
-                    ),
-                  })}
+                  {isGuest
+                    ? t('availableIfLogin', currentLang)
+                    : t('totalPts', currentLang, {
+                        pts: (['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).reduce(
+                          (sum, skillName) => sum + (Number(userStats?.[`${statsLang}:${skillName}`]) || 0),
+                          0
+                        ),
+                      })}
                 </span>
               </div>
               <p className={`text-[11px] mt-0.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -351,79 +405,166 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               </p>
             </div>
 
-            {/* Language Selector Tabs */}
-            <div className="flex items-center gap-1 p-1 rounded-lg border border-[#d4af37]/20 bg-black/10 overflow-x-auto">
-              {SUPPORTED_LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  type="button"
-                  onClick={() => setStatsLang(lang.code)}
-                  className={`px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                    statsLang === lang.code
-                      ? darkMode
-                        ? 'bg-[#d4af37] text-slate-950 shadow-sm'
-                        : 'bg-[#d4af37] text-slate-950 shadow-sm'
-                      : darkMode
-                        ? 'text-slate-400 hover:text-slate-200'
-                        : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {lang.flag} {lang.code}
-                </button>
-              ))}
-            </div>
+            {isGuest ? (
+              <div className={`p-4 rounded-xl border text-center flex flex-col items-center justify-center gap-1.5 ${
+                darkMode ? 'bg-[#182130]/60 border-[#d4af37]/25 text-slate-300' : 'bg-amber-50/60 border-[#d4af37]/30 text-amber-900'
+              }`}>
+                <Lock className="w-4 h-4 text-[#d4af37]" />
+                <span className="text-xs font-semibold">{t('availableIfLogin', currentLang)}</span>
+              </div>
+            ) : (
+              <>
+                {/* Language Selector Tabs */}
+                <div className="flex items-center gap-1 p-1 rounded-lg border border-[#d4af37]/20 bg-black/10 overflow-x-auto">
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      onClick={() => setStatsLang(lang.code)}
+                      className={`px-2 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                        statsLang === lang.code
+                          ? 'bg-[#d4af37] text-slate-950 shadow-sm'
+                          : darkMode
+                            ? 'text-slate-400 hover:text-slate-200'
+                            : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {lang.flag} {lang.code}
+                    </button>
+                  ))}
+                </div>
 
-            {/* Skill Views for Selected Language */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-              {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
-                const key = `${statsLang}:${skillName}`;
-                const viewsCount = userStats?.[key] || 0;
-                const skillLabelKey = `skill_${skillName}` as const;
+                {/* Skill Views for Selected Language */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+                  {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
+                    const key = `${statsLang}:${skillName}`;
+                    const viewsCount = userStats?.[key] || 0;
+                    const skillLabelKey = `skill_${skillName}` as const;
 
-                return (
-                  <div
-                    key={skillName}
-                    className={`p-2 rounded-lg border flex items-center justify-between ${
-                      darkMode
-                        ? 'bg-[#182130]/80 border-[#d4af37]/15'
-                        : 'bg-white border-[#d4af37]/20'
-                    }`}
-                  >
-                    <span className={`font-medium truncate ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                      {t(skillLabelKey, currentLang)}
-                    </span>
-                    <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] shrink-0 ml-1.5 ${
-                      viewsCount > 0
-                        ? darkMode
-                          ? 'text-[#fce0a2] bg-[#d4af37]/20 border border-[#d4af37]/30'
-                          : 'text-[#8a5d12] bg-[#f4e8c1] border border-[#d4af37]/40'
-                        : darkMode
-                          ? 'text-slate-500 bg-slate-800/40 border border-slate-700/40'
-                          : 'text-slate-400 bg-slate-100 border border-slate-200'
-                    }`}>
-                      {viewsCount} 
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+                    return (
+                      <div
+                        key={skillName}
+                        className={`p-2 rounded-lg border flex items-center justify-between ${
+                          darkMode
+                            ? 'bg-[#182130]/80 border-[#d4af37]/15'
+                            : 'bg-white border-[#d4af37]/20'
+                        }`}
+                      >
+                        <span className={`font-medium truncate ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                          {t(skillLabelKey, currentLang)}
+                        </span>
+                        <span className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] shrink-0 ml-1.5 ${
+                          viewsCount > 0
+                            ? darkMode
+                              ? 'text-[#fce0a2] bg-[#d4af37]/20 border border-[#d4af37]/30'
+                              : 'text-[#8a5d12] bg-[#f4e8c1] border border-[#d4af37]/40'
+                            : darkMode
+                              ? 'text-slate-500 bg-slate-800/40 border border-slate-700/40'
+                              : 'text-slate-400 bg-slate-100 border border-slate-200'
+                        }`}>
+                          {viewsCount} 
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Sign Out */}
-          <button
-            onClick={onSignOut}
-            className={`w-full py-3 border rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 mt-6 cursor-pointer ${
-              darkMode
-                      ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30'
-                      : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50'
-            }`}
-          >
-            <LogOut className="w-4 h-4" /> {t('signOut', currentLang)}
-          </button>
+          {/* Actions: Sign Out & Delete Account */}
+          <div className="space-y-2.5 pt-6 border-t border-[#d4af37]/20 mt-6">
+            <button
+              type="button"
+              id="profile-sign-out-btn"
+              onClick={onSignOut}
+              className={`w-full py-2.5 border rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                darkMode
+                  ? 'text-[#fce0a2] bg-[#d4af37]/20 border-[#d4af37]/30 hover:bg-[#d4af37]/30'
+                  : 'text-[#8a5d12] bg-[#f4e8c1] border-[#d4af37]/50 hover:bg-[#ebd9a5]'
+              }`}
+            >
+              <LogOut className="w-4 h-4" /> {t('signOut', currentLang)}
+            </button>
+
+            {onDeleteAccount && (
+              <button
+                type="button"
+                id="profile-delete-account-btn"
+                onClick={() => setShowDeleteConfirm(true)}
+                className={`w-full py-2.5 border rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  darkMode
+                    ? 'text-red-400 bg-red-950/20 border-red-500/30 hover:bg-red-950/40 hover:border-red-500/50'
+                    : 'text-red-700 bg-red-50 border-red-200 hover:bg-red-100 hover:border-red-300'
+                }`}
+              >
+                <Trash2 className="w-4 h-4 text-red-500" /> {t('deleteAccount', currentLang)}
+              </button>
+            )}
+          </div>
 
         </div>
 
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className={`w-full max-w-sm rounded-2xl border p-5 shadow-2xl space-y-4 ${
+            darkMode ? 'bg-[#131b28] border-red-500/40 text-slate-100' : 'bg-white border-red-300 text-slate-900'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold font-cinzel text-red-500">
+                  {t('deleteAccountConfirmTitle', currentLang)}
+                </h4>
+                <p className="text-[11px] text-slate-400">Irreversible Action</p>
+              </div>
+            </div>
+
+            <p className={`text-xs leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              {t('deleteAccountConfirmDesc', currentLang)}
+            </p>
+
+            <div className="flex gap-2.5 pt-1">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setShowDeleteConfirm(false)}
+                className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  darkMode ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {t('cancel', currentLang)}
+              </button>
+
+              <button
+                type="button"
+                id="btn-confirm-delete-account"
+                disabled={isDeleting}
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    if (onDeleteAccount) {
+                      await onDeleteAccount();
+                    }
+                  } finally {
+                    setIsDeleting(false);
+                    setShowDeleteConfirm(false);
+                  }
+                }}
+                className="flex-1 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>{t('confirmDelete', currentLang)}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

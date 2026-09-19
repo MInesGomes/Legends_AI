@@ -227,6 +227,13 @@ async function startServer() {
     res.json({ allowed: remaining > 0, remaining, limit: 10 });
   });
 
+  // Media asset fallback route: redirect any local or relative audio requests for act0/acto to the public Supabase asset
+  app.get(['*acto_:lang.mp3', '*act0_:lang.mp3'], (req, res) => {
+    const lang = (req.params.lang || 'en').toLowerCase();
+    const url = `https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter0/act0/act0_${lang}.mp3`;
+    res.redirect(302, url);
+  });
+
   // Vite middleware for dev
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

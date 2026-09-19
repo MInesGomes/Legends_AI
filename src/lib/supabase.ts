@@ -418,3 +418,28 @@ export async function fetchUserStatsFromSupabase(
   }
 }
 
+/**
+ * Delete all user account data from Supabase tables:
+ * - user_comments
+ * - user_skills_points
+ * - user_stats
+ * - chapters_id_liked
+ * - tales_texts (custom tales)
+ * - user_profile
+ */
+export async function deleteUserAccountFromSupabase(userId: string): Promise<void> {
+  if (!userId || userId === 'guest' || userId === 'guest_user') return;
+  try {
+    await Promise.allSettled([
+      supabase.from('user_comments').delete().eq('user_id', userId),
+      supabase.from('user_skills_points').delete().eq('user_id', userId),
+      supabase.from('user_stats').delete().eq('user_id', userId),
+      supabase.from('chapters_id_liked').delete().eq('user_id', userId),
+      supabase.from('tales_texts').delete().eq('author_id', userId),
+      supabase.from('user_profile').delete().eq('user_id', userId),
+    ]);
+  } catch (e) {
+    console.warn('Supabase delete account warning:', e);
+  }
+}
+

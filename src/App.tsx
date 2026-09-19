@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserProfile, Language, Realm, Tale, DatabaseState, SkillType } from './types';
+import { UserProfile, Language, Realm, Tale, DatabaseState, SkillType, ChapterComment } from './types';
 import {
   getLocalDb,
   saveLocalDb,
@@ -17,6 +17,7 @@ import {
   getEffectiveDailyLimit,
   incrementUserStatInSupabase,
   fetchUserStatsFromSupabase,
+  deleteUserAccountFromSupabase,
 } from './lib/supabase';
 import { isUserOver16 } from './lib/googleAgeSignals';
 import { REALMS, INITIAL_TALES } from './data/realmsAndTales';
@@ -182,6 +183,57 @@ export default function App() {
   // Sign Out
   const handleSignOut = () => {
     setDbState((prev) => ({ ...prev, user_profile: null }));
+    setShowProfileDrawer(false);
+    setCurrentPage('auth');
+  };
+
+  // Delete Account: delete all comments, skills, language points, and user data
+  const handleDeleteAccount = async () => {
+    const userId = dbState.user_profile?.user_id;
+    if (userId) {
+      await deleteUserAccountFromSupabase(userId);
+    }
+    setDbState((prev) => {
+      // Filter out user's comments from chapters_id_Comments
+      const updatedChapterComments: Record<string, ChapterComment[]> = {};
+      if (prev.chapters_id_Comments) {
+        for (const [chId, comments] of Object.entries(prev.chapters_id_Comments)) {
+          const list = (comments as ChapterComment[]) || [];
+          updatedChapterComments[chId] = list.filter(
+            (c) => c.user_id !== userId && c.user_id !== 'guest' && c.user_id !== 'guest_user'
+          );
+        }
+      }
+
+      const resetState: DatabaseState = {
+        ...prev,
+        user_profile: null,
+        user_comments: (prev.user_comments || []).filter(
+          (c) => c.user_id !== userId && c.user_id !== 'guest' && c.user_id !== 'guest_user'
+        ),
+        chapters_id_Comments: updatedChapterComments,
+        user_skills_points: {
+          Leader: 0,
+          Plan: 0,
+          Win4All: 0,
+          Listen: 0,
+          Recharge: 0,
+        },
+        user_stats: {},
+        chapters_id_Liked: [],
+        chapters_id_Views: [],
+        language_chapters_viewed: {
+          EN: [],
+          ES: [],
+          IT: [],
+          PT: [],
+          NL: [],
+        },
+        daily_tales_log: [],
+      };
+      saveLocalDb(resetState);
+      return resetState;
+    });
     setShowProfileDrawer(false);
     setCurrentPage('auth');
   };
@@ -581,6 +633,7 @@ export default function App() {
           onUpdateDailyLimit={handleUpdateDailyLimit}
           onClose={() => setShowProfileDrawer(false)}
           onSignOut={handleSignOut}
+          onDeleteAccount={handleDeleteAccount}
           darkMode={darkMode}
         />
       )}

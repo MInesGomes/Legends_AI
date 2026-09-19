@@ -8,6 +8,13 @@ import {
   Tale,
 } from '../types';
 import { ActItem, getTaleActItems, getAtlantisActItems, getTaleFolderPath } from '../lib/taleData';
+import { ChoiceId, ChapterChoiceConfig, ChapterConfig } from '../lib/chapterTypes';
+import { resolveChapterConfig, resolveChapterMeta } from '../lib/chapterConfigResolver';
+import {
+  getChoiceLocalizedTitle,
+  getChoiceLocalizedSubtitle,
+} from '../lib/choiceLocalization';
+import { FlowStep, ChapterMeta, getNextFlowOutcome, getPrevFlowOutcome } from '../lib/chapterFlowMachine';
 import {
   Act,
   SUPABASE_BASE_URL,
@@ -26,7 +33,7 @@ import {
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
 import { isUserOver16 } from '../lib/googleAgeSignals';
-import { t, Translations, TRANSLATIONS } from '../lib/i18n';
+import { t } from '../lib/i18n';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -88,152 +95,13 @@ export function getTaleWorldAndName(tale: Tale | undefined): { world: string; ta
   return { world: 'Atlantis', taleName: '5crystals' };
 }
 
-export type ChoiceId = 'choice1' | 'choice2' | 'choice3' | 'choice4';
+// ChoiceId / ChapterChoiceConfig / ChapterConfig now live in lib/chapterTypes.ts;
+// re-exported here so existing imports of `from './components/ChapterFlow'` keep working.
+export type { ChoiceId, ChapterChoiceConfig, ChapterConfig };
 
-export interface ChapterChoiceConfig {
-  id: ChoiceId;
-  available: boolean; // some chapters only have 2 of the 4 choices
-  title?: string;
-  subtitle?: string;
-  titleKey?: keyof Translations;
-  subtitleKey?: keyof Translations;
-  descriptionKey?: keyof Translations;
-  description?: string;
-  imageUrl?: string;
-  isBest?: boolean;
-}
-
-export function getChoiceLocalizedTitle(
-  choice: ChapterChoiceConfig,
-  lang: Language | string = 'EN',
-  fallbackIndex = 0,
-  world?: string,
-  taleName?: string,
-  chapterNumber?: number
-): string | undefined {
-  const normalizedLang = (lang as Language) || 'EN';
-  const dict = TRANSLATIONS[normalizedLang];
-  if (!dict) return choice.title || undefined;
-
-  // 1. Explicit titleKey on choice
-  if (choice.titleKey && dict[choice.titleKey]) {
-    const val = dict[choice.titleKey]?.trim();
-    if (val) return val;
-  }
-
-  // 2. World / act specific key in i18n
-  if (world) {
-    const worldActKey = `${world.toLowerCase()}_act${chapterNumber ?? 0}_${choice.id}_title` as keyof Translations;
-    if (dict[worldActKey]) {
-      const val = dict[worldActKey]?.trim();
-      if (val) return val;
-    }
-  }
-
-  // 3. Fallback for Atlantis Chapter 1
-  if ((world === 'Atlantis' || !world) && (chapterNumber === 1 || chapterNumber === undefined)) {
-    const defaultKey = `${choice.id}_title` as keyof Translations;
-    if (dict[defaultKey]) {
-      return dict[defaultKey]?.trim() || undefined;
-    }
-  }
-
-  if (choice.title && choice.title.trim()) {
-    return choice.title.trim();
-  }
-
-  return undefined;
-}
-
-export function getChoiceLocalizedSubtitle(
-  choice: ChapterChoiceConfig,
-  lang: Language | string = 'EN',
-  world?: string,
-  taleName?: string,
-  chapterNumber?: number
-): string | undefined {
-  const normalizedLang = (lang as Language) || 'EN';
-  const dict = TRANSLATIONS[normalizedLang];
-  if (!dict) return undefined;
-
-  // 1. Explicit subtitleKey on choice
-  if (choice.subtitleKey && dict[choice.subtitleKey]) {
-    const val = dict[choice.subtitleKey]?.trim();
-    if (val) return val;
-  }
-
-  // 2. World / act specific key in i18n
-  if (world) {
-    const worldActKey = `${world.toLowerCase()}_act${chapterNumber ?? 0}_${choice.id}_subtitle` as keyof Translations;
-    if (dict[worldActKey]) {
-      const val = dict[worldActKey]?.trim();
-      if (val) return val;
-    }
-  }
-
-  // 3. Fallback for Atlantis Chapter 1
-  if ((world === 'Atlantis' || !world) && (chapterNumber === 1 || chapterNumber === undefined)) {
-    const defaultKey = `${choice.id}_subtitle` as keyof Translations;
-    if (dict[defaultKey]) {
-      return dict[defaultKey]?.trim() || undefined;
-    }
-  }
-
-  if (choice.subtitle && choice.subtitle.trim()) {
-    return choice.subtitle.trim();
-  }
-
-  // If there's no subtitle in i18n, don't show
-  return undefined;
-}
-
-export function getChoiceLocalizedDescription(
-  choice: ChapterChoiceConfig,
-  lang: Language | string = 'EN',
-  world?: string,
-  taleName?: string,
-  chapterNumber?: number
-): string | undefined {
-  const normalizedLang = (lang as Language) || 'EN';
-  const dict = TRANSLATIONS[normalizedLang];
-  if (!dict) return undefined;
-
-  // 1. Explicit descriptionKey on choice
-  if (choice.descriptionKey && dict[choice.descriptionKey]) {
-    const val = dict[choice.descriptionKey]?.trim();
-    if (val) return val;
-  }
-
-  // 2. World / act specific key in i18n (e.g. eldorado_act0_choice1_description)
-  if (world) {
-    const worldActKey = `${world.toLowerCase()}_act${chapterNumber ?? 0}_${choice.id}_description` as keyof Translations;
-    if (dict[worldActKey]) {
-      const val = dict[worldActKey]?.trim();
-      if (val) return val;
-    }
-  }
-
-  // 3. Fallback for Atlantis Chapter 1
-  if ((world === 'Atlantis' || !world) && (chapterNumber === 1 || chapterNumber === undefined)) {
-    const defaultKey = `${choice.id}_description` as keyof Translations;
-    if (dict[defaultKey]) {
-      return dict[defaultKey]?.trim() || undefined;
-    }
-  }
-
-  if (choice.description && choice.description.trim()) {
-    return choice.description.trim();
-  }
-
-  // If there's no description in i18n, don't show
-  return undefined;
-}
-
-export interface ChapterConfig {
-  id: number; // 0..N
-  hasGenderActs?: boolean; // Chapter 0 optional gender acts
-  choices: ChapterChoiceConfig[];
-}
+// getChoiceLocalizedTitle/Subtitle/Description now live in lib/choiceLocalization.ts
+// (one shared lookup instead of three near-identical copies); re-exported for the same reason.
+export { getChoiceLocalizedTitle, getChoiceLocalizedSubtitle };
 
 export interface ChapterFlowProps {
   tale?: Tale;
@@ -266,31 +134,27 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
     id: 1,
     choices: [
       {
-        id: 'choice1',
+        id: 'choice1', // always the "best" choice — see isBestChoice() in lib/chapterTypes.ts
         subtitle: 'Community Leadership',
-        description: "Don’t ask for permission and risk losing everything.",
+        title: "Don't ask for permission and risk losing everything.",
         available: true,
-        isBest: true,
       },
       {
         id: 'choice2',
         title: 'Try to Solve Everything Alone',
         subtitle: 'Cautious Heroism',
-        description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
         available: true,
       },
       {
         id: 'choice3',
         title: 'Wait for the Council',
         subtitle: 'Passive Compliance',
-        description: 'Delay action until the High Council issues formal evacuation orders.',
         available: true,
       },
       {
         id: 'choice4',
         title: 'Force the System',
         subtitle: 'Aggressive Intervention',
-        description: 'Override security safeguards by force, so all can be saved quickly.',
         available: true,
       },
     ],
@@ -482,18 +346,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // Chapter tracking (0..N)
   const [currentChapterNumber, setCurrentChapterNumber] = useState<number>(initialChapterId);
 
-  // Active step within the chapter:
-  // Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'CHOICES' (if hasChoices) -> Chapter 1
-  // Chapters 1..N: 'act0' -> CHOICES -> Chapter n+1
-  // 'CHOICES': Choices screen -> 'choice_act' (video & audio) -> 'choice_feedback' (if hasFeedback crawl & read)
-  type FlowStep =
-    | 'act0'
-    | 'male_act'
-    | 'female_act'
-    | 'choices'
-    | 'choice_act'
-    | 'choice_feedback';
-
+  // Active step within the chapter — see lib/chapterFlowMachine.ts for the full
+  // state diagram (act0 -> gender acts? -> choices? -> choice_act -> choice_feedback?).
   const [currentStep, setCurrentStep] = useState<FlowStep>('act0');
   const [selectedChoiceId, setSelectedChoiceId] = useState<ChoiceId>('choice1');
 
@@ -563,74 +417,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return getTaleWorldAndName(tale);
   }, [tale]);
 
-  // Find the active chapter configuration
+  // Find the active chapter configuration (ElDorado defaults, generic 4-choice
+  // fallback, etc. all live in lib/chapterConfigResolver.ts so the same rules
+  // apply whether we're resolving the *current* chapter or a neighbouring one
+  // during back/forward navigation).
   const currentChapterConfig = useMemo(() => {
-    const isElDoradoTorch = currentWorld === 'ElDorado' && currentTaleName === 'the_torch';
-    const custom = chapterConfigs.find((cfg) => cfg.id === currentChapterNumber);
-
-    if (custom) {
-      if (isElDoradoTorch && currentChapterNumber === 0 && (!custom.choices || custom.choices.length === 0)) {
-        return {
-          ...custom,
-          hasGenderActs: false,
-          choices: [
-            {
-              id: 'choice1' as ChoiceId,
-              descriptionKey: 'eldorado_act0_choice1_description' as keyof Translations,
-              description: 'Give his light',
-              available: true,
-              isBest: true,
-            },
-            {
-              id: 'choice2' as ChoiceId,
-              descriptionKey: 'eldorado_act0_choice2_description' as keyof Translations,
-              description: 'Afraid to lose his light',
-              available: true,
-              isBest: false,
-            },
-            { id: 'choice3' as ChoiceId, available: false },
-            { id: 'choice4' as ChoiceId, available: false },
-          ],
-        };
-      }
-      return custom;
-    }
-
-    if (isElDoradoTorch) {
-      return {
-        id: currentChapterNumber,
-        hasGenderActs: false,
-        choices: currentChapterNumber === 0 ? [
-          {
-            id: 'choice1' as ChoiceId,
-            descriptionKey: 'eldorado_act0_choice1_description' as keyof Translations,
-            description: 'Give his light',
-            available: true,
-            isBest: true,
-          },
-          {
-            id: 'choice2' as ChoiceId,
-            descriptionKey: 'eldorado_act0_choice2_description' as keyof Translations,
-            description: 'Afraid to lose his light',
-            available: true,
-            isBest: false,
-          },
-          { id: 'choice3' as ChoiceId, available: false },
-          { id: 'choice4' as ChoiceId, available: false },
-        ] : [],
-      };
-    }
-
-    return {
-      id: currentChapterNumber,
-      hasGenderActs: currentChapterNumber === 0,
-      choices: currentChapterNumber === 0 ? [] : [
-        { id: 'choice1', available: true, isBest: true },
-        { id: 'choice2', available: true, isBest: false },
-        { id: 'choice3', available: true, isBest: false },
-        { id: 'choice4', available: true, isBest: false },
-      ],
-    };
+    return resolveChapterConfig(currentChapterNumber, chapterConfigs, currentWorld, currentTaleName);
   }, [chapterConfigs, currentChapterNumber, currentWorld, currentTaleName]);
 
   const maxChapterId = useMemo(() => {
@@ -652,21 +444,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const currentChoiceTitle = useMemo(() => {
     if (!currentChoiceConfig) return `Choice ${currentChoiceNum}`;
     return (
-      getChoiceLocalizedTitle(
-        currentChoiceConfig,
-        currentLang,
-        currentChoiceNum - 1,
-        currentWorld,
-        currentTaleName,
-        currentChapterNumber
-      ) ||
-      getChoiceLocalizedDescription(
-        currentChoiceConfig,
-        currentLang,
-        currentWorld,
-        currentTaleName,
-        currentChapterNumber
-      ) ||
+      getChoiceLocalizedTitle(currentChoiceConfig, currentLang, currentWorld, currentChapterNumber) ||
       currentChoiceConfig.title ||
       `Choice ${currentChoiceNum}`
     );
@@ -765,31 +543,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           type: 'character',
         };
       }
-      if (currentStep === 'gender_branch') {
-        return effectiveGender === 'male'
-          ? {
-              chapter: 0,
-              act: 'male_act',
-              characterName: 'Elion',
-              gender: 'male',
-              type: 'character',
-            }
-          : {
-              chapter: 0,
-              act: 'female_act',
-              characterName: 'Alethea',
-              gender: 'female',
-              type: 'character',
-            };
-      }
     }
 
     if (currentStep === 'choice_act' || currentStep === 'choice_feedback') {
       const choiceCfg = currentChapterConfig.choices.find((c) => c.id === selectedChoiceId);
       const choiceNum = selectedChoiceId.replace('choice', '') || '1';
       const choiceTitle = choiceCfg
-        ? (getChoiceLocalizedTitle(choiceCfg, currentLang, parseInt(choiceNum, 10) - 1, currentWorld, currentTaleName, currentChapterNumber)
-           || getChoiceLocalizedDescription(choiceCfg, currentLang, currentWorld, currentTaleName, currentChapterNumber)
+        ? (getChoiceLocalizedTitle(choiceCfg, currentLang, currentWorld, currentChapterNumber)
            || `Chapter ${currentChapterNumber} • Choice ${choiceNum}`)
         : `Chapter ${currentChapterNumber} • Choice ${choiceNum}`;
       return {
@@ -1186,190 +946,75 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   };
 
   /**
-   * Primary FLOW TRANSITION LOGIC
-   *
-   * Chapter 0: 'act0' -> 'avatar gender' -> 'not avatar gender' -> 'CHOICES' (if hasChoices) -> Chapter 1
-   *   1- male_act then female_act or female_act then male_act according to avatar gender
-   *   e.g.: If avatar male:
-   *   'act0' -> male_act -> female_act -> 'CHOICES' (if hasChoices) -> Chapter 1
-   *   e.g.: If avatar female:
-   *   'act0' -> female_act -> male_act -> 'CHOICES' (if hasChoices) -> Chapter 1
-   *
-   * Chapters 1..N: 'act0' -> CHOICES -> Chapter n+1
-   *
-   * 'CHOICES': Choices screen -> 'choice_act' (video & audio) -> 'choice_feedback' (if hasFeedback crawl & read)
+   * Primary FLOW TRANSITION LOGIC — see lib/chapterFlowMachine.ts for the full
+   * state diagram and lib/chapterConfigResolver.ts for how hasGenderActs /
+   * hasChoices are resolved per chapter. Neither of those files knows
+   * anything about i18n or component state; this is just the glue that
+   * applies their pure outcomes to React state.
    */
-  const goToNext = () => {
-    // 1. If currently playing a choice act video, advance to its feedback screen if vtt exists, else return to choices
-    if (currentStep === 'choice_act') {
-      if (feedbackParagraphs.length > 0) {
-        setCurrentStep('choice_feedback');
-      } else {
-        setCurrentStep('choices');
-      }
-      return;
-    }
+  const currentChapterMeta: ChapterMeta = useMemo(
+    () => resolveChapterMeta(currentChapterNumber, chapterConfigs, currentWorld, currentTaleName),
+    [chapterConfigs, currentChapterNumber, currentWorld, currentTaleName]
+  );
 
-    // 2. If on choice feedback screen, return to choices mode
-    if (currentStep === 'choice_feedback') {
-      setIsReadingAloud(false);
-      if (speechRecognitionRef.current) {
-        try {
-          speechRecognitionRef.current.stop();
-        } catch {}
-      }
-      setIsCrawlFinished(false);
-      setCurrentStep('choices');
-      return;
-    }
+  const getChapterMeta = useCallback(
+    (chapterNumber: number): ChapterMeta =>
+      resolveChapterMeta(chapterNumber, chapterConfigs, currentWorld, currentTaleName),
+    [chapterConfigs, currentWorld, currentTaleName]
+  );
 
-    // 3. Chapter 0 Flow:
-    if (currentChapterNumber === 0) {
-      const isElDorado = currentWorld === 'ElDorado';
-      const hasGenderActs = currentChapterConfig.hasGenderActs ?? (!isElDorado);
-      const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
-      const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
-      const hasChoices = Boolean(currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available));
-
-      if (currentStep === 'act0') {
-        if (hasGenderActs) {
-          setCurrentStep(avatarGenderAct);
-          return;
-        }
-        if (hasChoices) {
-          setCurrentStep('choices');
-          return;
-        }
-        // Advance to Chapter 1
-        setCurrentChapterNumber(1);
-        setCurrentStep('act0');
+  const applyFlowOutcome = (outcome: ReturnType<typeof getNextFlowOutcome>) => {
+    switch (outcome.kind) {
+      case 'goto':
+        setCurrentChapterNumber(outcome.position.chapterNumber);
+        setCurrentStep(outcome.position.step);
         return;
-      }
-
-      if (currentStep === avatarGenderAct || currentStep === 'gender_branch') {
-        setCurrentStep(notAvatarGenderAct);
-        return;
-      }
-
-      if (currentStep === notAvatarGenderAct) {
-        if (hasChoices) {
-          setCurrentStep('choices');
-          return;
-        }
-        // Advance to Chapter 1
-        setCurrentChapterNumber(1);
-        setCurrentStep('act0');
-        return;
-      }
-
-      if (currentStep === 'choices') {
+      case 'select-first-choice': {
         const firstAvail = currentChapterConfig.choices.find((c) => c.available) || currentChapterConfig.choices[0];
-        if (firstAvail) {
-          handleSelectChoice(firstAvail.id);
-        }
+        if (firstAvail) handleSelectChoice(firstAvail.id);
         return;
       }
-    }
-
-    // 4. Chapters 1..N Flow:
-    // 'act0' -> CHOICES -> Chapter n+1
-    if (currentChapterNumber >= 1) {
-      const hasChoices = Boolean(currentChapterConfig.choices && currentChapterConfig.choices.some((c) => c.available));
-
-      if (currentStep === 'act0') {
-        if (hasChoices) {
-          setCurrentStep('choices');
-        } else {
-          advanceChapterOrClose();
-        }
+      case 'advance-chapter':
+        advanceChapterOrClose();
         return;
-      }
-
-      if (currentStep === 'choices') {
-        const firstAvail = currentChapterConfig.choices.find((c) => c.available) || currentChapterConfig.choices[0];
-        if (firstAvail) {
-          handleSelectChoice(firstAvail.id);
-        }
+      case 'close':
+        if (onClose) onClose();
         return;
-      }
+      case 'noop':
+      default:
+        return;
     }
   };
 
-  const goToPrev = () => {
+  const goToNext = () => {
+    // The choice video/feedback exit paths touch component state (speech
+    // recognition, crawl animation) that the pure machine doesn't own, so
+    // they're handled here before delegating.
     if (currentStep === 'choice_feedback') {
-      setCurrentStep('choice_act');
-      return;
+      setIsReadingAloud(false);
+      try {
+        speechRecognitionRef.current?.stop();
+      } catch {}
+      setIsCrawlFinished(false);
     }
 
-    if (currentStep === 'choice_act') {
-      setCurrentStep('choices');
-      return;
-    }
+    const outcome = getNextFlowOutcome(
+      { chapterNumber: currentChapterNumber, step: currentStep },
+      effectiveGender,
+      currentChapterMeta,
+      feedbackParagraphs.length > 0
+    );
+    applyFlowOutcome(outcome);
+  };
 
-    // Chapter 0 Flow Prev:
-    if (currentChapterNumber === 0) {
-      const isElDorado = currentWorld === 'ElDorado';
-      const hasGenderActs = currentChapterConfig.hasGenderActs ?? (!isElDorado);
-      const avatarGenderAct: FlowStep = effectiveGender === 'male' ? 'male_act' : 'female_act';
-      const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
-
-      if (currentStep === 'choices') {
-        if (hasGenderActs) {
-          setCurrentStep(notAvatarGenderAct);
-        } else {
-          setCurrentStep('act0');
-        }
-        return;
-      }
-
-      if (currentStep === notAvatarGenderAct) {
-        setCurrentStep(avatarGenderAct);
-        return;
-      }
-
-      if (currentStep === avatarGenderAct || currentStep === 'gender_branch') {
-        setCurrentStep('act0');
-        return;
-      }
-
-      if (currentStep === 'act0') {
-        if (onClose) onClose();
-        return;
-      }
-    }
-
-    // Chapters 1..N Flow Prev:
-    if (currentChapterNumber >= 1) {
-      if (currentStep === 'choices') {
-        setCurrentStep('act0');
-        return;
-      }
-
-      if (currentStep === 'act0') {
-        // Go back to previous chapter
-        const prevChapterId = currentChapterNumber - 1;
-        setCurrentChapterNumber(prevChapterId);
-
-        if (prevChapterId === 0) {
-          const ch0Config = chapterConfigs.find((c) => c.id === 0);
-          const hasChoices = Boolean(ch0Config?.choices && ch0Config.choices.some((c) => c.available));
-          if (hasChoices) {
-            setCurrentStep('choices');
-          } else {
-            const notAvatarGenderAct: FlowStep = effectiveGender === 'male' ? 'female_act' : 'male_act';
-            setCurrentStep(notAvatarGenderAct);
-          }
-        } else {
-          const prevConfig = chapterConfigs.find((c) => c.id === prevChapterId);
-          if (prevConfig?.choices && prevConfig.choices.some((c) => c.available)) {
-            setCurrentStep('choices');
-          } else {
-            setCurrentStep('act0');
-          }
-        }
-        return;
-      }
-    }
+  const goToPrev = () => {
+    const outcome = getPrevFlowOutcome(
+      { chapterNumber: currentChapterNumber, step: currentStep },
+      effectiveGender,
+      currentChapterMeta,
+      getChapterMeta
+    );
+    applyFlowOutcome(outcome);
   };
 
   // Choice selection handler: plays the chosen act video and audio
@@ -1680,9 +1325,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     currentChapterNumber,
                     choice.id
                   );
-                const choiceTitle = getChoiceLocalizedTitle(choice, currentLang, idx, currentWorld, currentTaleName, currentChapterNumber);
-                const choiceSubtitle = getChoiceLocalizedSubtitle(choice, currentLang, currentWorld, currentTaleName, currentChapterNumber);
-                const choiceDescription = getChoiceLocalizedDescription(choice, currentLang, currentWorld, currentTaleName, currentChapterNumber);
+                const choiceTitle = getChoiceLocalizedTitle(choice, currentLang, currentWorld, currentChapterNumber);
+                const choiceSubtitle = getChoiceLocalizedSubtitle(choice, currentLang, currentWorld, currentChapterNumber);
 
                 return (
                   <button
@@ -1696,7 +1340,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     <div className="relative w-full aspect-video overflow-hidden rounded-xl bg-slate-950">
                       <img
                         src={choiceImgUrl}
-                        alt={choiceTitle || choiceDescription || `Choice ${idx + 1}`}
+                        alt={choiceTitle || `Choice ${idx + 1}`}
                         crossOrigin="anonymous"
                         loading="eager"
                         className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 ${
@@ -1732,11 +1376,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                         </div>
                       </div>
 
-                      {/* Bottom Info overlay: Localized Title, Subtitle, and Description */}
-                      {(choiceTitle || choiceSubtitle || choiceDescription) && (
+                      {/* Bottom Info overlay: Localized Title & Subtitle */}
+                      {(choiceTitle || choiceSubtitle) && (
                         <div className="absolute bottom-2.5 sm:bottom-3 left-2.5 sm:left-3 right-2.5 sm:right-3 z-10 pointer-events-none">
                           {choiceTitle && choiceTitle.trim() !== '' && (
-                            <h4 className="text-sm sm:text-base font-cinzel font-bold text-amber-200 group-hover:text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-1">
+                            <h4 className="text-sm sm:text-base font-cinzel font-bold text-amber-200 group-hover:text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-2">
                               {choiceTitle}
                             </h4>
                           )}
@@ -1744,17 +1388,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                             <div className="text-[11px] sm:text-xs text-[#d4af37] font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] italic line-clamp-1">
                               {choiceSubtitle}
                             </div>
-                          )}
-                          {choiceDescription && choiceDescription.trim() !== '' && (
-                            <p
-                              className={`text-slate-200 line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] font-sans mt-0.5 ${
-                                !choiceTitle && !choiceSubtitle
-                                  ? 'text-xs sm:text-sm font-semibold text-amber-100 font-cinzel tracking-wide'
-                                  : 'text-[11px] sm:text-xs'
-                              }`}
-                            >
-                              {choiceDescription}
-                            </p>
                           )}
                         </div>
                       )}
