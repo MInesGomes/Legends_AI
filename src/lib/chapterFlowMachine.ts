@@ -10,7 +10,7 @@
  *
  *   Chapter 0:  act0 -> (avatar gender act -> other gender act)? -> choices? -> Chapter 1
  *   Chapter N (N >= 1): act0 -> choices? -> Chapter N+1
- *   choices:    choices -> choice_act -> choice_feedback? -> back to choices
+ *   choices:    choices -> choice_act -> choice_feedback? -> (choice1: advance-chapter or back to choices; other choices: back to choices)
  *
  * The avatar-gender branch only exists in Chapter 0, and the "choices" step
  * only exists for chapters that define at least one available choice — both
@@ -130,21 +130,24 @@ function prevInStandardChapter(
 
 /**
  * Advance one step forward from `position`. The choice sub-flow
- * (choices -> choice_act -> choice_feedback -> choices) is shared by every
- * chapter, so it's handled once here before delegating to the
+ * (choices -> choice_act -> choice_feedback -> advance-chapter / back to choices)
+ * is shared by every chapter, so it's handled once here before delegating to the
  * chapter-0-specific or standard-chapter transition rules.
  */
 export function getNextFlowOutcome(
   position: FlowPosition,
   gender: AvatarGender,
   meta: ChapterMeta,
-  hasFeedback: boolean
+  hasFeedback: boolean,
+  isBestChoice = false
 ): FlowOutcome {
   if (position.step === 'choice_act') {
-    return goto(position.chapterNumber, hasFeedback ? 'choice_feedback' : 'choices');
+    return goto(position.chapterNumber, hasFeedback ? 'choice_feedback' : (isBestChoice ? 'choices' : 'choices'));
   }
   if (position.step === 'choice_feedback') {
-    return goto(position.chapterNumber, 'choices');
+    // When the user completed the best choice (choice1), advance to the next chapter;
+    // otherwise return to choices so they can try again.
+    return isBestChoice ? { kind: 'advance-chapter' } : goto(position.chapterNumber, 'choices');
   }
   return position.chapterNumber === 0
     ? nextInChapterZero(position.step, gender, meta)

@@ -13,6 +13,7 @@ import { resolveChapterConfig, resolveChapterMeta } from '../lib/chapterConfigRe
 import {
   getChoiceLocalizedTitle,
   getChoiceLocalizedSubtitle,
+  getFallbackChoiceFeedback,
 } from '../lib/choiceLocalization';
 import { FlowStep, ChapterMeta, getNextFlowOutcome, getPrevFlowOutcome } from '../lib/chapterFlowMachine';
 import {
@@ -33,7 +34,8 @@ import {
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
 import { isUserOver16 } from '../lib/googleAgeSignals';
-import { t } from '../lib/i18n';
+import { isBestChoice, fireVictoryConfetti, playVictorySound } from '../lib/celebration';
+import { t, Translations } from '../lib/i18n';
 import {
   X as CloseIcon,
   ChevronLeft,
@@ -128,10 +130,12 @@ export interface ChapterFlowProps {
 export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
+    skill: 'Win4All',
     choices: [],
   },
   {
     id: 1,
+    skill: 'Leader',
     choices: [
       {
         id: 'choice1', // always the "best" choice — see isBestChoice() in lib/chapterTypes.ts
@@ -156,6 +160,40 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
         title: 'Force the System',
         subtitle: 'Aggressive Intervention',
         available: true,
+      },
+    ],
+  },
+  {
+    id: 2,
+    skill: 'Plan',
+    choices: [
+      {
+        id: 'choice1', // always the "best" choice
+        title: 'Many Hands',
+        subtitle: 'Coordinated Strategy',
+        titleKey: 'atlantis_act2_choice1_title' as keyof Translations,
+        subtitleKey: 'atlantis_act2_choice1_subtitle' as keyof Translations,
+        available: true,
+      },
+      {
+        id: 'choice2',
+        title: 'Into the Flood',
+        subtitle: 'Direct Confrontation',
+        titleKey: 'atlantis_act2_choice2_title' as keyof Translations,
+        subtitleKey: 'atlantis_act2_choice2_subtitle' as keyof Translations,
+        available: true,
+      },
+      {
+        id: 'choice3',
+        title: 'The Difficult Choice',
+        subtitle: 'Calculated Sacrifice',
+        titleKey: 'atlantis_act2_choice3_title' as keyof Translations,
+        subtitleKey: 'atlantis_act2_choice3_subtitle' as keyof Translations,
+        available: true,
+      },
+      {
+        id: 'choice4',
+        available: false,
       },
     ],
   },
@@ -257,7 +295,11 @@ function buildFeedbackVttCandidateUrls(
 
   return [
     `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/feedback_${langCode}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/feedback${choiceNumber}_${langCode}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/feedback${choiceNumber}.vtt`,
     `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/feedback_${langCode}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/feedback${choiceNumber}_${langCode}.vtt`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/feedback${choiceNumber}.vtt`,
     `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/choice${choiceNumber}_${langCode}.vtt`,
     `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}_${langCode}.vtt`,
   ];
@@ -399,23 +441,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const crawlContainerRef = useRef<HTMLDivElement | null>(null);
   const crawlSentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // Track read aloud tracking per choice session
-  const hasRecordedReadAloudStatRef = useRef<boolean>(false);
-
-  const recordReadAloudStat = useCallback(() => {
-    if (hasRecordedReadAloudStatRef.current) return;
-    hasRecordedReadAloudStatRef.current = true;
-
-    const activeSkill: SkillType = tale?.skill || 'Leader';
-    const activeLanguage: Language = selectedVttLang || currentLang || 'EN';
-
-    if (onReadAloudChoice) {
-      onReadAloudChoice(activeSkill, activeLanguage);
-    } else if (onChooseBestChoice) {
-      onChooseBestChoice(activeSkill, activeLanguage);
-    }
-  }, [tale?.skill, selectedVttLang, currentLang, onReadAloudChoice, onChooseBestChoice]);
-
   // Derive world and tale name for Supabase storage paths
   const { world: currentWorld, taleName: currentTaleName } = useMemo(() => {
     return getTaleWorldAndName(tale);
@@ -433,6 +458,37 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (!chapterConfigs || chapterConfigs.length === 0) return 1;
     return Math.max(...chapterConfigs.map((c) => c.id));
   }, [chapterConfigs]);
+
+  // Track read aloud tracking per choice session
+  const hasRecordedReadAloudStatRef = useRef<boolean>(false);
+
+  // Track celebratory confetti and victory sound for feedback1 (feedback for best choice)
+  const hasCelebratedFeedbackRef = useRef<string>('');
+
+  useEffect(() => {
+    if (currentStep === 'choice_feedback' && isBestChoice(selectedChoiceId)) {
+      const celebrationKey = `${currentWorld}-${currentChapterNumber}-${selectedChoiceId}`;
+      if (hasCelebratedFeedbackRef.current !== celebrationKey) {
+        hasCelebratedFeedbackRef.current = celebrationKey;
+        fireVictoryConfetti();
+        playVictorySound();
+      }
+    }
+  }, [currentStep, selectedChoiceId, currentChapterNumber, currentWorld]);
+
+  const recordReadAloudStat = useCallback(() => {
+    if (hasRecordedReadAloudStatRef.current) return;
+    hasRecordedReadAloudStatRef.current = true;
+
+    const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
+    const activeLanguage: Language = selectedVttLang || currentLang || 'EN';
+
+    if (onReadAloudChoice) {
+      onReadAloudChoice(activeSkill, activeLanguage);
+    } else if (onChooseBestChoice) {
+      onChooseBestChoice(activeSkill, activeLanguage);
+    }
+  }, [currentChapterConfig?.skill, tale?.skill, selectedVttLang, currentLang, onReadAloudChoice, onChooseBestChoice]);
 
   const isFeedbackMode = currentStep === 'choice_feedback';
   const isFeedbackReadAloud = currentStep === 'choice_feedback' && isCrawlFinished;
@@ -802,12 +858,24 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         }
       }
 
-      // No VTT file found: skip feedback and return to choices page
+      // No remote VTT file found: check built-in fallback feedback for this chapter & choice
+      const fallbackParas = getFallbackChoiceFeedback(
+        currentWorld,
+        currentChapterNumber,
+        selectedChoiceId,
+        selectedVttLang
+      );
+
       if (isMounted) {
-        setVttRawText('');
-        setFeedbackParagraphs([]);
-        if (currentStep === 'choice_feedback') {
-          setCurrentStep('choices');
+        if (fallbackParas && fallbackParas.length > 0) {
+          setVttRawText(fallbackParas.join('\n\n'));
+          setFeedbackParagraphs(fallbackParas);
+        } else {
+          setVttRawText('');
+          setFeedbackParagraphs([]);
+          if (currentStep === 'choice_feedback') {
+            setCurrentStep('choices');
+          }
         }
       }
     }
@@ -896,13 +964,21 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   }, [isAutoPlay]);
 
   // Synchronize mute:
-  // Crucial: video is ALWAYS muted when an MP3 audio track is present so the baked-in English audio from the MP4 doesn't play over the selected MP3 language!
+  // The mp4's own audio track is music/ambience only (no baked-in speech),
+  // so it's safe to let it play alongside the mp3 voice-over — it just needs
+  // to be ducked well below the voice so it reads as background atmosphere
+  // rather than competing with it. Both elements otherwise follow the
+  // person's own mute toggle.
+  const VIDEO_DUCK_VOLUME = 0.25;
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
     }
     if (videoRef.current) {
-      videoRef.current.muted = Boolean(currentAudioUrl) || isMuted;
+      videoRef.current.muted = isMuted;
+      // Only duck when there's actually a separate mp3 voice-over to sit
+      // under; with no voice track the video's own audio is the whole mix.
+      videoRef.current.volume = currentAudioUrl ? VIDEO_DUCK_VOLUME : 1;
     }
   }, [isMuted, currentAudioUrl]);
 
@@ -1067,11 +1143,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       setIsCrawlFinished(false);
     }
 
+    const isCurrentBestChoice = isBestChoice(selectedChoiceId);
     const outcome = getNextFlowOutcome(
       { chapterNumber: currentChapterNumber, step: currentStep },
       effectiveGender,
       currentChapterMeta,
-      feedbackParagraphs.length > 0
+      feedbackParagraphs.length > 0,
+      isCurrentBestChoice
     );
     applyFlowOutcome(outcome);
   };
@@ -1089,6 +1167,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // Choice selection handler: plays the chosen act video and audio
   const handleSelectChoice = (choiceId: ChoiceId) => {
     hasRecordedReadAloudStatRef.current = false;
+    hasCelebratedFeedbackRef.current = '';
     setSelectedChoiceId(choiceId);
     setCandidateVideoIdx(0);
     setCandidateAudioIdx(0);
@@ -1101,6 +1180,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     setReadAccuracy(null);
     setSpeechError(null);
     setCurrentStep('choice_act');
+
+    // Record best choice stat callback
+    if (isBestChoice(choiceId)) {
+      const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
+      if (onChooseBestChoice) {
+        onChooseBestChoice(activeSkill, selectedVttLang || currentLang);
+      }
+    }
   };
 
   // Language selectors: audio (MP3) and subtitles (VTT) are completely independent
@@ -1230,8 +1317,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (onEarnLanguagePoints) {
       onEarnLanguagePoints(selectedVttLang, 50);
     }
+    const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
     if (onEarnSkillPoint) {
-      onEarnSkillPoint(tale?.skill || 'Leader');
+      onEarnSkillPoint(activeSkill);
     }
   };
 
@@ -1267,15 +1355,29 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             <CloseIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
           </button>
 
-          <div
-            className={`hidden sm:flex items-center gap-2 px-2 py-1 text-xs font-semibold font-cinzel tracking-wider bg-transparent border-0 ${
-              darkMode
-                ? 'text-amber-200 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
-                : 'text-amber-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-            }`}
-          >
-            <Compass className={`w-3.5 h-3.5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-700'}`} />
-            <span> {tale?.title || ''}</span>
+          {/* Quick Chapter Selector Pills */}
+          <div className="flex items-center gap-1.5 ml-1">
+            {chapterConfigs.map((cfg) => (
+              <button
+                key={`ch-pill-${cfg.id}`}
+                onClick={() => {
+                  setCurrentChapterNumber(cfg.id);
+                  setCurrentStep('act0');
+                  setIsVideoFinished(false);
+                  setIsReadingAloud(false);
+                  setIsCrawlFinished(false);
+                }}
+                className={`px-2 py-0.5 text-[10px] sm:text-xs font-mono font-bold rounded-md transition-all cursor-pointer ${
+                  currentChapterNumber === cfg.id
+                    ? 'bg-[#d4af37] text-slate-950 shadow-sm ring-1 ring-[#ffe81f]'
+                    : 'bg-black/50 text-amber-200/80 hover:text-white border border-[#d4af37]/40 hover:border-[#ffe81f]'
+                }`}
+                title={`Chapter ${cfg.id}${cfg.skill ? ` (${cfg.skill})` : ''}`}
+                aria-label={`Jump to Chapter ${cfg.id}`}
+              >
+                Ch {cfg.id}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -1361,15 +1463,20 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               } blur-2xl pointer-events-none`}
             />
 
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap justify-center">
               <Sparkles className={`w-5 h-5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-600'} animate-pulse`} />
               <span
                 className={`text-xs uppercase tracking-widest font-bold ${
                   darkMode ? 'text-[#d4af37]' : 'text-amber-800'
                 }`}
               >
-                {tale?.title || currentTaleName}
+                {currentChapterNumber === 2 ? 'Plan to Atlantis Flow' : (tale?.title || currentTaleName)} • Chapter {currentChapterNumber}
               </span>
+              {currentChapterConfig?.skill && (
+                <span className="px-2.5 py-0.5 text-[10px] rounded-full uppercase tracking-wider font-extrabold bg-amber-400/20 border border-amber-400/60 text-amber-300 shadow-xs">
+                  Skill: {currentChapterConfig.skill}
+                </span>
+              )}
               <Sparkles className={`w-5 h-5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-600'} animate-pulse`} />
             </div>
 
@@ -1519,6 +1626,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     >
                       Chapter {currentChapterNumber} • Feedback
                     </p>
+                    {isBestChoice(selectedChoiceId) && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/25 border border-amber-400/80 text-[#ffe81f] font-bold text-xs uppercase tracking-wider mb-2 drop-shadow-md">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>{t('bestChoiceTitle', currentLang)}</span>
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </div>
+                    )}
                     <h2
                       className={`text-2xl sm:text-4xl font-cinzel font-black uppercase tracking-wider ${
                         darkMode
@@ -1563,15 +1677,23 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 transition={{ duration: 0.35 }}
                 className="relative z-30 w-full max-w-3xl flex flex-col p-4 sm:p-6 select-text"
               >
-                {/* Header: Choice Title + Read Aloud prompt with Read Aloud button near text */}
+                {/* Header: Choice Title + Best Choice Badge + Read Aloud prompt with Read Aloud button near text */}
                 <div className="mb-4">
-                  <h2
-                    className={`text-xl sm:text-3xl font-cinzel font-bold tracking-wide ${
-                      darkMode ? 'text-amber-200' : 'text-amber-950 font-black'
-                    }`}
-                  >
-                    {currentChoiceTitle}
-                  </h2>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2
+                      className={`text-xl sm:text-3xl font-cinzel font-bold tracking-wide ${
+                        darkMode ? 'text-amber-200' : 'text-amber-950 font-black'
+                      }`}
+                    >
+                      {currentChoiceTitle}
+                    </h2>
+                    {isBestChoice(selectedChoiceId) && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/70 text-amber-300 font-bold text-xs uppercase tracking-wider shadow-sm">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                        {t('bestChoiceTitle', currentLang)}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Read aloud prompt row: Read aloud button placed directly next to the instruction text */}
                   <div className="mt-3.5 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
@@ -1769,8 +1891,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     </button>
                   </div>
 
-                  {/* Bottom Right: Language Selector Dropdown and `>` Chevron Icon Button */}
-                  <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Bottom Right: Language Selector Dropdown, Back to Choices Button, and Next Action Button */}
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
                     <FlagLanguageDropdown
                       id="act-feedback-bottom-vtt-selector"
                       type="vtt"
@@ -1782,20 +1904,59 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                       tooltip="Subtitles / Reading Language"
                     />
 
+                    {/* Back to Choices Button */}
                     <button
-                      id="feedback-next-chapter-action-btn"
-                      onClick={goToNext}
+                      id="feedback-back-to-choices-btn"
+                      onClick={() => {
+                        setIsReadingAloud(false);
+                        try {
+                          speechRecognitionRef.current?.stop();
+                        } catch {}
+                        setIsCrawlFinished(false);
+                        setCurrentStep('choices');
+                      }}
                       type="button"
-                      className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                      className={`px-3 py-1.5 rounded-lg border text-xs sm:text-sm font-semibold transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 ${
                         darkMode
-                          ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
-                          : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+                          ? 'bg-slate-900/80 border-[#d4af37]/60 text-amber-200 hover:text-[#ffe81f] hover:border-[#ffe81f]'
+                          : 'bg-white/90 border-amber-300 text-amber-950 hover:bg-amber-100 shadow-xs'
                       }`}
-                      title={t('chooseYourPath', currentLang)}
-                      aria-label={t('chooseYourPath', currentLang)}
+                      title={t('backToChoices', currentLang)}
+                      aria-label={t('backToChoices', currentLang)}
                     >
-                      <ChevronRight className="w-8 h-8 sm:w-10 sm:h-10 transition-colors stroke-[2.5]" />
+                      <Compass className="w-4 h-4" />
+                      <span>{t('backToChoices', currentLang)}</span>
                     </button>
+
+                    {/* Next Chapter (for best choice) or Forward button */}
+                    {isBestChoice(selectedChoiceId) ? (
+                      <button
+                        id="feedback-next-chapter-action-btn"
+                        onClick={goToNext}
+                        type="button"
+                        className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#d4af37] via-amber-400 to-[#ffe81f] text-slate-950 font-bold text-xs sm:text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-[0_4px_16px_rgba(212,175,55,0.4)]"
+                        title={t('nextChapter', currentLang)}
+                        aria-label={t('nextChapter', currentLang)}
+                      >
+                        <span>{t('nextChapter', currentLang)}</span>
+                        <ChevronRight className="w-4 h-4 stroke-[3]" />
+                      </button>
+                    ) : (
+                      <button
+                        id="feedback-next-chapter-action-btn"
+                        onClick={goToNext}
+                        type="button"
+                        className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                          darkMode
+                            ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                            : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+                        }`}
+                        title={t('chooseYourPath', currentLang)}
+                        aria-label={t('chooseYourPath', currentLang)}
+                      >
+                        <ChevronRight className="w-8 h-8 sm:w-10 sm:h-10 transition-colors stroke-[2.5]" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -1811,7 +1972,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 id="act-fullscreen-video"
                 ref={videoRef}
                 src={currentVideoUrl}
-                muted={Boolean(currentAudioUrl) || isMuted}
+                muted={isMuted}
                 playsInline
                 crossOrigin="anonymous"
                 preload="auto"
@@ -1947,8 +2108,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         </button>
       )}
 
-      {/* 4. CENTER RIGHT: NEXT `>` BUTTON (Cinematic floating chevron, no round circle) */}
-      {!isFeedbackMode && (
+      {/* 4. CENTER RIGHT: NEXT `>` BUTTON (Cinematic floating chevron, no round circle) - hidden on choices board */}
+      {!isFeedbackMode && currentStep !== 'choices' && (
         <button
           id="act-next-button"
           onClick={goToNext}
@@ -2036,6 +2197,27 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               <div className="w-9" />
             )}
 
+            {/* Back to Choices Button (available during choice video or feedback) */}
+            {(currentStep === 'choice_act' || currentStep === 'choice_feedback') && (
+              <button
+                id="act-back-to-choices-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsReadingAloud(false);
+                  try {
+                    speechRecognitionRef.current?.stop();
+                  } catch {}
+                  setIsCrawlFinished(false);
+                  setCurrentStep('choices');
+                }}
+                className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
+                title={t('backToChoices', currentLang)}
+                aria-label={t('backToChoices', currentLang)}
+              >
+                <Compass className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
+              </button>
+            )}
+
             {/* Replay Button */}
             <button
               id="act-replay-btn"
@@ -2050,27 +2232,27 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
             </button>
 
-            {/* Next Step / Continue Button */}
-            <button
-              id="act-next-completion-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                goToNext();
-              }}
-              className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
-              title={
-                currentStep === 'choices'
-                  ? 'Choose Below'
-                  : currentStep === 'choice_act'
-                  ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
-                  : currentStep === 'choice_feedback'
-                  ? t('chooseYourPath', currentLang)
-                  : t('nextAct', currentLang)
-              }
-              aria-label="Next Step"
-            >
-              <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#d4af37] hover:text-[#ffe81f] transition-colors stroke-[2.5]" />
-            </button>
+            {/* Next Step / Continue Button (hidden on choices board) */}
+            {currentStep !== 'choices' && (
+              <button
+                id="act-next-completion-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
+                title={
+                  currentStep === 'choice_act'
+                    ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
+                    : currentStep === 'choice_feedback'
+                    ? (isBestChoice(selectedChoiceId) ? t('nextChapter', currentLang) : t('backToChoices', currentLang))
+                    : t('nextAct', currentLang)
+                }
+                aria-label="Next Step"
+              >
+                <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#d4af37] hover:text-[#ffe81f] transition-colors stroke-[2.5]" />
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -61,6 +61,9 @@ export interface Translations {
   skipMediaBtn: string;
   finishBtn: string;
   chooseYourPath: string;
+  nextChapter: string;
+  backToChoices: string;
+  bestChoiceTitle: string;
   choice1_title: string;
   choice1_subtitle: string;
   choice1_description: string;
@@ -77,6 +80,14 @@ export interface Translations {
   // El Dorado Act 0 Choices
   eldorado_act0_choice1_title: string;
   eldorado_act0_choice2_title: string;
+
+  // Atlantis Chapter 2 Choices
+  atlantis_act2_choice1_title: string;
+  atlantis_act2_choice1_subtitle: string;
+  atlantis_act2_choice2_title: string;
+  atlantis_act2_choice2_subtitle: string;
+  atlantis_act2_choice3_title: string;
+  atlantis_act2_choice3_subtitle: string;
   readAloudEarnPoints: string;
 
   // Comments Drawer
@@ -122,6 +133,11 @@ export interface Translations {
   activeStatus: string;
   hideAvatarChoices: string;
   changeAvatarChoices: string;
+  availableIfLogin: string;
+  deleteAccount: string;
+  deleteAccountConfirmTitle: string;
+  deleteAccountConfirmDesc: string;
+  confirmDelete: string;
 
   // Bottom Hub (Accessibility)
   textSizeReadability: string;
@@ -210,6 +226,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipMediaBtn: 'Skip',
     finishBtn: 'Finish',
     chooseYourPath: 'Choose Your Path',
+    nextChapter: 'Next Chapter',
+    backToChoices: 'Back to Choices',
+    bestChoiceTitle: 'Best Choice!',
     choice1_title: 'Organize the Evacuation',
     choice1_subtitle: 'Community Leadership',
     choice1_description: "Don’t ask for permission and risk losing everything.",
@@ -224,6 +243,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_description: 'Override security safeguards by force, so all can be saved quickly.',
     eldorado_act0_choice1_title: 'Give his light',
     eldorado_act0_choice2_title: 'Afraid to lose his light',
+    atlantis_act2_choice1_title: 'Many Hands',
+    atlantis_act2_choice1_subtitle: 'Coordinated Strategy',
+    atlantis_act2_choice2_title: 'Into the Flood',
+    atlantis_act2_choice2_subtitle: 'Direct Confrontation',
+    atlantis_act2_choice3_title: 'The Difficult Choice',
+    atlantis_act2_choice3_subtitle: 'Calculated Sacrifice',
     readAloudEarnPoints: 'Train articulation for {lang} and earn points. Drastically over-pronouncing every single syllable. Move your jaw, lips, and tongue with theatrical exaggeration. This builds muscle memory',
 
     commentsTitle: 'Comments',
@@ -267,6 +292,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     activeStatus: 'Active',
     hideAvatarChoices: 'Hide Avatar Choices',
     changeAvatarChoices: 'Change Avatar (8 Choices)',
+    availableIfLogin: 'Available with login',
+    deleteAccount: 'Delete Account',
+    deleteAccountConfirmTitle: 'Delete Account?',
+    deleteAccountConfirmDesc: 'Are you sure you want to permanently delete your account and all associated reading progress and comments? This action cannot be undone.',
+    confirmDelete: 'Delete Permanently',
 
     textSizeReadability: 'Text Size & Readability',
     standardSize: 'Standard',
@@ -351,6 +381,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipMediaBtn: 'Saltar',
     finishBtn: 'Finalizar',
     chooseYourPath: 'Elige tu camino',
+    nextChapter: 'Siguiente capítulo',
+    backToChoices: 'Volver a opciones',
+    bestChoiceTitle: '¡Mejor elección!',
     choice1_title: 'Organizar la evacuación',
     choice1_subtitle: 'Liderazgo comunitario',
     choice1_description: 'No pidas permiso y arriésgate a perderlo todo.',
@@ -365,6 +398,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_description: 'Anula las medidas de seguridad por la fuerza para salvar a todos rápidamente.',
     eldorado_act0_choice1_title: 'Da su luz',
     eldorado_act0_choice2_title: 'Miedo a perder su luz',
+    atlantis_act2_choice1_title: 'Muchas manos',
+    atlantis_act2_choice1_subtitle: 'Estrategia coordinada',
+    atlantis_act2_choice2_title: 'Hacia la inundación',
+    atlantis_act2_choice2_subtitle: 'Confrontación directa',
+    atlantis_act2_choice3_title: 'La elección difícil',
+    atlantis_act2_choice3_subtitle: 'Sacrificio calculado',
     readAloudEarnPoints: 'Entrena la articulación para {lang} y gana puntos. Exagera drásticamente la pronunciación de cada sílaba. Mueve la mandíbula, los labios y la lengua con exageración teatral. Esto crea memoria muscular',
 
     commentsTitle: 'Comentarios',
@@ -408,6 +447,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     activeStatus: 'Activo',
     hideAvatarChoices: 'Ocultar opciones de avatar',
     changeAvatarChoices: 'Cambiar avatar (8 opciones)',
+    availableIfLogin: 'Disponible al iniciar sesión',
+    deleteAccount: 'Eliminar cuenta',
+    deleteAccountConfirmTitle: '¿Eliminar cuenta?',
+    deleteAccountConfirmDesc: '¿Estás seguro de que deseas eliminar permanentemente tu cuenta y todo tu progreso y comentarios asociados? Esta acción no se puede deshacer.',
+    confirmDelete: 'Eliminar permanentemente',
 
     textSizeReadability: 'Tamaño de texto y legibilidad',
     standardSize: 'Estándar',
@@ -492,6 +536,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipMediaBtn: 'Salta',
     finishBtn: 'Termina',
     chooseYourPath: 'Scegli il tuo percorso',
+    nextChapter: 'Capitolo successivo',
+    backToChoices: 'Torna alle scelte',
+    bestChoiceTitle: 'Migliore scelta!',
     choice1_title: "Organizzare l'evacuazione",
     choice1_subtitle: 'Leadership comunitaria',
     choice1_description: 'Non chiedere il permesso e rischia di perdere tutto.',
@@ -506,6 +553,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_description: 'Bypassa i sistemi di sicurezza con la forza per salvare tutti rapidamente.',
     eldorado_act0_choice1_title: 'Dà la sua luce',
     eldorado_act0_choice2_title: 'Ha paura di perdere la sua luce',
+    atlantis_act2_choice1_title: 'Molte mani',
+    atlantis_act2_choice1_subtitle: 'Strategia coordinata',
+    atlantis_act2_choice2_title: "Nell'inondazione",
+    atlantis_act2_choice2_subtitle: 'Confronto diretto',
+    atlantis_act2_choice3_title: 'La scelta difficile',
+    atlantis_act2_choice3_subtitle: 'Sacrificio calcolato',
     readAloudEarnPoints: "Allena l'articolazione per {lang} e guadagna punti. Pronuncia drasticamente ogni singola sillaba in modo esagerato. Muovi la mandibola, le labbra e la lingua con esagerazione teatrale. Questo sviluppa la memoria muscolare",
 
     commentsTitle: 'Commenti',
@@ -549,6 +602,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     activeStatus: 'Attivo',
     hideAvatarChoices: 'Nascondi opzioni avatar',
     changeAvatarChoices: 'Cambia avatar (8 scelte)',
+    availableIfLogin: 'Disponibile con accesso',
+    deleteAccount: 'Elimina account',
+    deleteAccountConfirmTitle: 'Eliminare l\'account?',
+    deleteAccountConfirmDesc: 'Sei sicuro di voler eliminare definitivamente il tuo account e tutti i progressi e commenti associati? Questa azione non può essere annullata.',
+    confirmDelete: 'Elimina definitivamente',
 
     textSizeReadability: 'Dimensione testo e leggibilità',
     standardSize: 'Standard',
@@ -633,6 +691,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipMediaBtn: 'Pular',
     finishBtn: 'Concluir',
     chooseYourPath: 'Escolha o seu caminho',
+    nextChapter: 'Próximo capítulo',
+    backToChoices: 'Voltar às escolhas',
+    bestChoiceTitle: 'Melhor escolha!',
     choice1_title: 'Organizar a evacuação',
     choice1_subtitle: 'Liderança comunitária',
     choice1_description: 'Não peça permissão e arrisque perder tudo.',
@@ -647,6 +708,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_description: 'Subverta os sistemas de segurança pela força para que todos possam ser salvos rapidamente.',
     eldorado_act0_choice1_title: 'Dá a sua luz',
     eldorado_act0_choice2_title: 'Com medo de perder a sua luz',
+    atlantis_act2_choice1_title: 'Muitas mãos',
+    atlantis_act2_choice1_subtitle: 'Estratégia coordenada',
+    atlantis_act2_choice2_title: 'Para a inundação',
+    atlantis_act2_choice2_subtitle: 'Confronto direto',
+    atlantis_act2_choice3_title: 'A escolha difícil',
+    atlantis_act2_choice3_subtitle: 'Sacrifício calculado',
     readAloudEarnPoints: 'Treina a articulação para {lang} e ganha pontos. Exagera drasticamente a pronúncia de cada sílaba. Move o maxilar, os lábios e a língua com exagero teatral. Isto desenvolve a memória muscular',
 
     commentsTitle: 'Comentários',
@@ -690,6 +757,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     activeStatus: 'Ativo',
     hideAvatarChoices: 'Ocultar opções de avatar',
     changeAvatarChoices: 'Alterar avatar (8 opções)',
+    availableIfLogin: 'Disponível com login',
+    deleteAccount: 'Excluir conta',
+    deleteAccountConfirmTitle: 'Excluir conta?',
+    deleteAccountConfirmDesc: 'Tem certeza de que deseja excluir permanentemente sua conta e todo o progresso e comentários associados? Esta ação não pode ser desfeita.',
+    confirmDelete: 'Excluir permanentemente',
 
     textSizeReadability: 'Tamanho de texto e legibilidade',
     standardSize: 'Padrão',
@@ -774,6 +846,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     skipMediaBtn: 'Overslaan',
     finishBtn: 'Voltooien',
     chooseYourPath: 'Kies je pad',
+    nextChapter: 'Volgend hoofdstuk',
+    backToChoices: 'Terug naar keuzes',
+    bestChoiceTitle: 'Beste keuze!',
     choice1_title: 'Organiseer de evacuatie',
     choice1_subtitle: 'Gemeenschapsleiderschap',
     choice1_description: 'Vraag niet om toestemming en riskeer alles te verliezen.',
@@ -788,6 +863,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     choice4_description: 'Omzeil beveiligingssystemen met geweld, zodat iedereen snel kan worden gered.',
     eldorado_act0_choice1_title: 'Geeft zijn licht',
     eldorado_act0_choice2_title: 'Bang om zijn licht te verliezen',
+    atlantis_act2_choice1_title: 'Vele handen',
+    atlantis_act2_choice1_subtitle: 'Gecoördineerde strategie',
+    atlantis_act2_choice2_title: 'De vloed in',
+    atlantis_act2_choice2_subtitle: 'Directe confrontatie',
+    atlantis_act2_choice3_title: 'De moeilijke keuze',
+    atlantis_act2_choice3_subtitle: 'Berekend offer',
     readAloudEarnPoints: 'Train articulatie voor {lang} en verdien punten. Overdrijf de uitspraak van elke afzonderlijke lettergreep drastisch. Beweeg je kaak, lippen en tong met theatrale overdrijving. Dit bouwt spiergeheugen op',
 
     commentsTitle: 'Reacties',
@@ -831,6 +912,11 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     activeStatus: 'Actief',
     hideAvatarChoices: 'Avataropties verbergen',
     changeAvatarChoices: 'Avatar wijzigen (8 opties)',
+    availableIfLogin: 'Beschikbaar na inloggen',
+    deleteAccount: 'Account verwijderen',
+    deleteAccountConfirmTitle: 'Account verwijderen?',
+    deleteAccountConfirmDesc: 'Weet u zeker dat u uw account en alle bijbehorende leesvoortgang en opmerkingen definitief wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+    confirmDelete: 'Definitief verwijderen',
 
     textSizeReadability: 'Tekengrootte & leesbaarheid',
     standardSize: 'Standaard',

@@ -1,3 +1,4 @@
+import { SkillType } from '../types';
 import { Translations } from './i18n';
 
 export type ChoiceId = 'choice1' | 'choice2' | 'choice3' | 'choice4';
@@ -15,6 +16,7 @@ export interface ChapterChoiceConfig {
 export interface ChapterConfig {
   id: number; // 0..N
   hasGenderActs?: boolean; // Chapter 0 optional gender acts
+  skill?: SkillType;
   choices: ChapterChoiceConfig[];
 }
 
