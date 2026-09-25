@@ -1,13 +1,15 @@
 import { Language } from '../types';
 
 export interface Act {
-  chapter: number; // e.g. values 0, 1, 2
+  chapter: number; // e.g. values 0, 1, 2, 3
   act: 'female_act' | 'male_act' | 'act0' | 'choice1' | 'choice2'| 'choice3' | 'choice4' | string;
   title?: string;
   characterName?: string;
   gender?: 'female' | 'male';
   type?: 'narrative' | 'character' | 'dialogue' | 'choice';
+  videoUrl?: string;
 }
+
 
 export const SUPABASE_BASE_URL = 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub';
 
@@ -48,6 +50,33 @@ export const ASSETS = {
   elenaAvatar,
   danielAvatar,
 };
+
+/**
+ * Loaded Video Sources for Chapter 3
+ */
+export const CHAPTER_3_MEDIA_URLS = {
+  act0: 'https://youtu.be/-64kwqW5q6k',
+  choice1: 'https://youtu.be/7DEPbiuRvuU',
+  choice2: 'https://youtu.be/B4bsJHLc7V0',
+  choice3: 'https://youtu.be/TP1-nip4GiM',
+};
+
+/**
+ * Extracts YouTube video ID from various YouTube URL formats or raw ID.
+ */
+export function extractYouTubeVideoId(url?: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  const regExp = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/;
+  const match = trimmed.match(regExp);
+  if (match && match[1]) {
+    return match[1];
+  }
+  if (/^[\w-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  return null;
+}
 
 export function resolveAssetUrl(url?: string | null, fallback: string = realmAtlantisJpg): string {
   if (!url) return fallback;
@@ -157,6 +186,25 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
   const isElDorado = folder.toLowerCase().includes('eldorado');
 
   const candidates: string[] = [];
+
+  // Custom video URL configured on act if any
+  if (act.videoUrl) {
+    candidates.push(act.videoUrl);
+  }
+
+  // Atlantis Chapter 3 acts video sources
+  if (act.chapter === 3 && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
+    if (actName === 'act0' || !act.act) {
+      candidates.push('https://youtu.be/-64kwqW5q6k');
+    } else if (actName === 'choice1') {
+      candidates.push('https://youtu.be/7DEPbiuRvuU');
+    } else if (actName === 'choice2') {
+      candidates.push('https://youtu.be/B4bsJHLc7V0');
+    } else if (actName === 'choice3') {
+      candidates.push('https://youtu.be/TP1-nip4GiM');
+    }
+  }
+
   if (isElDorado) {
     candidates.push(
       `${chapterFolder}/${actName}.mp4`,
@@ -167,9 +215,9 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
   } else {
     candidates.push(
       `${chapterFolder}/${actName}/${actName}.mp4`,
-      `${chapterFolder}/${actName}/${actName}_en.mp4`,
       `${chapterFolder}/${actName}.mp4`,
-      `${chapterFolder}/${actName}_en.mp4`
+      `${chapterFolder}/${actName}_en.mp4`,
+      `${chapterFolder}/${actName}/${actName}_en.mp4`
     );
   }
   return Array.from(new Set(candidates));
@@ -299,6 +347,34 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
     title: 'The Difficult Choice',
     type: 'choice',
   },
+  {
+    chapter: 3,
+    act: 'act0',
+    title: 'Win4All in Atlantis Flow',
+    type: 'narrative',
+    videoUrl: 'https://youtu.be/-64kwqW5q6k',
+  },
+  {
+    chapter: 3,
+    act: 'choice1',
+    title: 'BEST: Shift the Ground',
+    type: 'choice',
+    videoUrl: 'https://youtu.be/7DEPbiuRvuU',
+  },
+  {
+    chapter: 3,
+    act: 'choice2',
+    title: 'Keep the Flow',
+    type: 'choice',
+    videoUrl: 'https://youtu.be/B4bsJHLc7V0',
+  },
+  {
+    chapter: 3,
+    act: 'choice3',
+    title: 'Draw the Line',
+    type: 'choice',
+    videoUrl: 'https://youtu.be/TP1-nip4GiM',
+  },
 ];
 
 /**
@@ -346,18 +422,31 @@ export function getChoiceImageCandidateUrls(
   const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
   const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
 
-  return Array.from(
-    new Set([
-      `${base}/${cName}.jpg`,
-      `${base}/${cName}.png`,
-      `${base}/${cName}.webp`,
-      `${base}.jpg`,
-      `${SUPABASE_BASE_URL}/${world}/${taleName}/${cName}.jpg`,
-      `${SUPABASE_BASE_URL}/${world}/${taleName}.jpg`,
-      `${SUPABASE_BASE_URL}/${world}/realm_${world.toLowerCase()}.jpg`,
-      `${altBase}/${cName}.jpg`,
-    ])
+  const candidates: string[] = [];
+
+  // For Atlantis Chapter 3 choices, include YouTube video thumbnails
+  if (chapterNumber === 3 && (world.toLowerCase().includes('atlantis') || !world)) {
+    if (choiceId === 'choice1' || choiceNum === '1') {
+      candidates.push('https://img.youtube.com/vi/7DEPbiuRvuU/hqdefault.jpg');
+    } else if (choiceId === 'choice2' || choiceNum === '2') {
+      candidates.push('https://img.youtube.com/vi/B4bsJHLc7V0/hqdefault.jpg');
+    } else if (choiceId === 'choice3' || choiceNum === '3') {
+      candidates.push('https://img.youtube.com/vi/TP1-nip4GiM/hqdefault.jpg');
+    }
+  }
+
+  candidates.push(
+    `${base}/${cName}.jpg`,
+    `${base}/${cName}.png`,
+    `${base}/${cName}.webp`,
+    `${base}.jpg`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}/${cName}.jpg`,
+    `${SUPABASE_BASE_URL}/${world}/${taleName}.jpg`,
+    `${SUPABASE_BASE_URL}/${world}/realm_${world.toLowerCase()}.jpg`,
+    `${altBase}/${cName}.jpg`
   );
+
+  return Array.from(new Set(candidates));
 }
 
 export function getChoiceMp4CandidateUrls(
@@ -371,14 +460,27 @@ export function getChoiceMp4CandidateUrls(
   const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
   const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
 
-  return Array.from(
-    new Set([
-      `${base}/${cName}.mp4`,
-      `${base}/${cName}_en.mp4`,
-      `${base}/video.mp4`,
-      `${altBase}/${cName}.mp4`,
-    ])
+  const candidates: string[] = [];
+
+  // For Atlantis Chapter 3 choices, load YouTube video sources
+  if (chapterNumber === 3 && (world.toLowerCase().includes('atlantis') || !world)) {
+    if (choiceId === 'choice1' || choiceNum === '1') {
+      candidates.push('https://youtu.be/7DEPbiuRvuU');
+    } else if (choiceId === 'choice2' || choiceNum === '2') {
+      candidates.push('https://youtu.be/B4bsJHLc7V0');
+    } else if (choiceId === 'choice3' || choiceNum === '3') {
+      candidates.push('https://youtu.be/TP1-nip4GiM');
+    }
+  }
+
+  candidates.push(
+    `${base}/${cName}.mp4`,
+    `${base}/${cName}_en.mp4`,
+    `${base}/video.mp4`,
+    `${altBase}/${cName}.mp4`
   );
+
+  return Array.from(new Set(candidates));
 }
 
 export function getChoiceMp3CandidateUrls(

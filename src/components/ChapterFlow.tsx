@@ -30,6 +30,7 @@ import {
   getChoiceFeedbackVttCandidateUrls,
   normalizeLangCode,
   realmAtlantisJpg,
+  extractYouTubeVideoId,
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
@@ -189,6 +190,47 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
         subtitle: 'Calculated Sacrifice',
         titleKey: 'atlantis_act2_choice3_title' as keyof Translations,
         subtitleKey: 'atlantis_act2_choice3_subtitle' as keyof Translations,
+        available: true,
+      },
+      {
+        id: 'choice4',
+        available: false,
+      },
+    ],
+  },
+  {
+    id: 3,
+    skill: 'Win4All',
+    act0VideoUrl: 'https://youtu.be/-64kwqW5q6k',
+    choices: [
+      {
+        id: 'choice1', // always the "best" choice
+        title: 'Shift the Ground',
+        subtitle: 'Make space for another way.',
+        titleKey: 'atlantis_act3_choice1_title' as keyof Translations,
+        subtitleKey: 'atlantis_act3_choice1_subtitle' as keyof Translations,
+        imageUrl: 'https://img.youtube.com/vi/7DEPbiuRvuU/hqdefault.jpg',
+        videoUrl: 'https://youtu.be/7DEPbiuRvuU',
+        available: true,
+      },
+      {
+        id: 'choice2',
+        title: 'Keep the Flow',
+        subtitle: 'Let the moment move forward.',
+        titleKey: 'atlantis_act3_choice2_title' as keyof Translations,
+        subtitleKey: 'atlantis_act3_choice2_subtitle' as keyof Translations,
+        imageUrl: 'https://img.youtube.com/vi/B4bsJHLc7V0/hqdefault.jpg',
+        videoUrl: 'https://youtu.be/B4bsJHLc7V0',
+        available: true,
+      },
+      {
+        id: 'choice3',
+        title: 'Draw the Line',
+        subtitle: 'Take a stand when it matters.',
+        titleKey: 'atlantis_act3_choice3_title' as keyof Translations,
+        subtitleKey: 'atlantis_act3_choice3_subtitle' as keyof Translations,
+        imageUrl: 'https://img.youtube.com/vi/TP1-nip4GiM/hqdefault.jpg',
+        videoUrl: 'https://youtu.be/TP1-nip4GiM',
         available: true,
       },
       {
@@ -413,6 +455,19 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // Video & audio playback state
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ytIframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  const sendYtCommand = useCallback((func: string, args: any[] = []) => {
+    try {
+      if (ytIframeRef.current?.contentWindow) {
+        ytIframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func, args }),
+          '*'
+        );
+      }
+    } catch {}
+  }, []);
+
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
@@ -635,15 +690,26 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const videoCandidates = useMemo(() => {
     if (currentStep === 'choice_act') {
-      return getChoiceMp4CandidateUrls(
+      const activeChoice = currentChapterConfig?.choices.find((c) => c.id === selectedChoiceId);
+      const choiceCandidates = getChoiceMp4CandidateUrls(
         currentWorld,
         currentTaleName,
         currentChapterNumber,
         selectedChoiceId
       );
+      if (activeChoice?.videoUrl && !choiceCandidates.includes(activeChoice.videoUrl)) {
+        return [activeChoice.videoUrl, ...choiceCandidates];
+      }
+      return choiceCandidates;
     }
-    return getActMp4CandidateUrls(currentActData, folderPath);
-  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, currentActData, folderPath]);
+    const actCandidates = getActMp4CandidateUrls(currentActData, folderPath);
+    if (currentChapterConfig?.act0VideoUrl && (currentStep === 'act0' || currentActData.act === 'act0')) {
+      if (!actCandidates.includes(currentChapterConfig.act0VideoUrl)) {
+        return [currentChapterConfig.act0VideoUrl, ...actCandidates];
+      }
+    }
+    return actCandidates;
+  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, currentActData, folderPath, currentChapterConfig]);
 
   const audioCandidates = useMemo(() => {
     if (currentStep === 'choice_act') {
@@ -659,6 +725,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, selectedAudioLang, currentActData, folderPath]);
 
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
+  const currentYouTubeId = useMemo(() => {
+    return extractYouTubeVideoId(currentVideoUrl);
+  }, [currentVideoUrl]);
+
   const currentAudioUrl = audioCandidates[candidateAudioIdx] || audioCandidates[0];
 
   const handleAudioError = () => {
@@ -1032,6 +1102,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   };
 
   const handleVideoError = () => {
+    if (currentYouTubeId) return;
     if (candidateVideoIdx + 1 < videoCandidates.length) {
       setCandidateVideoIdx((prev) => prev + 1);
     } else {
@@ -1039,11 +1110,39 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   };
 
+  // Synchronize YouTube video autoplay, play/pause and mute/volume
+  useEffect(() => {
+    if (currentYouTubeId) {
+      if (isAutoPlay) {
+        sendYtCommand('playVideo');
+      } else {
+        sendYtCommand('pauseVideo');
+      }
+    }
+  }, [isAutoPlay, currentYouTubeId, sendYtCommand]);
+
+  useEffect(() => {
+    if (currentYouTubeId) {
+      if (isMuted) {
+        sendYtCommand('mute');
+      } else {
+        sendYtCommand('unMute');
+        sendYtCommand('setVolume', [currentAudioUrl ? 25 : 100]);
+      }
+    }
+  }, [isMuted, currentAudioUrl, currentYouTubeId, sendYtCommand]);
+
+
   // Replay
   const handleReplay = () => {
     setIsVideoFinished(false);
     setIsCrawlFinished(false);
-    if (videoRef.current) {
+    if (currentYouTubeId) {
+      sendYtCommand('seekTo', [0, true]);
+      if (isAutoPlay) {
+        sendYtCommand('playVideo');
+      }
+    } else if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});
     }
@@ -1059,6 +1158,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Skip MP3 and MP4 playback
   const handleSkipMedia = () => {
+    if (currentYouTubeId) {
+      sendYtCommand('pauseVideo');
+      sendYtCommand('seekTo', [9999, true]);
+    }
     if (audioRef.current) {
       audioRef.current.pause();
       try {
@@ -1202,6 +1305,89 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const handleVttLanguageSelected = (newLang: Language) => {
     setSelectedVttLang(newLang);
   };
+
+  const handleVideoEnded = useCallback(() => {
+    setIsVideoFinished(true);
+    setActiveSubtitle('');
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (currentStep === 'choice_act') {
+      // After choice video finishes, display feedback if vtt exists, otherwise return to choices
+      if (isAutoPlay) {
+        setTimeout(() => {
+          if (feedbackParagraphs.length > 0) {
+            setCurrentStep('choice_feedback');
+          } else {
+            setCurrentStep('choices');
+          }
+        }, 1000);
+      }
+    } else if (isAutoPlay) {
+      setTimeout(() => {
+        goToNext();
+      }, 3500);
+    }
+  }, [currentStep, isAutoPlay, feedbackParagraphs.length, goToNext]);
+
+  // Listen to postMessage events from YouTube Iframe
+  useEffect(() => {
+    if (!currentYouTubeId) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const raw = event.data;
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (!data) return;
+
+        if (
+          (data.event === 'onStateChange' && data.info === 0) ||
+          (data.event === 'infoDelivery' && data.info && data.info.playerState === 0)
+        ) {
+          handleVideoEnded();
+        } else if (
+          (data.event === 'onStateChange' && data.info === 1) ||
+          (data.event === 'infoDelivery' && data.info && data.info.playerState === 1)
+        ) {
+          if (audioRef.current && isAutoPlay && !isMuted) {
+            audioRef.current.play().catch(() => {});
+          }
+        } else if (
+          (data.event === 'onStateChange' && data.info === 2) ||
+          (data.event === 'infoDelivery' && data.info && data.info.playerState === 2)
+        ) {
+          if (audioRef.current) {
+            audioRef.current.pause();
+          }
+        } else if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
+          handleTimeUpdate(data.info.currentTime);
+          if (
+            audioRef.current &&
+            !audioRef.current.paused &&
+            Math.abs(audioRef.current.currentTime - data.info.currentTime) > 0.75
+          ) {
+            audioRef.current.currentTime = data.info.currentTime;
+          }
+        }
+      } catch {}
+    };
+
+    window.addEventListener('message', handleMessage);
+    const interval = setInterval(() => {
+      if (ytIframeRef.current?.contentWindow) {
+        ytIframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'listening' }),
+          '*'
+        );
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearInterval(interval);
+    };
+  }, [currentYouTubeId, isAutoPlay, isMuted, handleVideoEnded]);
 
   // Speech Recognition (Read Aloud) Implementation
   const startSpeechRecognition = () => {
@@ -1470,7 +1656,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   darkMode ? 'text-[#d4af37]' : 'text-amber-800'
                 }`}
               >
-                {currentChapterNumber === 2 ? 'Plan to Atlantis Flow' : (tale?.title || currentTaleName)} • Chapter {currentChapterNumber}
+                {currentChapterNumber === 2
+                  ? 'Plan to Atlantis Flow'
+                  : currentChapterNumber === 3
+                  ? 'Win4All in Atlantis Flow'
+                  : (tale?.title || currentTaleName)} • Chapter {currentChapterNumber}
               </span>
               {currentChapterConfig?.skill && (
                 <span className="px-2.5 py-0.5 text-[10px] rounded-full uppercase tracking-wider font-extrabold bg-amber-400/20 border border-amber-400/60 text-amber-300 shadow-xs">
@@ -1967,7 +2157,47 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         {/* C. ACT VIDEO MEDIA (Chapter 1 acts, Chapter 2..N act0, and Choice Acts) */}
         {currentStep !== 'choices' && currentStep !== 'choice_feedback' && (
           <div className="relative w-full h-full flex items-start sm:items-center justify-center overflow-hidden bg-black">
-            {!isMediaNotFound ? (
+            {currentYouTubeId ? (
+              <div
+                className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black select-none"
+                style={{ overflow: 'hidden' }}
+              >
+                {/* 
+                  Container with overflow: hidden.
+                  The iframe is scaled to 135% centered at 50%, shifting all border artifacts:
+                  - Top: video title / avatar / share button (top ~50px) shifted outside visible bounds
+                  - Bottom: "Watch on YouTube" button (bottom ~45px) and player controls shifted outside visible bounds
+                  pointer-events: none prevents hover/touch interactions directly with YouTube so hover controls never trigger!
+                */}
+                <iframe
+                  id="act-fullscreen-youtube"
+                  ref={ytIframeRef}
+                  key={`yt-${currentYouTubeId}`}
+                  src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=${isAutoPlay ? 1 : 0}&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                  title="Chapter Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  tabIndex={-1}
+                  className="absolute pointer-events-none border-0 select-none"
+                  style={{
+                    width: '135%',
+                    height: '135%',
+                    minWidth: '135%',
+                    minHeight: '135%',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'none',
+                  }}
+                />
+
+                {/* Seamless transparent overlay that intercepts taps/clicks to toggle play/pause with custom controls */}
+                <div
+                  className="absolute inset-0 z-10 cursor-pointer"
+                  onClick={() => setIsAutoPlay((prev) => !prev)}
+                  title={isAutoPlay ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
+                />
+              </div>
+            ) : !isMediaNotFound ? (
               <video
                 id="act-fullscreen-video"
                 ref={videoRef}
@@ -1995,30 +2225,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     audioRef.current.currentTime = e.currentTarget.currentTime;
                   }
                 }}
-                onEnded={() => {
-                  setIsVideoFinished(true);
-                  setActiveSubtitle('');
-                  if (audioRef.current) {
-                    audioRef.current.pause();
-                    audioRef.current.currentTime = 0;
-                  }
-                  if (currentStep === 'choice_act') {
-                    // After choice video finishes, display feedback if vtt exists, otherwise return to choices
-                    if (isAutoPlay) {
-                      setTimeout(() => {
-                        if (feedbackParagraphs.length > 0) {
-                          setCurrentStep('choice_feedback');
-                        } else {
-                          setCurrentStep('choices');
-                        }
-                      }, 1000);
-                    }
-                  } else if (isAutoPlay) {
-                    setTimeout(() => {
-                      goToNext();
-                    }, 3500);
-                  }
-                }}
+                onEnded={handleVideoEnded}
                 onError={handleVideoError}
                 className="w-[calc(100%+80px)] max-w-none -ml-[40px] -mr-[40px] h-full object-cover object-top sm:w-full sm:h-full sm:ml-0 sm:mr-0 sm:object-cover sm:object-center z-0"
               />

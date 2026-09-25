@@ -88,6 +88,14 @@ export interface Translations {
   atlantis_act2_choice2_subtitle: string;
   atlantis_act2_choice3_title: string;
   atlantis_act2_choice3_subtitle: string;
+
+  // Atlantis Chapter 3 Choices
+  atlantis_act3_choice1_title: string;
+  atlantis_act3_choice1_subtitle: string;
+  atlantis_act3_choice2_title: string;
+  atlantis_act3_choice2_subtitle: string;
+  atlantis_act3_choice3_title: string;
+  atlantis_act3_choice3_subtitle: string;
   readAloudEarnPoints: string;
 
   // Comments Drawer
@@ -249,6 +257,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     atlantis_act2_choice2_subtitle: 'Direct Confrontation',
     atlantis_act2_choice3_title: 'The Difficult Choice',
     atlantis_act2_choice3_subtitle: 'Calculated Sacrifice',
+    atlantis_act3_choice1_title: 'Shift the Ground',
+    atlantis_act3_choice1_subtitle: 'Make space for another way.',
+    atlantis_act3_choice2_title: 'Keep the Flow',
+    atlantis_act3_choice2_subtitle: 'Let the moment move forward.',
+    atlantis_act3_choice3_title: 'Draw the Line',
+    atlantis_act3_choice3_subtitle: 'Take a stand when it matters.',
     readAloudEarnPoints: 'Train articulation for {lang} and earn points. Drastically over-pronouncing every single syllable. Move your jaw, lips, and tongue with theatrical exaggeration. This builds muscle memory',
 
     commentsTitle: 'Comments',
@@ -404,6 +418,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     atlantis_act2_choice2_subtitle: 'Confrontación directa',
     atlantis_act2_choice3_title: 'La elección difícil',
     atlantis_act2_choice3_subtitle: 'Sacrificio calculado',
+    atlantis_act3_choice1_title: 'Cambiar el terreno',
+    atlantis_act3_choice1_subtitle: 'Hacer espacio para otro camino.',
+    atlantis_act3_choice2_title: 'Mantener el flujo',
+    atlantis_act3_choice2_subtitle: 'Dejar que el momento avance.',
+    atlantis_act3_choice3_title: 'Trazar la línea',
+    atlantis_act3_choice3_subtitle: 'Tomar una postura cuando importa.',
     readAloudEarnPoints: 'Entrena la articulación para {lang} y gana puntos. Exagera drásticamente la pronunciación de cada sílaba. Mueve la mandíbula, los labios y la lengua con exageración teatral. Esto crea memoria muscular',
 
     commentsTitle: 'Comentarios',
@@ -559,6 +579,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     atlantis_act2_choice2_subtitle: 'Confronto diretto',
     atlantis_act2_choice3_title: 'La scelta difficile',
     atlantis_act2_choice3_subtitle: 'Sacrificio calcolato',
+    atlantis_act3_choice1_title: 'Cambiare il terreno',
+    atlantis_act3_choice1_subtitle: "Fare spazio a un'altra via.",
+    atlantis_act3_choice2_title: 'Mantenere il flusso',
+    atlantis_act3_choice2_subtitle: 'Lasciare che il momento avanzi.',
+    atlantis_act3_choice3_title: 'Tracciare la linea',
+    atlantis_act3_choice3_subtitle: 'Prendere posizione quando conta.',
     readAloudEarnPoints: "Allena l'articolazione per {lang} e guadagna punti. Pronuncia drasticamente ogni singola sillaba in modo esagerato. Muovi la mandibola, le labbra e la lingua con esagerazione teatrale. Questo sviluppa la memoria muscolare",
 
     commentsTitle: 'Commenti',
@@ -714,6 +740,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     atlantis_act2_choice2_subtitle: 'Confronto direto',
     atlantis_act2_choice3_title: 'A escolha difícil',
     atlantis_act2_choice3_subtitle: 'Sacrifício calculado',
+    atlantis_act3_choice1_title: 'Mudar o terreno',
+    atlantis_act3_choice1_subtitle: 'Abrir espaço para outro caminho.',
+    atlantis_act3_choice2_title: 'Manter o fluxo',
+    atlantis_act3_choice2_subtitle: 'Deixar o momento avançar.',
+    atlantis_act3_choice3_title: 'Traçar a linha',
+    atlantis_act3_choice3_subtitle: 'Tomar uma posição quando importar.',
     readAloudEarnPoints: 'Treina a articulação para {lang} e ganha pontos. Exagera drasticamente a pronúncia de cada sílaba. Move o maxilar, os lábios e a língua com exagero teatral. Isto desenvolve a memória muscular',
 
     commentsTitle: 'Comentários',
@@ -869,6 +901,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     atlantis_act2_choice2_subtitle: 'Directe confrontatie',
     atlantis_act2_choice3_title: 'De moeilijke keuze',
     atlantis_act2_choice3_subtitle: 'Berekend offer',
+    atlantis_act3_choice1_title: 'Verplaats de grond',
+    atlantis_act3_choice1_subtitle: 'Maak ruimte voor een andere weg.',
+    atlantis_act3_choice2_title: 'Behoud de stroom',
+    atlantis_act3_choice2_subtitle: 'Laat het moment vooruitgaan.',
+    atlantis_act3_choice3_title: 'Trek de grens',
+    atlantis_act3_choice3_subtitle: 'Neem een standpunt in wanneer het ertoe doet.',
     readAloudEarnPoints: 'Train articulatie voor {lang} en verdien punten. Overdrijf de uitspraak van elke afzonderlijke lettergreep drastisch. Beweeg je kaak, lippen en tong met theatrale overdrijving. Dit bouwt spiergeheugen op',
 
     commentsTitle: 'Reacties',

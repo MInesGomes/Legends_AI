@@ -7,6 +7,7 @@ import {
   getActMp3Url,
   getActMp3CandidateUrls,
   getActVttCandidateUrls,
+  extractYouTubeVideoId,
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
@@ -299,6 +300,7 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const ytIframeRef = useRef<HTMLIFrameElement>(null);
 
   // Candidate video URLs for resilient playback
   const videoCandidates = useMemo(() => {
@@ -306,6 +308,20 @@ export const ActPage: React.FC<ActPageProps> = ({
   }, [currentAct.actData, currentAct.folderPath]);
 
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
+  const currentYouTubeId = useMemo(() => {
+    return extractYouTubeVideoId(currentVideoUrl);
+  }, [currentVideoUrl]);
+
+  const sendYtCommand = useCallback((func: string, args: any[] = []) => {
+    try {
+      if (ytIframeRef.current?.contentWindow) {
+        ytIframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func, args }),
+          '*'
+        );
+      }
+    } catch {}
+  }, []);
 
   // Candidate MP3 URLs and current active audio URL
   const audioCandidates = useMemo(() => {
@@ -513,6 +529,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   };
 
   const handleVideoError = () => {
+    if (currentYouTubeId) return;
     if (candidateVideoIdx + 1 < videoCandidates.length) {
       setCandidateVideoIdx((prev) => prev + 1);
     } else {
@@ -520,10 +537,38 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
   };
 
+  // Synchronize YouTube video autoplay, play/pause and mute/volume
+  useEffect(() => {
+    if (currentYouTubeId) {
+      if (isAutoPlay) {
+        sendYtCommand('playVideo');
+      } else {
+        sendYtCommand('pauseVideo');
+      }
+    }
+  }, [isAutoPlay, currentYouTubeId, sendYtCommand]);
+
+  useEffect(() => {
+    if (currentYouTubeId) {
+      if (isMuted) {
+        sendYtCommand('mute');
+      } else {
+        sendYtCommand('unMute');
+        sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
+      }
+    }
+  }, [isMuted, actAudioUrl, currentYouTubeId, sendYtCommand]);
+
+
   const handleReplay = () => {
     setIsVideoFinished(false);
     setActiveSubtitle('');
-    if (videoRef.current) {
+    if (currentYouTubeId) {
+      sendYtCommand('seekTo', [0, true]);
+      if (isAutoPlay) {
+        sendYtCommand('playVideo');
+      }
+    } else if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.pause();
     }
@@ -546,6 +591,10 @@ export const ActPage: React.FC<ActPageProps> = ({
   };
 
   const handleSkipMedia = () => {
+    if (currentYouTubeId) {
+      sendYtCommand('pauseVideo');
+      sendYtCommand('seekTo', [9999, true]);
+    }
     // 1. Pause and seek audio track to end
     if (audioRef.current) {
       audioRef.current.pause();
@@ -591,6 +640,73 @@ export const ActPage: React.FC<ActPageProps> = ({
       setCurrentIndex((prev) => prev - 1);
     }
   };
+
+  useEffect(() => {
+    if (!currentYouTubeId) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const raw = event.data;
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (!data) return;
+
+        if (
+          (data.event === 'onStateChange' && data.info === 0) ||
+          (data.event === 'infoDelivery' && data.info && data.info.playerState === 0)
+        ) {
+          setIsVideoFinished(true);
+          setActiveSubtitle('');
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+          }
+          if (isAutoPlay && currentIndex < actItems.length - 1) {
+            setTimeout(() => {
+              goToNext();
+            }, 3500);
+          }
+        } else if (
+          (data.event === 'onStateChange' && data.info === 1) ||
+          (data.event === 'infoDelivery' && data.info && data.info.playerState === 1)
+        ) {
+          if (audioRef.current && isAutoPlay && !isMuted) {
+            audioRef.current.play().catch(() => {});
+          }
+        } else if (
+          (data.event === 'onStateChange' && data.info === 2) ||
+          (data.event === 'infoDelivery' && data.info && data.info.playerState === 2)
+        ) {
+          if (audioRef.current) {
+            audioRef.current.pause();
+          }
+        } else if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
+          handleTimeUpdate(data.info.currentTime);
+          if (
+            audioRef.current &&
+            !audioRef.current.paused &&
+            Math.abs(audioRef.current.currentTime - data.info.currentTime) > 0.75
+          ) {
+            audioRef.current.currentTime = data.info.currentTime;
+          }
+        }
+      } catch {}
+    };
+
+    window.addEventListener('message', handleMessage);
+    const interval = setInterval(() => {
+      if (ytIframeRef.current?.contentWindow) {
+        ytIframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'listening' }),
+          '*'
+        );
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearInterval(interval);
+    };
+  }, [currentYouTubeId, isAutoPlay, isMuted, currentIndex, actItems.length, goToNext]);
 
   const isLastAct = currentIndex >= actItems.length - 1;
 
@@ -639,7 +755,43 @@ export const ActPage: React.FC<ActPageProps> = ({
         <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950">
           {/* Ambient backdrop poster */}
 
-          {!isMediaNotFound ? (
+          {currentYouTubeId ? (
+            <div
+              className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black select-none"
+              style={{ overflow: 'hidden' }}
+            >
+              {/* 
+                Cropped YouTube embed:
+                Scaled by 135% centered at 50%, completely hiding title bar, Watch on YouTube, and controls outside visible bounds.
+                pointer-events: none ensures YouTube never receives hover or tap events.
+              */}
+              <iframe
+                id="act-fullscreen-youtube"
+                ref={ytIframeRef}
+                key={`yt-${currentYouTubeId}`}
+                src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=${isAutoPlay ? 1 : 0}&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                title="Chapter Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                tabIndex={-1}
+                className="absolute pointer-events-none border-0 select-none"
+                style={{
+                  width: '135%',
+                  height: '135%',
+                  minWidth: '135%',
+                  minHeight: '135%',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                }}
+              />
+              <div
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={() => setIsAutoPlay(!isAutoPlay)}
+                title={isAutoPlay ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
+              />
+            </div>
+          ) : !isMediaNotFound ? (
             <video
               id="act-fullscreen-video"
               ref={videoRef}

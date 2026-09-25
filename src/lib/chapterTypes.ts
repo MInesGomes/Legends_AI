@@ -11,12 +11,14 @@ export interface ChapterChoiceConfig {
   titleKey?: keyof Translations;
   subtitleKey?: keyof Translations;
   imageUrl?: string;
+  videoUrl?: string;
 }
 
 export interface ChapterConfig {
   id: number; // 0..N
   hasGenderActs?: boolean; // Chapter 0 optional gender acts
   skill?: SkillType;
+  act0VideoUrl?: string;
   choices: ChapterChoiceConfig[];
 }
 

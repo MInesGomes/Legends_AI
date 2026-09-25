@@ -148,6 +148,77 @@ const FALLBACK_FEEDBACK_TEXTS: Record<string, Record<Language, string[]>> = {
       'Een moeilijk offer vraagt om onmiddellijke noodhulp en herstelplanning voor de getroffenen.'
     ],
   },
+  'atlantis-ch3-choice1': {
+    EN: [
+      'By shifting the ground, you created a win-win solution where opposing factions found common ground.',
+      'True Win4All leadership dismantles false dilemmas and opens new paths where everyone can thrive.',
+      'Atlantis flourishes when we build solutions that leave no one behind.'
+    ],
+    ES: [
+      'Al cambiar el terreno, creaste una solución beneficiosa para todos donde las partes opuestas encontraron puntos en común.',
+      'El verdadero liderazgo Win4All supera falsos dilemas y abre nuevos caminos para que todos prosperen.',
+      'Atlántida florece cuando construimos soluciones que no dejan a nadie atrás.'
+    ],
+    IT: [
+      'Cambiando il terreno, hai creato una soluzione vantaggiosa per tutti in cui le fazioni opposte hanno trovato un terreno comune.',
+      'La vera leadership Win4All supera i falsi dilemmi e apre nuove strade in cui tutti possono prosperare.',
+      'Atlantide prospera quando costruiamo soluzioni che non lasciano indietro nessuno.'
+    ],
+    PT: [
+      'Ao mudar o terreno, você criou uma solução ganha-ganha onde facções opostas encontraram pontos em comum.',
+      'A verdadeira liderança Win4All supera falsos dilemas e abre novos caminhos para que todos prosperem.',
+      'Atlântida floresce quando construímos soluções que não deixam ninguém para trás.'
+    ],
+    NL: [
+      'Door de grond te verplaatsen creëerde je een win-winoplossing waarin tegenovergestelde partijen elkaar vonden.',
+      'Echt Win4All-leiderschap doorbreekt valse dilemma\'s en opent nieuwe wegen waarin iedereen kan floreren.',
+      'Atlantis bloeit op wanneer we oplossingen bouwen die niemand achterlaten.'
+    ],
+  },
+  'atlantis-ch3-choice2': {
+    EN: [
+      'Letting the moment move forward avoided immediate friction, but unaddressed tensions remained beneath the surface.',
+      'Moving with the flow is helpful, but ensure all voices are actively reconciled before continuing.'
+    ],
+    ES: [
+      'Dejar que el momento avanzara evitó la fricción inmediata, pero las tensiones no resueltas permanecieron bajo la superficie.',
+      'Fluir con la situación ayuda, pero asegúrate de conciliar todas las voces antes de continuar.'
+    ],
+    IT: [
+      'Lasciare che il momento avanzasse ha evitato attriti immediati, ma le tensioni irrisolte sono rimaste sotto la superficie.',
+      'Seguire il flusso è utile, ma assicurati che tutte le voci siano riconciliate prima di continuare.'
+    ],
+    PT: [
+      'Deixar o momento avançar evitou o atrito imediato, mas tensões não resolvidas permaneceram sob a superfície.',
+      'Seguir o fluxo ajuda, mas certifique-se de conciliar todas as vozes antes de continuar.'
+    ],
+    NL: [
+      'Het moment vooruit laten gaan voorkwam directe frictie, maar onopgeloste spanningen bleven onder de oppervlakte.',
+      'Meebewegen helpt, maar zorg dat alle stemmen worden gehoord voordat je verdergaat.'
+    ],
+  },
+  'atlantis-ch3-choice3': {
+    EN: [
+      'Drawing the line established clear boundaries, but polarized the room and hardened defensive stances.',
+      'Firm boundaries have their place, but seeking a mutual win prevents unnecessary conflict.'
+    ],
+    ES: [
+      'Trazar la línea estableció límites claros, pero polarizó la sala y endureció las posturas defensivas.',
+      'Los límites firmes tienen su lugar, pero buscar una victoria mutua evita conflictos innecesarios.'
+    ],
+    IT: [
+      'Tracciare la linea ha stabilito confini chiari, ma ha polarizzato la stanza e indurito le posizioni difensive.',
+      'I limiti fermi hanno il loro ruolo, ma cercare una vittoria comune previene conflitti inutili.'
+    ],
+    PT: [
+      'Traçar a linha estabeleceu limites claros, mas polarizou a sala e endureceu posições defensivas.',
+      'Limites firmes têm seu lugar, mas buscar uma vitória mútua evita conflitos desnecessários.'
+    ],
+    NL: [
+      'De grens trekken gaf duidelijke grenzen, maar polariseerde de aanwezigen en verhardde standpunten.',
+      'Duidelijke grenzen zijn belangrijk, maar streven naar een gezamenlijke winst voorkomt onnodig conflict.'
+    ],
+  },
 };
 
 export function getFallbackChoiceFeedback(
