@@ -203,6 +203,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   const [currentIndex, setCurrentIndex] = useState<number>(initialIdx >= 0 ? initialIdx : 0);
   const [isMuted, setIsMuted] = useState(false);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
+  const [isYtPlaying, setIsYtPlaying] = useState<boolean>(false);
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
   const canAccessComments = isUserOver16(user);
 
@@ -539,10 +540,15 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   // Synchronize YouTube video autoplay, play/pause and mute/volume
   useEffect(() => {
+    setIsYtPlaying(false);
+  }, [currentYouTubeId]);
+
+  useEffect(() => {
     if (currentYouTubeId) {
       if (isAutoPlay) {
         sendYtCommand('playVideo');
       } else {
+        setIsYtPlaying(false);
         sendYtCommand('pauseVideo');
       }
     }
@@ -650,10 +656,25 @@ export const ActPage: React.FC<ActPageProps> = ({
         const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
         if (!data) return;
 
+        if (data.event === 'onReady') {
+          if (isAutoPlay) {
+            sendYtCommand('playVideo');
+          } else {
+            sendYtCommand('pauseVideo');
+          }
+          if (isMuted) {
+            sendYtCommand('mute');
+          } else {
+            sendYtCommand('unMute');
+            sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
+          }
+        }
+
         if (
           (data.event === 'onStateChange' && data.info === 0) ||
           (data.event === 'infoDelivery' && data.info && data.info.playerState === 0)
         ) {
+          setIsYtPlaying(false);
           setIsVideoFinished(true);
           setActiveSubtitle('');
           if (audioRef.current) {
@@ -669,13 +690,22 @@ export const ActPage: React.FC<ActPageProps> = ({
           (data.event === 'onStateChange' && data.info === 1) ||
           (data.event === 'infoDelivery' && data.info && data.info.playerState === 1)
         ) {
-          if (audioRef.current && isAutoPlay && !isMuted) {
-            audioRef.current.play().catch(() => {});
+          if (!isAutoPlay) {
+            setIsYtPlaying(false);
+            sendYtCommand('pauseVideo');
+          } else {
+            setIsYtPlaying(true);
+            if (audioRef.current && !isMuted) {
+              audioRef.current.play().catch(() => {});
+            }
           }
         } else if (
-          (data.event === 'onStateChange' && data.info === 2) ||
-          (data.event === 'infoDelivery' && data.info && data.info.playerState === 2)
+          (data.event === 'onStateChange' && (data.info === 2 || data.info === -1 || data.info === 5)) ||
+          (data.event === 'infoDelivery' &&
+            data.info &&
+            (data.info.playerState === 2 || data.info.playerState === -1 || data.info.playerState === 5))
         ) {
+          setIsYtPlaying(false);
           if (audioRef.current) {
             audioRef.current.pause();
           }
@@ -769,10 +799,29 @@ export const ActPage: React.FC<ActPageProps> = ({
                 id="act-fullscreen-youtube"
                 ref={ytIframeRef}
                 key={`yt-${currentYouTubeId}`}
-                src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=${isAutoPlay ? 1 : 0}&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
                 title="Chapter Video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 tabIndex={-1}
+                onLoad={() => {
+                  try {
+                    ytIframeRef.current?.contentWindow?.postMessage(
+                      JSON.stringify({ event: 'listening' }),
+                      '*'
+                    );
+                  } catch {}
+                  if (isAutoPlay) {
+                    sendYtCommand('playVideo');
+                  } else {
+                    sendYtCommand('pauseVideo');
+                  }
+                  if (isMuted) {
+                    sendYtCommand('mute');
+                  } else {
+                    sendYtCommand('unMute');
+                    sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
+                  }
+                }}
                 className="absolute pointer-events-none border-0 select-none"
                 style={{
                   width: '135%',
@@ -786,10 +835,26 @@ export const ActPage: React.FC<ActPageProps> = ({
                 }}
               />
               <div
-                className="absolute inset-0 z-10 cursor-pointer"
-                onClick={() => setIsAutoPlay(!isAutoPlay)}
+                className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsAutoPlay(!isAutoPlay);
+                }}
                 title={isAutoPlay ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
-              />
+              >
+                {(!isAutoPlay || !isYtPlaying) && (
+                  <div
+                    id="youtube-gold-pause-circle"
+                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_0_0_10px_rgba(0,0,0,0.85),0_0_35px_rgba(212,175,55,0.9),inset_0_2px_6px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+                  >
+                    {!isAutoPlay ? (
+                      <Play className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 ml-1 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                    ) : (
+                      <Pause className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           ) : !isMediaNotFound ? (
             <video
@@ -919,11 +984,11 @@ export const ActPage: React.FC<ActPageProps> = ({
             />
           )}
 
-          {/* Play / Pause Indicator Badge overlay when paused */}
-          {!isAutoPlay && !isMediaNotFound && (
+          {/* Play / Pause Indicator Badge overlay when paused (for non-YouTube videos) */}
+          {!isAutoPlay && !isMediaNotFound && !currentYouTubeId && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
-              <div className="p-4 sm:p-5 rounded-full bg-black/80 border-2 border-[#d4af37] text-[#d4af37] shadow-[0_0_30px_rgba(212,175,55,0.6)] transform hover:scale-110 transition-transform">
-                <Play className="w-8 h-8 sm:w-10 sm:h-10 text-[#d4af37] fill-[#d4af37] ml-1" />
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_0_0_10px_rgba(0,0,0,0.85),0_0_35px_rgba(212,175,55,0.9),inset_0_2px_6px_rgba(255,255,255,0.65)] flex items-center justify-center transform hover:scale-110 transition-transform">
+                <Play className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 ml-1 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
               </div>
             </div>
           )}

@@ -132,6 +132,7 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
     skill: 'Win4All',
+    act0VideoUrl: 'https://youtu.be/u0N4ocv0jlY',
     choices: [],
   },
   {
@@ -456,6 +457,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const ytCaptionTracksRef = useRef<any[]>([]);
 
   const sendYtCommand = useCallback((func: string, args: any[] = []) => {
     try {
@@ -468,8 +470,75 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     } catch {}
   }, []);
 
+  const syncYouTubeSubtitles = useCallback(
+    (langOverride?: Language) => {
+      if (!ytIframeRef.current?.contentWindow) return;
+      const activeLang = langOverride || selectedVttLang || 'EN';
+      const langCode = normalizeLangCode(activeLang);
+      const langName = LANGUAGE_FULL_NAMES[activeLang]?.EN || 'English';
+
+      sendYtCommand('loadModule', ['captions']);
+      sendYtCommand('loadModule', ['cc']);
+      sendYtCommand('toggleSubtitlesOn');
+
+      const captionPosition = { top: 0.15, right: 0.15, bottom: 0.18, left: 0.15 };
+
+      const knownTracks = ytCaptionTracksRef.current || [];
+      const exactTrack = knownTracks.find(
+        (t: any) =>
+          String(t?.languageCode || '').toLowerCase() === langCode ||
+          String(t?.languageCode || '').toLowerCase().startsWith(langCode)
+      );
+
+      if (exactTrack) {
+        const trackOpt = { languageCode: exactTrack.languageCode, position: captionPosition };
+        sendYtCommand('setOption', ['captions', 'track', trackOpt]);
+        sendYtCommand('setOption', ['cc', 'track', trackOpt]);
+      } else if (knownTracks.length > 0) {
+        const baseTrack =
+          knownTracks.find((t: any) => String(t?.languageCode || '').toLowerCase().startsWith('en')) ||
+          knownTracks[0];
+        const baseLangCode = baseTrack?.languageCode || 'en';
+        if (langCode === baseLangCode.toLowerCase()) {
+          const trackOpt = { languageCode: baseLangCode, position: captionPosition };
+          sendYtCommand('setOption', ['captions', 'track', trackOpt]);
+          sendYtCommand('setOption', ['cc', 'track', trackOpt]);
+        } else {
+          const translatedTrack = {
+            ...baseTrack,
+            languageCode: baseLangCode,
+            position: captionPosition,
+            translationLanguage: {
+              languageCode: langCode,
+              languageName: langName,
+            },
+          };
+          sendYtCommand('setOption', ['captions', 'track', translatedTrack]);
+          sendYtCommand('setOption', ['cc', 'track', translatedTrack]);
+        }
+      } else {
+        // Fallback before tracklist arrives: request target language or English-translated track
+        sendYtCommand('setOption', [
+          'captions',
+          'track',
+          langCode === 'en'
+            ? { languageCode: 'en', position: captionPosition }
+            : {
+                languageCode: 'en',
+                position: captionPosition,
+                translationLanguage: { languageCode: langCode, languageName: langName },
+              },
+        ]);
+        sendYtCommand('setOption', ['captions', 'track', { languageCode: langCode, position: captionPosition }]);
+        sendYtCommand('setOption', ['cc', 'track', { languageCode: langCode, position: captionPosition }]);
+      }
+    },
+    [selectedVttLang, sendYtCommand]
+  );
+
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
+  const [isYtPlaying, setIsYtPlaying] = useState<boolean>(false);
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
   const [isMediaNotFound, setIsMediaNotFound] = useState<boolean>(false);
   const [candidateVideoIdx, setCandidateVideoIdx] = useState<number>(0);
@@ -547,6 +616,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const isFeedbackMode = currentStep === 'choice_feedback';
   const isFeedbackReadAloud = currentStep === 'choice_feedback' && isCrawlFinished;
+  const isVideoStep = currentStep !== 'choices' && currentStep !== 'choice_feedback';
+  const isVideoPlaying = isVideoStep && isAutoPlay && !isVideoFinished && !isMediaNotFound;
 
   const currentChoiceConfig = useMemo(() => {
     return currentChapterConfig.choices?.find((c) => c.id === selectedChoiceId);
@@ -703,7 +774,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       return choiceCandidates;
     }
     const actCandidates = getActMp4CandidateUrls(currentActData, folderPath);
-    if (currentChapterConfig?.act0VideoUrl && (currentStep === 'act0' || currentActData.act === 'act0')) {
+    if (currentChapterConfig?.act0VideoUrl && (currentStep === 'act0' || currentActData.act === 'act0') && currentWorld !== 'ElDorado') {
       if (!actCandidates.includes(currentChapterConfig.act0VideoUrl)) {
         return [currentChapterConfig.act0VideoUrl, ...actCandidates];
       }
@@ -741,6 +812,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // "if a vtt file is not available for an act, play the mp3 and mp4 file and remove the language dropdown choice of that specific language. e.g if act0_en.vtt is not available remove the English in the dropdown button"
   useEffect(() => {
     if (currentStep === 'choices' || currentStep === 'choice_feedback') return;
+
+    // For Chapter 0 - Act 0 using YouTube subtitles, all languages are supported via YouTube captions
+    if (currentChapterNumber === 0 && (currentStep === 'act0' || currentActData.act === 'act0') && currentYouTubeId) {
+      setAvailableVttLangs(ALL_SUPPORTED_LANGUAGES);
+      setIsCheckingVttLangs(false);
+      return;
+    }
 
     let isMounted = true;
     setIsCheckingVttLangs(true);
@@ -809,6 +887,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     setCandidateAudioIdx(0);
     setIsMediaNotFound(false);
     setIsVideoFinished(false);
+    setIsAutoPlay(true);
+    setIsYtPlaying(false);
     setActiveSubtitle('');
     setIsCrawlFinished(false);
     setReadTranscript('');
@@ -1110,16 +1190,34 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   };
 
-  // Synchronize YouTube video autoplay, play/pause and mute/volume
+  // Synchronize YouTube video autoplay, play/pause, mute/volume, and subtitles
+  useEffect(() => {
+    setIsYtPlaying(false);
+    ytCaptionTracksRef.current = [];
+  }, [currentYouTubeId]);
+
+  useEffect(() => {
+    if (currentYouTubeId) {
+      syncYouTubeSubtitles(selectedVttLang);
+    }
+  }, [selectedVttLang, currentYouTubeId, syncYouTubeSubtitles]);
+
   useEffect(() => {
     if (currentYouTubeId) {
       if (isAutoPlay) {
         sendYtCommand('playVideo');
+        if (audioRef.current && !isMuted && currentAudioUrl) {
+          audioRef.current.play().catch(() => {});
+        }
       } else {
+        setIsYtPlaying(false);
         sendYtCommand('pauseVideo');
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
       }
     }
-  }, [isAutoPlay, currentYouTubeId, sendYtCommand]);
+  }, [isAutoPlay, currentYouTubeId, isMuted, currentAudioUrl, sendYtCommand]);
 
   useEffect(() => {
     if (currentYouTubeId) {
@@ -1137,18 +1235,17 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const handleReplay = () => {
     setIsVideoFinished(false);
     setIsCrawlFinished(false);
+    setIsAutoPlay(true);
     if (currentYouTubeId) {
       sendYtCommand('seekTo', [0, true]);
-      if (isAutoPlay) {
-        sendYtCommand('playVideo');
-      }
+      sendYtCommand('playVideo');
     } else if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});
     }
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      if (isAutoPlay && currentAudioUrl) {
+      if (currentAudioUrl && !isMuted) {
         audioRef.current.play().catch(() => {});
       } else {
         audioRef.current.pause();
@@ -1341,22 +1438,65 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
         if (!data) return;
 
+        if (data.event === 'onReady' || data.event === 'initialDelivery') {
+          if (isAutoPlay) {
+            sendYtCommand('playVideo');
+          } else {
+            sendYtCommand('pauseVideo');
+          }
+          if (isMuted) {
+            sendYtCommand('mute');
+          } else {
+            sendYtCommand('unMute');
+            sendYtCommand('setVolume', [currentAudioUrl ? 25 : 100]);
+          }
+          syncYouTubeSubtitles();
+        }
+
+        if (data.event === 'apiInfoDelivery' && data.info?.captions?.tracklist) {
+          const tracklist = data.info.captions.tracklist;
+          if (Array.isArray(tracklist) && tracklist.length > 0) {
+            ytCaptionTracksRef.current = tracklist;
+            syncYouTubeSubtitles();
+          }
+        }
+
+        if (data.info?.captionTracks && Array.isArray(data.info.captionTracks) && data.info.captionTracks.length > 0) {
+          ytCaptionTracksRef.current = data.info.captionTracks;
+          syncYouTubeSubtitles();
+        }
+
         if (
           (data.event === 'onStateChange' && data.info === 0) ||
           (data.event === 'infoDelivery' && data.info && data.info.playerState === 0)
         ) {
+          setIsYtPlaying(false);
           handleVideoEnded();
         } else if (
           (data.event === 'onStateChange' && data.info === 1) ||
           (data.event === 'infoDelivery' && data.info && data.info.playerState === 1)
         ) {
-          if (audioRef.current && isAutoPlay && !isMuted) {
-            audioRef.current.play().catch(() => {});
+          if (!isAutoPlay) {
+            setIsYtPlaying(false);
+            sendYtCommand('pauseVideo');
+          } else {
+            setIsYtPlaying((prev) => {
+              if (!prev) {
+                syncYouTubeSubtitles();
+              }
+              return true;
+            });
+            if (audioRef.current && !isMuted) {
+              audioRef.current.play().catch(() => {});
+            }
           }
         } else if (
-          (data.event === 'onStateChange' && data.info === 2) ||
-          (data.event === 'infoDelivery' && data.info && data.info.playerState === 2)
+          (data.event === 'onStateChange' && (data.info === 2 || data.info === -1 || data.info === 5)) ||
+          (data.event === 'infoDelivery' &&
+            data.info &&
+            (data.info.playerState === 2 || data.info.playerState === -1 || data.info.playerState === 5))
         ) {
+          setIsYtPlaying(false);
           if (audioRef.current) {
             audioRef.current.pause();
           }
@@ -1523,107 +1663,109 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         darkMode ? 'bg-black text-slate-100' : 'bg-[#fcfbf9] text-stone-900'
       }`}
     >
-      {/* 1. TOP HEADER OVERLAY: Completely transparent background, cinematic buttons */}
-      <div className="absolute top-0 left-0 right-0 z-30 w-full px-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex items-center justify-between pointer-events-auto bg-transparent">
-        {/* Left: Close Button & Story Plaque */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            id="act-close-button"
-            onClick={onClose}
-            className={`p-1.5 sm:p-2 transition-all hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
-              darkMode
-                ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
-                : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-            }`}
-            title={t('closeAct', currentLang)}
-            aria-label={t('closeAct', currentLang)}
-          >
-            <CloseIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
-          </button>
-
-          {/* Quick Chapter Selector Pills */}
-          <div className="flex items-center gap-1.5 ml-1">
-            {chapterConfigs.map((cfg) => (
-              <button
-                key={`ch-pill-${cfg.id}`}
-                onClick={() => {
-                  setCurrentChapterNumber(cfg.id);
-                  setCurrentStep('act0');
-                  setIsVideoFinished(false);
-                  setIsReadingAloud(false);
-                  setIsCrawlFinished(false);
-                }}
-                className={`px-2 py-0.5 text-[10px] sm:text-xs font-mono font-bold rounded-md transition-all cursor-pointer ${
-                  currentChapterNumber === cfg.id
-                    ? 'bg-[#d4af37] text-slate-950 shadow-sm ring-1 ring-[#ffe81f]'
-                    : 'bg-black/50 text-amber-200/80 hover:text-white border border-[#d4af37]/40 hover:border-[#ffe81f]'
-                }`}
-                title={`Chapter ${cfg.id}${cfg.skill ? ` (${cfg.skill})` : ''}`}
-                aria-label={`Jump to Chapter ${cfg.id}`}
-              >
-                Ch {cfg.id}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Audio / Voice & Sound Controls */}
-        {!isFeedbackMode && (
+      {/* 1. TOP HEADER OVERLAY: Completely transparent background, cinematic buttons (hidden while video is playing) */}
+      {!isVideoPlaying && (
+        <div className="absolute top-0 left-0 right-0 z-30 w-full px-3 sm:px-6 pt-3 sm:pt-4 pb-2 flex items-center justify-between pointer-events-auto bg-transparent">
+          {/* Left: Close Button & Story Plaque */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Autoplay Toggle */}
             <button
-              id="act-autoplay-toggle"
-              onClick={() => setIsAutoPlay(!isAutoPlay)}
-              className={`px-2 py-1 text-[11px] sm:text-xs font-bold font-mono tracking-widest transition-all cursor-pointer bg-transparent border-0 rounded-none ${
-                darkMode
-                  ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
-                  : 'drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-              } ${
-                isAutoPlay
-                  ? darkMode
-                    ? 'text-[#ffe81f] font-black underline decoration-[#d4af37] decoration-2 underline-offset-4'
-                    : 'text-amber-800 font-black underline decoration-amber-600 decoration-2 underline-offset-4'
-                  : darkMode
-                  ? 'text-amber-200/75 hover:text-amber-200'
-                  : 'text-amber-800/75 hover:text-amber-950'
-              }`}
-              title="Toggle Auto Advance"
-            >
-              AUTO
-            </button>
-
-            {/* Sound Toggle */}
-            <button
-              id="act-sound-toggle"
-              onClick={() => setIsMuted(!isMuted)}
+              id="act-close-button"
+              onClick={onClose}
               className={`p-1.5 sm:p-2 transition-all hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
                 darkMode
                   ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
                   : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
               }`}
-              title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-              aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+              title={t('closeAct', currentLang)}
+              aria-label={t('closeAct', currentLang)}
             >
-              {isMuted ? (
-                <VolumeX className={`w-5 h-5 sm:w-6 sm:h-6 ${darkMode ? 'text-slate-400 hover:text-white' : 'text-stone-400 hover:text-stone-700'} transition-colors`} />
-              ) : (
-                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
-              )}
+              <CloseIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
             </button>
 
-            {/* Audio Voice MP3 Language Selector */}
-            <FlagLanguageDropdown
-              id="act-top-mp3-selector"
-              type="mp3"
-              selectedLang={selectedAudioLang}
-              onSelectLang={handleAudioLanguageSelected}
-              darkMode={darkMode}
-              cinematic={true}
-              tooltip="Voice Audio (MP3)"
-            />
+            {/* Quick Chapter Selector Pills */}
+            <div className="flex items-center gap-1.5 ml-1">
+              {chapterConfigs.map((cfg) => (
+                <button
+                  key={`ch-pill-${cfg.id}`}
+                  onClick={() => {
+                    setCurrentChapterNumber(cfg.id);
+                    setCurrentStep('act0');
+                    setIsVideoFinished(false);
+                    setIsReadingAloud(false);
+                    setIsCrawlFinished(false);
+                  }}
+                  className={`px-2 py-0.5 text-[10px] sm:text-xs font-mono font-bold rounded-md transition-all cursor-pointer ${
+                    currentChapterNumber === cfg.id
+                      ? 'bg-[#d4af37] text-slate-950 shadow-sm ring-1 ring-[#ffe81f]'
+                      : 'bg-black/50 text-amber-200/80 hover:text-white border border-[#d4af37]/40 hover:border-[#ffe81f]'
+                  }`}
+                  title={`Chapter ${cfg.id}${cfg.skill ? ` (${cfg.skill})` : ''}`}
+                  aria-label={`Jump to Chapter ${cfg.id}`}
+                >
+                  Ch {cfg.id}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* Right: Audio / Voice & Sound Controls */}
+          {!isFeedbackMode && (
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Autoplay Toggle */}
+              <button
+                id="act-autoplay-toggle"
+                onClick={() => setIsAutoPlay(!isAutoPlay)}
+                className={`px-2 py-1 text-[11px] sm:text-xs font-bold font-mono tracking-widest transition-all cursor-pointer bg-transparent border-0 rounded-none ${
+                  darkMode
+                    ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
+                    : 'drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+                } ${
+                  isAutoPlay
+                    ? darkMode
+                      ? 'text-[#ffe81f] font-black underline decoration-[#d4af37] decoration-2 underline-offset-4'
+                      : 'text-amber-800 font-black underline decoration-amber-600 decoration-2 underline-offset-4'
+                    : darkMode
+                    ? 'text-amber-200/75 hover:text-amber-200'
+                    : 'text-amber-800/75 hover:text-amber-950'
+                }`}
+                title="Toggle Auto Advance"
+              >
+                AUTO
+              </button>
+
+              {/* Sound Toggle */}
+              <button
+                id="act-sound-toggle"
+                onClick={() => setIsMuted(!isMuted)}
+                className={`p-1.5 sm:p-2 transition-all hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                  darkMode
+                    ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                    : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+                }`}
+                title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+                aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+              >
+                {isMuted ? (
+                  <VolumeX className={`w-5 h-5 sm:w-6 sm:h-6 ${darkMode ? 'text-slate-400 hover:text-white' : 'text-stone-400 hover:text-stone-700'} transition-colors`} />
+                ) : (
+                  <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
+                )}
+              </button>
+
+              {/* Audio Voice MP3 Language Selector */}
+              <FlagLanguageDropdown
+                id="act-top-mp3-selector"
+                type="mp3"
+                selectedLang={selectedAudioLang}
+                onSelectLang={handleAudioLanguageSelected}
+                darkMode={darkMode}
+                cinematic={true}
+                tooltip="Voice Audio (MP3)"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 2. MAIN VIEWPORT AREA: Full Screen Edge-to-Edge */}
       <div
@@ -2173,10 +2315,30 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   id="act-fullscreen-youtube"
                   ref={ytIframeRef}
                   key={`yt-${currentYouTubeId}`}
-                  src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=${isAutoPlay ? 1 : 0}&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                  src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=1&cc_lang_pref=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&hl=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
                   title="Chapter Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   tabIndex={-1}
+                  onLoad={() => {
+                    try {
+                      ytIframeRef.current?.contentWindow?.postMessage(
+                        JSON.stringify({ event: 'listening' }),
+                        '*'
+                      );
+                    } catch {}
+                    if (isAutoPlay) {
+                      sendYtCommand('playVideo');
+                    } else {
+                      sendYtCommand('pauseVideo');
+                    }
+                    if (isMuted) {
+                      sendYtCommand('mute');
+                    } else {
+                      sendYtCommand('unMute');
+                      sendYtCommand('setVolume', [currentAudioUrl ? 25 : 100]);
+                    }
+                    syncYouTubeSubtitles();
+                  }}
                   className="absolute pointer-events-none border-0 select-none"
                   style={{
                     width: '135%',
@@ -2190,12 +2352,24 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   }}
                 />
 
-                {/* Seamless transparent overlay that intercepts taps/clicks to toggle play/pause with custom controls */}
+                {/* Seamless overlay that intercepts taps/clicks to toggle play/pause and renders a Gold Circle button when paused */}
                 <div
-                  className="absolute inset-0 z-10 cursor-pointer"
+                  className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
                   onClick={() => setIsAutoPlay((prev) => !prev)}
-                  title={isAutoPlay ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
-                />
+                >
+                  {!isVideoPlaying && (
+                    <div
+                      id="youtube-gold-pause-circle"
+                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_0_0_10px_rgba(0,0,0,0.85),0_0_35px_rgba(212,175,55,0.9),inset_0_2px_6px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+                    >
+                      {!isAutoPlay ? (
+                        <Play className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 ml-1 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                      ) : (
+                        <Pause className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : !isMediaNotFound ? (
               <video
@@ -2206,6 +2380,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 playsInline
                 crossOrigin="anonymous"
                 preload="auto"
+                onClick={() => setIsAutoPlay((prev) => !prev)}
                 onTimeUpdate={(e) => handleTimeUpdate(e.currentTarget.currentTime)}
                 onPlay={() => {
                   if (audioRef.current && isAutoPlay && !isMuted) {
@@ -2227,7 +2402,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 }}
                 onEnded={handleVideoEnded}
                 onError={handleVideoError}
-                className="w-[calc(100%+80px)] max-w-none -ml-[40px] -mr-[40px] h-full object-cover object-top sm:w-full sm:h-full sm:ml-0 sm:mr-0 sm:object-cover sm:object-center z-0"
+                className="w-[calc(100%+80px)] max-w-none -ml-[40px] -mr-[40px] h-full object-cover object-top sm:w-full sm:h-full sm:ml-0 sm:mr-0 sm:object-cover sm:object-center z-0 cursor-pointer"
               />
             ) : (
               <div className="flex flex-col items-center justify-center gap-3 p-6 text-center z-10">
@@ -2298,8 +2473,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         )}
       </div>
 
-      {/* 3. CENTER LEFT: PREVIOUS `<` BUTTON (Cinematic floating chevron, no round circle) */}
-      {!isFeedbackMode && (
+      {/* 3. CENTER LEFT: PREVIOUS `<` BUTTON (Cinematic floating chevron, no round circle, hidden while video is playing) */}
+      {!isFeedbackMode && !isVideoPlaying && (
         <button
           id="act-prev-button"
           onClick={goToPrev}
@@ -2315,8 +2490,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         </button>
       )}
 
-      {/* 4. CENTER RIGHT: NEXT `>` BUTTON (Cinematic floating chevron, no round circle) - hidden on choices board */}
-      {!isFeedbackMode && currentStep !== 'choices' && (
+      {/* 4. CENTER RIGHT: NEXT `>` BUTTON (Cinematic floating chevron, no round circle, hidden on choices board and while video is playing) */}
+      {!isFeedbackMode && currentStep !== 'choices' && !isVideoPlaying && (
         <button
           id="act-next-button"
           onClick={goToNext}
@@ -2332,8 +2507,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         </button>
       )}
 
-      {/* 5. BOTTOM AREA: Always visible throughout the act, transparent background, no skip button, no text on buttons, no round circles */}
-      {!isFeedbackMode && (
+      {/* 5. BOTTOM AREA: Hidden while video is playing, visible when paused or finished */}
+      {!isFeedbackMode && !isVideoPlaying && (
         <div
           id="act-bottom-controls-bar"
           key={`bottom-bar-${currentChapterNumber}-${currentStep}-${selectedChoiceId}`}

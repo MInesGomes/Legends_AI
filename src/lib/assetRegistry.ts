@@ -192,6 +192,11 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
     candidates.push(act.videoUrl);
   }
 
+  // Atlantis Chapter 0 act0 video source
+  if (act.chapter === 0 && (actName === 'act0' || !act.act) && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
+    candidates.push('https://youtu.be/u0N4ocv0jlY');
+  }
+
   // Atlantis Chapter 3 acts video sources
   if (act.chapter === 3 && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
     if (actName === 'act0' || !act.act) {
@@ -244,6 +249,16 @@ export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN',
   const langCode = normalizeLangCode(lang);
   const isElDorado = folder.toLowerCase().includes('eldorado');
 
+  // For Atlantis Chapter 0 - Act 0, load subtitles from YouTube instead of Supabase
+  if (
+    act.chapter === 0 &&
+    (actName === 'act0' || !act.act) &&
+    (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)
+  ) {
+    const ytId = extractYouTubeVideoId(act.videoUrl) || 'u0N4ocv0jlY';
+    return [`/api/youtube/vtt?videoId=${encodeURIComponent(ytId)}&lang=${encodeURIComponent(langCode)}`];
+  }
+
   const candidates: string[] = [];
   if (isElDorado) {
     candidates.push(
@@ -276,6 +291,7 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
     act: 'act0',
     title: 'The Heart of Atlantis',
     type: 'narrative',
+    videoUrl: 'https://youtu.be/u0N4ocv0jlY',
   },
   {
     chapter: 0,
