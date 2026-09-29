@@ -227,34 +227,18 @@ async function startServer() {
     res.json({ allowed: remaining > 0, remaining, limit: 10 });
   });
 
-  // Locale variants per app language. YouTube stores dubbed/captioned tracks under
-  // regional codes (pt-BR, es-US), so we try those before the bare language code.
-  const YT_LANG_VARIANTS: Record<string, string[]> = {
-    pt: ['pt-BR', 'pt', 'pt-PT'],
-    es: ['es-US', 'es-419', 'es', 'es-ES'],
-    sp: ['es-US', 'es-419', 'es', 'es-ES'],
-    nl: ['nl', 'nl-NL'],
-    it: ['it', 'it-IT'],
-    en: ['en', 'en-US', 'en-GB'],
-  };
-  const YT_UA =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
-
   // Fetch VTT subtitles from YouTube for a given videoId and language code
   app.get('/api/youtube/vtt', async (req, res) => {
-    const videoId = String(req.query.videoId || '-B_vlZaUDDc').trim();
+    const videoId = String(req.query.videoId || 'u0N4ocv0jlY').trim();
     const lang = String(req.query.lang || 'en').trim().toLowerCase();
-    const langVariants = YT_LANG_VARIANTS[lang] || YT_LANG_VARIANTS.en;
 
     res.setHeader('Content-Type', 'text/vtt; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=300');
 
     // 1. Try YouTube timedtext endpoints directly
     const timedTextUrls = [
-      ...langVariants.flatMap((lv) => [
-        `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lv)}&fmt=vtt`,
-        `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lv)}&kind=asr&fmt=vtt`,
-      ]),
+      `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lang)}&fmt=vtt`,
+      `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lang)}&kind=asr&fmt=vtt`,
       ...(lang !== 'en'
         ? [
             `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&lang=en&tlang=${encodeURIComponent(lang)}&fmt=vtt`,
@@ -265,7 +249,12 @@ async function startServer() {
 
     for (const ttUrl of timedTextUrls) {
       try {
-        const ttRes = await fetch(ttUrl, { headers: { 'User-Agent': YT_UA } });
+        const ttRes = await fetch(ttUrl, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          },
+        });
         if (ttRes.ok) {
           const text = await ttRes.text();
           if (text && text.includes('WEBVTT') && text.includes('-->')) {
@@ -310,12 +299,9 @@ async function startServer() {
           const tracks: any[] =
             data?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
           if (tracks.length > 0) {
-            const codeOf = (t: any) => String(t.languageCode || '').toLowerCase();
             const exactTrack =
-              langVariants
-                .map((lv) => tracks.find((t) => codeOf(t) === lv.toLowerCase()))
-                .find(Boolean) ||
-              tracks.find((t) => codeOf(t).startsWith(lang)) ||
+              tracks.find((t) => String(t.languageCode || '').toLowerCase() === lang) ||
+              tracks.find((t) => String(t.languageCode || '').toLowerCase().startsWith(lang)) ||
               tracks.find((t) => String(t.languageCode || '').toLowerCase().startsWith('en')) ||
               tracks[0];
 
@@ -342,6 +328,13 @@ async function startServer() {
 
     // Return valid WebVTT header so language availability check succeeds while client YouTube IFrame Player renders native CC
     return res.status(200).send('WEBVTT\n\nNOTE Subtitles loaded via YouTube IFrame Player\n');
+  });
+
+  // Media asset fallback route: redirect any local or relative audio requests for act0 to the public Supabase asset
+  app.get('*act0_:lang.mp3', (req, res) => {
+    const lang = (req.params.lang || 'en').toLowerCase();
+    const url = `https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter0/act0/act0_${lang}.mp3`;
+    res.redirect(302, url);
   });
 
   // Vite middleware for dev
