@@ -61,6 +61,13 @@ export const CHAPTER_3_MEDIA_URLS = {
   choice3: 'https://youtu.be/TP1-nip4GiM',
 };
 
+const CHAPTER_3_YT_IDS: Record<string, string> = {
+  act0: '-64kwqW5q6k',
+  choice1: '7DEPbiuRvuU',
+  choice2: 'B4bsJHLc7V0',
+  choice3: 'TP1-nip4GiM',
+};
+
 /**
  * Extracts YouTube video ID from various YouTube URL formats or raw ID.
  */
@@ -76,6 +83,45 @@ export function extractYouTubeVideoId(url?: string | null): string | null {
     return trimmed;
   }
   return null;
+}
+
+/**
+ * YouTube-hosted media
+ * --------------------
+ * For videos published on YouTube we no longer use Supabase mp3/vtt files:
+ *  - VOICE: the dubbed audio track of the YouTube video itself (selected via the
+ *    embed's `hl` locale, see getYouTubeAudioLangCode). There is no separate mp3.
+ *  - SUBTITLES: served by our own /api/youtube/vtt proxy (server.ts), which reads
+ *    the video's caption tracks and returns WebVTT.
+ */
+
+// Locale of the dubbed audio track per app language (pt-BR, es-US, it, nl, en).
+const YT_AUDIO_LOCALES: Record<string, string> = {
+  en: 'en',
+  es: 'es-US',
+  it: 'it',
+  pt: 'pt-BR',
+  nl: 'nl',
+};
+
+export function getYouTubeAudioLangCode(lang: Language | string = 'EN'): string {
+  return YT_AUDIO_LOCALES[normalizeLangCode(lang)] || 'en';
+}
+
+/** Videos that carry their own multi-language audio tracks on YouTube. */
+export const YT_MULTI_AUDIO_VIDEO_IDS: ReadonlySet<string> = new Set<string>([
+  '-B_vlZaUDDc', // Chapter 0 - act0
+]);
+
+export function hasYouTubeNativeAudio(videoIdOrUrl?: string | null): boolean {
+  const id = extractYouTubeVideoId(videoIdOrUrl);
+  return !!id && YT_MULTI_AUDIO_VIDEO_IDS.has(id);
+}
+
+/** Subtitle endpoint (served by server.ts) for any YouTube video. */
+export function getYouTubeVttUrl(videoIdOrUrl: string, lang: Language | string = 'EN'): string {
+  const id = extractYouTubeVideoId(videoIdOrUrl) || videoIdOrUrl;
+  return `/api/youtube/vtt?videoId=${encodeURIComponent(id)}&lang=${encodeURIComponent(normalizeLangCode(lang))}`;
 }
 
 export function resolveAssetUrl(url?: string | null, fallback: string = realmAtlantisJpg): string {
@@ -121,6 +167,10 @@ export function getActMp3Url(act: Act, lang: Language | string = 'EN', customFol
  * Candidate MP3 URLs for act voiceover resilience.
  */
 export function getActMp3CandidateUrls(act: Act, lang: Language | string = 'EN', customFolder?: string): string[] {
+  // Voice-over comes from the YouTube video's own dubbed audio track, not an mp3.
+  if (hasYouTubeNativeAudio(act.videoUrl) || (act.chapter === 0 && (act.act === 'act0' || !act.act) && !(customFolder || '').toLowerCase().includes('eldorado'))) {
+    return [];
+  }
   const folder = (customFolder || ATLANTIS_5CRYSTALS_FOLDER_PATH).replace(/\/+$/, '');
   const chapterFolder = `${folder}${act.chapter}`;
   const actName = (act.act || 'act0').replace(/^\/+|\/+$/g, '');
@@ -194,7 +244,7 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
 
   // Atlantis Chapter 0 act0 video source
   if (act.chapter === 0 && (actName === 'act0' || !act.act) && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
-    candidates.push('https://youtu.be/u0N4ocv0jlY');
+    candidates.push('https://youtu.be/-B_vlZaUDDc');
   }
 
   // Atlantis Chapter 3 acts video sources
@@ -255,8 +305,14 @@ export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN',
     (actName === 'act0' || !act.act) &&
     (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)
   ) {
-    const ytId = extractYouTubeVideoId(act.videoUrl) || 'u0N4ocv0jlY';
-    return [`/api/youtube/vtt?videoId=${encodeURIComponent(ytId)}&lang=${encodeURIComponent(langCode)}`];
+    const ytId = extractYouTubeVideoId(act.videoUrl) || '-B_vlZaUDDc';
+    return [getYouTubeVttUrl(ytId, langCode)];
+  }
+
+  // Chapter 3 (Atlantis) acts are YouTube videos: subtitles come from YouTube too
+  if (act.chapter === 3 && !isElDorado) {
+    const ytId = extractYouTubeVideoId(act.videoUrl) || CHAPTER_3_YT_IDS[actName];
+    if (ytId) return [getYouTubeVttUrl(ytId, langCode)];
   }
 
   const candidates: string[] = [];
@@ -291,7 +347,7 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
     act: 'act0',
     title: 'The Heart of Atlantis',
     type: 'narrative',
-    videoUrl: 'https://youtu.be/u0N4ocv0jlY',
+    videoUrl: 'https://youtu.be/-B_vlZaUDDc',
   },
   {
     chapter: 0,
@@ -537,6 +593,10 @@ export function getChoiceVttCandidateUrls(
   const langCode = normalizeLangCode(lang);
   const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
   const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
+
+  if (chapterNumber === 3 && world.toLowerCase().includes('atlantis') && CHAPTER_3_YT_IDS[cName]) {
+    return [getYouTubeVttUrl(CHAPTER_3_YT_IDS[cName], langCode)];
+  }
 
   return Array.from(
     new Set([

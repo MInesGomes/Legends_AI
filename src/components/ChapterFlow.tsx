@@ -29,6 +29,7 @@ import {
   getChoiceVttCandidateUrls,
   getChoiceFeedbackVttCandidateUrls,
   normalizeLangCode,
+  hasYouTubeNativeAudio,
   realmAtlantisJpg,
   extractYouTubeVideoId,
 } from '../lib/assetRegistry';
@@ -132,7 +133,7 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
     skill: 'Win4All',
-    act0VideoUrl: 'https://youtu.be/u0N4ocv0jlY',
+    act0VideoUrl: 'https://youtu.be/-B_vlZaUDDc',
     choices: [],
   },
   {
@@ -470,70 +471,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     } catch {}
   }, []);
 
+
+  // Subtitles are rendered from /api/youtube/vtt; keep YouTube's own CC off.
   const syncYouTubeSubtitles = useCallback(
     (langOverride?: Language) => {
-      if (!ytIframeRef.current?.contentWindow) return;
-      const activeLang = langOverride || selectedVttLang || 'EN';
-      const langCode = normalizeLangCode(activeLang);
-      const langName = LANGUAGE_FULL_NAMES[activeLang]?.EN || 'English';
-
-      sendYtCommand('loadModule', ['captions']);
-      sendYtCommand('loadModule', ['cc']);
-      sendYtCommand('toggleSubtitlesOn');
-
-      const captionPosition = { top: 0.15, right: 0.15, bottom: 0.18, left: 0.15 };
-
-      const knownTracks = ytCaptionTracksRef.current || [];
-      const exactTrack = knownTracks.find(
-        (t: any) =>
-          String(t?.languageCode || '').toLowerCase() === langCode ||
-          String(t?.languageCode || '').toLowerCase().startsWith(langCode)
-      );
-
-      if (exactTrack) {
-        const trackOpt = { languageCode: exactTrack.languageCode, position: captionPosition };
-        sendYtCommand('setOption', ['captions', 'track', trackOpt]);
-        sendYtCommand('setOption', ['cc', 'track', trackOpt]);
-      } else if (knownTracks.length > 0) {
-        const baseTrack =
-          knownTracks.find((t: any) => String(t?.languageCode || '').toLowerCase().startsWith('en')) ||
-          knownTracks[0];
-        const baseLangCode = baseTrack?.languageCode || 'en';
-        if (langCode === baseLangCode.toLowerCase()) {
-          const trackOpt = { languageCode: baseLangCode, position: captionPosition };
-          sendYtCommand('setOption', ['captions', 'track', trackOpt]);
-          sendYtCommand('setOption', ['cc', 'track', trackOpt]);
-        } else {
-          const translatedTrack = {
-            ...baseTrack,
-            languageCode: baseLangCode,
-            position: captionPosition,
-            translationLanguage: {
-              languageCode: langCode,
-              languageName: langName,
-            },
-          };
-          sendYtCommand('setOption', ['captions', 'track', translatedTrack]);
-          sendYtCommand('setOption', ['cc', 'track', translatedTrack]);
-        }
-      } else {
-        // Fallback before tracklist arrives: request target language or English-translated track
-        sendYtCommand('setOption', [
-          'captions',
-          'track',
-          langCode === 'en'
-            ? { languageCode: 'en', position: captionPosition }
-            : {
-                languageCode: 'en',
-                position: captionPosition,
-                translationLanguage: { languageCode: langCode, languageName: langName },
-              },
-        ]);
-        sendYtCommand('setOption', ['captions', 'track', { languageCode: langCode, position: captionPosition }]);
-        sendYtCommand('setOption', ['cc', 'track', { languageCode: langCode, position: captionPosition }]);
-      }
+      sendYtCommand('unloadModule', ['captions']);
+      sendYtCommand('unloadModule', ['cc']);
     },
-    [selectedVttLang, sendYtCommand]
+    [ sendYtCommand]
   );
 
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -617,7 +562,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const isFeedbackMode = currentStep === 'choice_feedback';
   const isFeedbackReadAloud = currentStep === 'choice_feedback' && isCrawlFinished;
   const isVideoStep = currentStep !== 'choices' && currentStep !== 'choice_feedback';
-  const isVideoPlaying = isVideoStep && isAutoPlay && !isVideoFinished && !isMediaNotFound;
 
   const currentChoiceConfig = useMemo(() => {
     return currentChapterConfig.choices?.find((c) => c.id === selectedChoiceId);
@@ -709,6 +653,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           chapter: 0,
           act: 'act0',
           type: 'narrative',
+          videoUrl: currentWorld !== 'ElDorado' ? (currentChapterConfig?.act0VideoUrl || 'https://youtu.be/-B_vlZaUDDc') : undefined,
         };
       }
       if (currentStep === 'male_act') {
@@ -718,6 +663,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           characterName: 'Elion',
           gender: 'male',
           type: 'character',
+          videoUrl: currentWorld !== 'ElDorado' ? 'https://youtu.be/9Ozmoyei2-A' : undefined,
         };
       }
       if (currentStep === 'female_act') {
@@ -799,8 +745,17 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const currentYouTubeId = useMemo(() => {
     return extractYouTubeVideoId(currentVideoUrl);
   }, [currentVideoUrl]);
+  const isVideoPlaying =
+    isVideoStep &&
+    isAutoPlay &&
+    !isVideoFinished &&
+    !isMediaNotFound &&
+    (!currentYouTubeId || isYtPlaying);
 
-  const currentAudioUrl = audioCandidates[candidateAudioIdx] || audioCandidates[0];
+  const isYtNativeAudio = hasYouTubeNativeAudio(currentYouTubeId);
+  const currentAudioUrl = isYtNativeAudio
+    ? undefined
+    : audioCandidates[candidateAudioIdx] || audioCandidates[0];
 
   const handleAudioError = () => {
     if (candidateAudioIdx + 1 < audioCandidates.length) {
@@ -813,8 +768,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   useEffect(() => {
     if (currentStep === 'choices' || currentStep === 'choice_feedback') return;
 
-    // For Chapter 0 - Act 0 using YouTube subtitles, all languages are supported via YouTube captions
-    if (currentChapterNumber === 0 && (currentStep === 'act0' || currentActData.act === 'act0') && currentYouTubeId) {
+    // For Chapter 0 - Act 0 and male_act using YouTube subtitles, all languages are supported via YouTube captions
+    if (
+      currentChapterNumber === 0 &&
+      (currentStep === 'act0' ||
+        currentStep === 'male_act' ||
+        currentActData.act === 'act0' ||
+        currentActData.act === 'male_act') &&
+      currentYouTubeId
+    ) {
       setAvailableVttLangs(ALL_SUPPORTED_LANGUAGES);
       setIsCheckingVttLangs(false);
       return;
@@ -1218,6 +1180,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
     }
   }, [isAutoPlay, currentYouTubeId, isMuted, currentAudioUrl, sendYtCommand]);
+
+  useEffect(() => {
+    if (!isYtNativeAudio) return;
+    setIsYtPlaying(false);
+    ytCaptionTracksRef.current = [];
+  }, [selectedAudioLang, isYtNativeAudio]);
 
   useEffect(() => {
     if (currentYouTubeId) {
@@ -2314,10 +2282,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 <iframe
                   id="act-fullscreen-youtube"
                   ref={ytIframeRef}
-                  key={`yt-${currentYouTubeId}`}
-                  src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=1&cc_lang_pref=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&hl=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                  key={`yt-${currentYouTubeId}-${getYouTubeAudioLangCode(selectedAudioLang)}`}
+                   src={`https://www.youtube.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=0&hl=${encodeURIComponent(getYouTubeAudioLangCode(selectedAudioLang))}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
                   title="Chapter Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   tabIndex={-1}
                   onLoad={() => {
                     try {
@@ -2355,14 +2324,26 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 {/* Seamless overlay that intercepts taps/clicks to toggle play/pause and renders a Gold Circle button when paused */}
                 <div
                   className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
-                  onClick={() => setIsAutoPlay((prev) => !prev)}
+                  onClick={() => {
+                    if (!isAutoPlay || !isYtPlaying) {
+                      setIsAutoPlay(true);
+                      sendYtCommand('playVideo');
+                      if (!isMuted) {
+                        sendYtCommand('unMute');
+                        sendYtCommand('setVolume', [currentAudioUrl ? 25 : 100]);
+                      }
+                    } else {
+                      setIsAutoPlay(false);
+                      sendYtCommand('pauseVideo');
+                    }
+                  }}
                 >
                   {!isVideoPlaying && (
                     <div
                       id="youtube-gold-pause-circle"
                       className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_0_0_10px_rgba(0,0,0,0.85),0_0_35px_rgba(212,175,55,0.9),inset_0_2px_6px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                     >
-                      {!isAutoPlay ? (
+                      {!isAutoPlay || !isYtPlaying ? (
                         <Play className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 ml-1 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                       ) : (
                         <Pause className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
