@@ -229,7 +229,7 @@ async function startServer() {
 
   // Fetch VTT subtitles from YouTube for a given videoId and language code
   app.get('/api/youtube/vtt', async (req, res) => {
-    const videoId = String(req.query.videoId || 'u0N4ocv0jlY').trim();
+    const videoId = String(req.query.videoId || '-B_vlZaUDDc').trim();
     const lang = String(req.query.lang || 'en').trim().toLowerCase();
 
     res.setHeader('Content-Type', 'text/vtt; charset=utf-8');
@@ -328,13 +328,6 @@ async function startServer() {
 
     // Return valid WebVTT header so language availability check succeeds while client YouTube IFrame Player renders native CC
     return res.status(200).send('WEBVTT\n\nNOTE Subtitles loaded via YouTube IFrame Player\n');
-  });
-
-  // Media asset fallback route: redirect any local or relative audio requests for act0 to the public Supabase asset
-  app.get('*act0_:lang.mp3', (req, res) => {
-    const lang = (req.params.lang || 'en').toLowerCase();
-    const url = `https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter0/act0/act0_${lang}.mp3`;
-    res.redirect(302, url);
   });
 
   // Vite middleware for dev

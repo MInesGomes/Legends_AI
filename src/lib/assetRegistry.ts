@@ -114,7 +114,7 @@ export function getActBaseFolder(act: Act, customFolder: string = ATLANTIS_5CRYS
  */
 export function getActMp3Url(act: Act, lang: Language | string = 'EN', customFolder?: string): string {
   const candidates = getActMp3CandidateUrls(act, lang, customFolder);
-  return candidates[0];
+  return candidates[0] || '';
 }
 
 /**
@@ -126,6 +126,15 @@ export function getActMp3CandidateUrls(act: Act, lang: Language | string = 'EN',
   const actName = (act.act || 'act0').replace(/^\/+|\/+$/g, '');
   const langCode = normalizeLangCode(lang);
   const isElDorado = folder.toLowerCase().includes('eldorado');
+
+  // For Atlantis act0 (Chapter 0 act0 or any act0 with a YouTube video), do not load MP3 from Supabase
+  if (
+    (actName === 'act0' || !act.act) &&
+    (Boolean(extractYouTubeVideoId(act.videoUrl)) ||
+      (act.chapter === 0 && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)))
+  ) {
+    return [];
+  }
 
   const candidates: string[] = [];
 
@@ -194,7 +203,7 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
 
   // Atlantis Chapter 0 act0 video source
   if (act.chapter === 0 && (actName === 'act0' || !act.act) && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
-    candidates.push('https://youtu.be/u0N4ocv0jlY');
+    candidates.push('https://youtu.be/-B_vlZaUDDc');
   }
 
   // Atlantis Chapter 3 acts video sources
@@ -255,7 +264,7 @@ export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN',
     (actName === 'act0' || !act.act) &&
     (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)
   ) {
-    const ytId = extractYouTubeVideoId(act.videoUrl) || 'u0N4ocv0jlY';
+    const ytId = extractYouTubeVideoId(act.videoUrl) || '-B_vlZaUDDc';
     return [`/api/youtube/vtt?videoId=${encodeURIComponent(ytId)}&lang=${encodeURIComponent(langCode)}`];
   }
 
@@ -291,7 +300,7 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
     act: 'act0',
     title: 'The Heart of Atlantis',
     type: 'narrative',
-    videoUrl: 'https://youtu.be/u0N4ocv0jlY',
+    videoUrl: 'https://youtu.be/-B_vlZaUDDc',
   },
   {
     chapter: 0,

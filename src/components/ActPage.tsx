@@ -8,6 +8,8 @@ import {
   getActMp3CandidateUrls,
   getActVttCandidateUrls,
   extractYouTubeVideoId,
+  normalizeLangCode,
+  getYouTubeAudioLangCode,
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
@@ -326,8 +328,14 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   // Candidate MP3 URLs and current active audio URL
   const audioCandidates = useMemo(() => {
+    if (
+      (currentAct.actData.act === 'act0' || !currentAct.actData.act) &&
+      (Boolean(currentYouTubeId) || currentAct.chapterNumber === 0)
+    ) {
+      return [];
+    }
     return getActMp3CandidateUrls(currentAct.actData, selectedAudioLang, currentAct.folderPath);
-  }, [currentAct.actData, selectedAudioLang, currentAct.folderPath]);
+  }, [currentAct.actData, currentAct.chapterNumber, selectedAudioLang, currentAct.folderPath, currentYouTubeId]);
 
   const [candidateAudioIdx, setCandidateAudioIdx] = useState<number>(0);
 
@@ -798,10 +806,11 @@ export const ActPage: React.FC<ActPageProps> = ({
               <iframe
                 id="act-fullscreen-youtube"
                 ref={ytIframeRef}
-                key={`yt-${currentYouTubeId}`}
-                src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                key={`yt-${currentYouTubeId}-${!actAudioUrl ? getYouTubeAudioLangCode(selectedAudioLang) : 'ext'}`}
+                src={`https://www.youtube.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=1&cc_lang_pref=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&hl=${encodeURIComponent(getYouTubeAudioLangCode(selectedAudioLang))}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
                 title="Chapter Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
                 tabIndex={-1}
                 onLoad={() => {
                   try {
@@ -824,11 +833,11 @@ export const ActPage: React.FC<ActPageProps> = ({
                 }}
                 className="absolute pointer-events-none border-0 select-none"
                 style={{
-                  width: '135%',
-                  height: '135%',
-                  minWidth: '135%',
-                  minHeight: '135%',
-                  top: '50%',
+                  width: '100%',
+                  height: '100%',//'max(138%, calc(100% + 250px))',
+                  minWidth: '100%',//'135%',
+                  minHeight: '100%', //'max(138%, calc(100% + 250px))',
+                  top: '50%', //'47%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
                   pointerEvents: 'none',
@@ -838,19 +847,29 @@ export const ActPage: React.FC<ActPageProps> = ({
                 className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsAutoPlay(!isAutoPlay);
+                  if (!isAutoPlay || !isYtPlaying) {
+                    setIsAutoPlay(true);
+                    sendYtCommand('playVideo');
+                    if (!isMuted) {
+                      sendYtCommand('unMute');
+                      sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
+                    }
+                  } else {
+                    setIsAutoPlay(false);
+                    sendYtCommand('pauseVideo');
+                  }
                 }}
-                title={isAutoPlay ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
+                title={isAutoPlay && isYtPlaying ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
               >
                 {(!isAutoPlay || !isYtPlaying) && (
                   <div
                     id="youtube-gold-pause-circle"
-                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_0_0_10px_rgba(0,0,0,0.85),0_0_35px_rgba(212,175,55,0.9),inset_0_2px_6px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                   >
-                    {!isAutoPlay ? (
-                      <Play className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 ml-1 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                    {!isAutoPlay || !isYtPlaying ? (
+                      <Play className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                     ) : (
-                      <Pause className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                      <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                     )}
                   </div>
                 )}
@@ -987,8 +1006,8 @@ export const ActPage: React.FC<ActPageProps> = ({
           {/* Play / Pause Indicator Badge overlay when paused (for non-YouTube videos) */}
           {!isAutoPlay && !isMediaNotFound && !currentYouTubeId && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_0_0_10px_rgba(0,0,0,0.85),0_0_35px_rgba(212,175,55,0.9),inset_0_2px_6px_rgba(255,255,255,0.65)] flex items-center justify-center transform hover:scale-110 transition-transform">
-                <Play className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 ml-1 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transform hover:scale-110 transition-transform">
+                <Play className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
               </div>
             </div>
           )}

@@ -132,7 +132,7 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
     skill: 'Win4All',
-    act0VideoUrl: 'https://youtu.be/u0N4ocv0jlY',
+    act0VideoUrl: 'https://youtu.be/-B_vlZaUDDc',
     choices: [],
   },
   {
@@ -458,6 +458,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytIframeRef = useRef<HTMLIFrameElement | null>(null);
   const ytCaptionTracksRef = useRef<any[]>([]);
+  const ytCurrentTimeRef = useRef<number>(0);
+  const ytInitialVttLangRef = useRef<Language>(selectedVttLang);
+  const [ytStartSeconds, setYtStartSeconds] = useState<number>(0);
 
   const sendYtCommand = useCallback((func: string, args: any[] = []) => {
     try {
@@ -470,6 +473,20 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     } catch {}
   }, []);
 
+  const syncYouTubeAudioTrack = useCallback(
+    (langOverride?: Language) => {
+      if (!ytIframeRef.current?.contentWindow) return;
+      const activeLang = langOverride || selectedAudioLang || 'EN';
+      const langCode = normalizeLangCode(activeLang);
+      const langName = LANGUAGE_FULL_NAMES[activeLang]?.EN || 'English';
+
+      sendYtCommand('setAudioTrack', [{ id: `${langCode}.4`, languageCode: langCode, name: langName }]);
+      sendYtCommand('setOption', ['audio', 'track', { languageCode: langCode }]);
+      sendYtCommand('setOption', ['audioTrack', 'track', { languageCode: langCode }]);
+    },
+    [selectedAudioLang, sendYtCommand]
+  );
+
   const syncYouTubeSubtitles = useCallback(
     (langOverride?: Language) => {
       if (!ytIframeRef.current?.contentWindow) return;
@@ -481,8 +498,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       sendYtCommand('loadModule', ['cc']);
       sendYtCommand('toggleSubtitlesOn');
 
-      const captionPosition = { top: 0.15, right: 0.15, bottom: 0.18, left: 0.15 };
-
       const knownTracks = ytCaptionTracksRef.current || [];
       const exactTrack = knownTracks.find(
         (t: any) =>
@@ -491,23 +506,20 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       );
 
       if (exactTrack) {
-        const trackOpt = { languageCode: exactTrack.languageCode, position: captionPosition };
-        sendYtCommand('setOption', ['captions', 'track', trackOpt]);
-        sendYtCommand('setOption', ['cc', 'track', trackOpt]);
+        sendYtCommand('setOption', ['captions', 'track', { languageCode: exactTrack.languageCode }]);
+        sendYtCommand('setOption', ['cc', 'track', { languageCode: exactTrack.languageCode }]);
       } else if (knownTracks.length > 0) {
         const baseTrack =
           knownTracks.find((t: any) => String(t?.languageCode || '').toLowerCase().startsWith('en')) ||
           knownTracks[0];
         const baseLangCode = baseTrack?.languageCode || 'en';
         if (langCode === baseLangCode.toLowerCase()) {
-          const trackOpt = { languageCode: baseLangCode, position: captionPosition };
-          sendYtCommand('setOption', ['captions', 'track', trackOpt]);
-          sendYtCommand('setOption', ['cc', 'track', trackOpt]);
+          sendYtCommand('setOption', ['captions', 'track', { languageCode: baseLangCode }]);
+          sendYtCommand('setOption', ['cc', 'track', { languageCode: baseLangCode }]);
         } else {
           const translatedTrack = {
             ...baseTrack,
             languageCode: baseLangCode,
-            position: captionPosition,
             translationLanguage: {
               languageCode: langCode,
               languageName: langName,
@@ -522,15 +534,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           'captions',
           'track',
           langCode === 'en'
-            ? { languageCode: 'en', position: captionPosition }
+            ? { languageCode: 'en' }
             : {
                 languageCode: 'en',
-                position: captionPosition,
                 translationLanguage: { languageCode: langCode, languageName: langName },
               },
         ]);
-        sendYtCommand('setOption', ['captions', 'track', { languageCode: langCode, position: captionPosition }]);
-        sendYtCommand('setOption', ['cc', 'track', { languageCode: langCode, position: captionPosition }]);
+        sendYtCommand('setOption', ['captions', 'track', { languageCode: langCode }]);
+        sendYtCommand('setOption', ['cc', 'track', { languageCode: langCode }]);
       }
     },
     [selectedVttLang, sendYtCommand]
@@ -782,6 +793,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return actCandidates;
   }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, currentActData, folderPath, currentChapterConfig]);
 
+  const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
+  const currentYouTubeId = useMemo(() => {
+    return extractYouTubeVideoId(currentVideoUrl);
+  }, [currentVideoUrl]);
+
   const audioCandidates = useMemo(() => {
     if (currentStep === 'choice_act') {
       return getChoiceMp3CandidateUrls(
@@ -792,13 +808,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         selectedAudioLang
       );
     }
+    // For act0 when backed by YouTube (or Atlantis Chapter 0 act0), do not load MP3 from Supabase; use YouTube audio track only
+    if (
+      (currentStep === 'act0' || currentActData.act === 'act0') &&
+      (Boolean(currentYouTubeId) || (currentChapterNumber === 0 && currentWorld !== 'ElDorado'))
+    ) {
+      return [];
+    }
     return getActMp3CandidateUrls(currentActData, selectedAudioLang, folderPath);
-  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, selectedAudioLang, currentActData, folderPath]);
-
-  const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
-  const currentYouTubeId = useMemo(() => {
-    return extractYouTubeVideoId(currentVideoUrl);
-  }, [currentVideoUrl]);
+  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, selectedAudioLang, currentActData, folderPath, currentYouTubeId]);
 
   const currentAudioUrl = audioCandidates[candidateAudioIdx] || audioCandidates[0];
 
@@ -889,6 +907,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     setIsVideoFinished(false);
     setIsAutoPlay(true);
     setIsYtPlaying(false);
+    setYtStartSeconds(0);
+    ytCurrentTimeRef.current = 0;
+    ytInitialVttLangRef.current = selectedVttLang;
     setActiveSubtitle('');
     setIsCrawlFinished(false);
     setReadTranscript('');
@@ -1236,6 +1257,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     setIsVideoFinished(false);
     setIsCrawlFinished(false);
     setIsAutoPlay(true);
+    setYtStartSeconds(0);
+    ytCurrentTimeRef.current = 0;
     if (currentYouTubeId) {
       sendYtCommand('seekTo', [0, true]);
       sendYtCommand('playVideo');
@@ -1390,12 +1413,21 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   };
 
-  // Language selectors: audio (MP3) and subtitles (VTT) are completely independent
+  // Language selectors: audio (MP3 / YouTube Audio Track) and subtitles (VTT) are completely independent
   const handleAudioLanguageSelected = (newLang: Language) => {
+    if (currentYouTubeId && ytCurrentTimeRef.current > 1 && !isVideoFinished) {
+      setYtStartSeconds(Math.floor(ytCurrentTimeRef.current));
+    } else {
+      setYtStartSeconds(0);
+    }
+    ytInitialVttLangRef.current = selectedVttLang;
     setSelectedAudioLang(newLang);
     setCandidateAudioIdx(0);
     setIsAutoPlay(true);
     setIsVideoFinished(false);
+    if (currentYouTubeId) {
+      syncYouTubeAudioTrack(newLang);
+    }
     if (onLanguageChange) onLanguageChange(newLang);
   };
 
@@ -1450,6 +1482,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             sendYtCommand('unMute');
             sendYtCommand('setVolume', [currentAudioUrl ? 25 : 100]);
           }
+          syncYouTubeAudioTrack();
           syncYouTubeSubtitles();
         }
 
@@ -1501,6 +1534,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             audioRef.current.pause();
           }
         } else if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
+          ytCurrentTimeRef.current = data.info.currentTime;
           handleTimeUpdate(data.info.currentTime);
           if (
             audioRef.current &&
@@ -2314,8 +2348,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 <iframe
                   id="act-fullscreen-youtube"
                   ref={ytIframeRef}
-                  key={`yt-${currentYouTubeId}`}
-                  src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=1&cc_lang_pref=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&hl=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                  key={`yt-${currentYouTubeId}-${selectedAudioLang}`}
+                  src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=1&cc_lang_pref=${encodeURIComponent(normalizeLangCode(ytInitialVttLangRef.current))}&hl=${encodeURIComponent(normalizeLangCode(selectedAudioLang))}${ytStartSeconds > 0 ? `&start=${ytStartSeconds}` : ''}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
                   title="Chapter Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   tabIndex={-1}
@@ -2337,15 +2371,16 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                       sendYtCommand('unMute');
                       sendYtCommand('setVolume', [currentAudioUrl ? 25 : 100]);
                     }
+                    syncYouTubeAudioTrack();
                     syncYouTubeSubtitles();
                   }}
                   className="absolute pointer-events-none border-0 select-none"
                   style={{
-                    width: '135%',
-                    height: '135%',
-                    minWidth: '135%',
-                    minHeight: '135%',
-                    top: '50%',
+                    width: '100%',
+                    height: '100%',//'max(138%, calc(100% + 250px))',
+                    minWidth: '100%',//'135%',
+                    minHeight: '100%', //'max(138%, calc(100% + 250px))',
+                    top: '50%', //'47%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     pointerEvents: 'none',
@@ -2360,12 +2395,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   {!isVideoPlaying && (
                     <div
                       id="youtube-gold-pause-circle"
-                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_0_0_10px_rgba(0,0,0,0.85),0_0_35px_rgba(212,175,55,0.9),inset_0_2px_6px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                     >
                       {!isAutoPlay ? (
-                        <Play className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 ml-1 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                        <Play className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                       ) : (
-                        <Pause className="w-10 h-10 sm:w-12 sm:h-12 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                        <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                       )}
                     </div>
                   )}
