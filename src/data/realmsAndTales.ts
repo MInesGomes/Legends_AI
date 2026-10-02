@@ -157,7 +157,7 @@ export const INITIAL_TALES: Tale[] = [
     title: 'Startup Winner',
     subtitle: 'Leadership Under Pressure',
     coverImage: taleStartupWinnerJpg,
-    skill: 'Leader',
+    skill: 'Proactive',
     viewsCount: 3100,
     likesCount: 1120,
     commentsCount: 89,
@@ -182,7 +182,7 @@ export const INITIAL_TALES: Tale[] = [
     title: 'The Torch',
     subtitle: 'Wealth of Spirit vs Greed',
     coverImage: 'https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/ElDorado/the_torch.jpg',
-    skill: 'Leader',
+    skill: 'Proactive',
     viewsCount: 1640,
     likesCount: 450,
     commentsCount: 33

@@ -83,51 +83,43 @@ export function getTaleActs(tale: Tale): Act[] {
     {
       chapter: 0,
       act: 'act0',
-      title: `${tale.title}: Prologue`,
       type: 'narrative',
     },
     {
       chapter: 0,
       act: 'female_act',
-      title: `${tale.title}: Elena's Counsel`,
       gender: 'female',
       type: 'character',
     },
     {
       chapter: 0,
       act: 'male_act',
-      title: `${tale.title}: Daniel's Vision`,
       gender: 'male',
       type: 'character',
     },
     {
       chapter: 1,
       act: 'act0',
-      title: `${tale.title}: The Turning Point`,
       type: 'dialogue',
     },
     {
       chapter: 1,
       act: 'choice1',
-      title: 'BEST: Strategic Resolution',
       type: 'choice',
     },
     {
       chapter: 1,
       act: 'choice2',
-      title: 'SAFE: Measured Prudence',
       type: 'choice',
     },
     {
       chapter: 1,
       act: 'choice3',
-      title: 'WEAK: Hesitant Delay',
       type: 'choice',
     },
     {
       chapter: 1,
       act: 'choice4',
-      title: 'HARMFUL: Reckless Impatience',
       type: 'choice',
     },
   ];
@@ -148,17 +140,14 @@ export function getTaleActItems(
     const audioUrl = getActMp3Url(actDef, lang, folderPath);
     const vttUrl = getActVttUrl(actDef, lang, folderPath);
 
-    const chapterTitle = `Chapter ${actDef.chapter}: ${tale.title}`;
-    const subtitle = tale.subtitle || '';
-
     return {
       id: actId,
       chapterNumber: actDef.chapter,
       actKey: `ch${actDef.chapter}-${actDef.act}`,
       type: actDef.type || 'narrative',
-      chapterTitle,
-      subtitle,
-      actTitle: actDef.title || `${actDef.act.replace(/_/g, ' ').toUpperCase()}`,
+      chapterTitle: '',
+      subtitle: '',
+      actTitle: '',
       mp4: mp4Url,
       audio: audioUrl,
       audio_es: getActMp3Url(actDef, 'ES', folderPath),
@@ -191,17 +180,14 @@ export function getAtlantisActItems(
     const audioUrl = getActMp3Url(actDef, lang);
     const vttUrl = getActVttUrl(actDef, lang);
 
-    const chapterTitle = `Chapter ${actDef.chapter}: Atlantis`;
-    const subtitle = 'The Five Crystals';
-
     return {
       id: actId,
       chapterNumber: actDef.chapter,
       actKey: `ch${actDef.chapter}-${actDef.act}`,
       type: actDef.type || 'narrative',
-      chapterTitle,
-      subtitle,
-      actTitle: actDef.title || `${actDef.act.replace(/_/g, ' ').toUpperCase()}`,
+      chapterTitle: '',
+      subtitle: '',
+      actTitle: '',
       mp4: mp4Url,
       audio: audioUrl,
       audio_es: getActMp3Url(actDef, 'ES'),

@@ -245,8 +245,8 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
-                  const points = skillsPoints?.[skillName] || 0;
+                {(['Proactive', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
+                  const points = skillsPoints?.[skillName] ?? (skillName === 'Proactive' ? skillsPoints?.Leader : 0) ?? 0;
                   const skillLabelKey = `skill_${skillName}` as const;
                   return (
                     <div
@@ -393,8 +393,11 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                   {isGuest
                     ? t('availableIfLogin', currentLang)
                     : t('totalPts', currentLang, {
-                        pts: (['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).reduce(
-                          (sum, skillName) => sum + (Number(userStats?.[`${statsLang}:${skillName}`]) || 0),
+                        pts: (['Proactive', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).reduce(
+                          (sum, skillName) =>
+                            sum +
+                            (Number(userStats?.[`${statsLang}:${skillName}`]) ||
+                              (skillName === 'Proactive' ? Number(userStats?.[`${statsLang}:Leader`]) || 0 : 0)),
                           0
                         ),
                       })}
@@ -436,9 +439,11 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
 
                 {/* Skill Views for Selected Language */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-                  {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
+                  {(['Proactive', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((skillName) => {
                     const key = `${statsLang}:${skillName}`;
-                    const viewsCount = userStats?.[key] || 0;
+                    const viewsCount =
+                      (userStats?.[key] || 0) +
+                      (skillName === 'Proactive' ? userStats?.[`${statsLang}:Leader`] || 0 : 0);
                     const skillLabelKey = `skill_${skillName}` as const;
 
                     return (

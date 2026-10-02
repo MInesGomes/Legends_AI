@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
+  SafeYouTubeVideo,
+  type YouTubeAdapter,
+} from './SafeYouTubeVideo';
+import {
   Language,
   UserProfile,
   SkillType,
@@ -137,30 +141,23 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   },
   {
     id: 1,
-    skill: 'Leader',
+    skill: 'Proactive',
+    act0VideoUrl: 'https://youtu.be/LBCpY7bI638',
     choices: [
       {
         id: 'choice1', // always the "best" choice — see isBestChoice() in lib/chapterTypes.ts
-        subtitle: 'Community Leadership',
-        title: "Don't ask for permission and risk losing everything.",
         available: true,
       },
       {
         id: 'choice2',
-        title: 'Try to Solve Everything Alone',
-        subtitle: 'Cautious Heroism',
         available: true,
       },
       {
         id: 'choice3',
-        title: 'Wait for the Council',
-        subtitle: 'Passive Compliance',
         available: true,
       },
       {
         id: 'choice4',
-        title: 'Force the System',
-        subtitle: 'Aggressive Intervention',
         available: true,
       },
     ],
@@ -171,26 +168,14 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
     choices: [
       {
         id: 'choice1', // always the "best" choice
-        title: 'Many Hands',
-        subtitle: 'Coordinated Strategy',
-        titleKey: 'atlantis_act2_choice1_title' as keyof Translations,
-        subtitleKey: 'atlantis_act2_choice1_subtitle' as keyof Translations,
         available: true,
       },
       {
         id: 'choice2',
-        title: 'Into the Flood',
-        subtitle: 'Direct Confrontation',
-        titleKey: 'atlantis_act2_choice2_title' as keyof Translations,
-        subtitleKey: 'atlantis_act2_choice2_subtitle' as keyof Translations,
         available: true,
       },
       {
         id: 'choice3',
-        title: 'The Difficult Choice',
-        subtitle: 'Calculated Sacrifice',
-        titleKey: 'atlantis_act2_choice3_title' as keyof Translations,
-        subtitleKey: 'atlantis_act2_choice3_subtitle' as keyof Translations,
         available: true,
       },
       {
@@ -206,30 +191,18 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
     choices: [
       {
         id: 'choice1', // always the "best" choice
-        title: 'Shift the Ground',
-        subtitle: 'Make space for another way.',
-        titleKey: 'atlantis_act3_choice1_title' as keyof Translations,
-        subtitleKey: 'atlantis_act3_choice1_subtitle' as keyof Translations,
         imageUrl: 'https://img.youtube.com/vi/7DEPbiuRvuU/hqdefault.jpg',
         videoUrl: 'https://youtu.be/7DEPbiuRvuU',
         available: true,
       },
       {
         id: 'choice2',
-        title: 'Keep the Flow',
-        subtitle: 'Let the moment move forward.',
-        titleKey: 'atlantis_act3_choice2_title' as keyof Translations,
-        subtitleKey: 'atlantis_act3_choice2_subtitle' as keyof Translations,
         imageUrl: 'https://img.youtube.com/vi/B4bsJHLc7V0/hqdefault.jpg',
         videoUrl: 'https://youtu.be/B4bsJHLc7V0',
         available: true,
       },
       {
         id: 'choice3',
-        title: 'Draw the Line',
-        subtitle: 'Take a stand when it matters.',
-        titleKey: 'atlantis_act3_choice3_title' as keyof Translations,
-        subtitleKey: 'atlantis_act3_choice3_subtitle' as keyof Translations,
         imageUrl: 'https://img.youtube.com/vi/TP1-nip4GiM/hqdefault.jpg',
         videoUrl: 'https://youtu.be/TP1-nip4GiM',
         available: true,
@@ -457,6 +430,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const ytMediaRef = useRef<YouTubeAdapter | null>(null);
   const ytCaptionTracksRef = useRef<any[]>([]);
   const ytCurrentTimeRef = useRef<number>(0);
   const ytInitialVttLangRef = useRef<Language>(selectedVttLang);
@@ -464,6 +438,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const sendYtCommand = useCallback((func: string, args: any[] = []) => {
     try {
+      const engine = ytMediaRef.current?.engine as any;
+      if (engine && typeof engine[func] === 'function') {
+        engine[func](...args);
+        return;
+      }
       if (ytIframeRef.current?.contentWindow) {
         ytIframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func, args }),
@@ -488,63 +467,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   );
 
   const syncYouTubeSubtitles = useCallback(
-    (langOverride?: Language) => {
+    (_langOverride?: Language) => {
       if (!ytIframeRef.current?.contentWindow) return;
-      const activeLang = langOverride || selectedVttLang || 'EN';
-      const langCode = normalizeLangCode(activeLang);
-      const langName = LANGUAGE_FULL_NAMES[activeLang]?.EN || 'English';
-
-      sendYtCommand('loadModule', ['captions']);
-      sendYtCommand('loadModule', ['cc']);
-      sendYtCommand('toggleSubtitlesOn');
-
-      const knownTracks = ytCaptionTracksRef.current || [];
-      const exactTrack = knownTracks.find(
-        (t: any) =>
-          String(t?.languageCode || '').toLowerCase() === langCode ||
-          String(t?.languageCode || '').toLowerCase().startsWith(langCode)
-      );
-
-      if (exactTrack) {
-        sendYtCommand('setOption', ['captions', 'track', { languageCode: exactTrack.languageCode }]);
-        sendYtCommand('setOption', ['cc', 'track', { languageCode: exactTrack.languageCode }]);
-      } else if (knownTracks.length > 0) {
-        const baseTrack =
-          knownTracks.find((t: any) => String(t?.languageCode || '').toLowerCase().startsWith('en')) ||
-          knownTracks[0];
-        const baseLangCode = baseTrack?.languageCode || 'en';
-        if (langCode === baseLangCode.toLowerCase()) {
-          sendYtCommand('setOption', ['captions', 'track', { languageCode: baseLangCode }]);
-          sendYtCommand('setOption', ['cc', 'track', { languageCode: baseLangCode }]);
-        } else {
-          const translatedTrack = {
-            ...baseTrack,
-            languageCode: baseLangCode,
-            translationLanguage: {
-              languageCode: langCode,
-              languageName: langName,
-            },
-          };
-          sendYtCommand('setOption', ['captions', 'track', translatedTrack]);
-          sendYtCommand('setOption', ['cc', 'track', translatedTrack]);
-        }
-      } else {
-        // Fallback before tracklist arrives: request target language or English-translated track
-        sendYtCommand('setOption', [
-          'captions',
-          'track',
-          langCode === 'en'
-            ? { languageCode: 'en' }
-            : {
-                languageCode: 'en',
-                translationLanguage: { languageCode: langCode, languageName: langName },
-              },
-        ]);
-        sendYtCommand('setOption', ['captions', 'track', { languageCode: langCode }]);
-        sendYtCommand('setOption', ['cc', 'track', { languageCode: langCode }]);
-      }
+      // Hide YouTube's built-in caption box so only the Gold Style VTT subtitle overlay is shown
+      sendYtCommand('unloadModule', ['captions']);
+      sendYtCommand('unloadModule', ['cc']);
     },
-    [selectedVttLang, sendYtCommand]
+    [sendYtCommand]
   );
 
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -630,30 +559,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const isVideoStep = currentStep !== 'choices' && currentStep !== 'choice_feedback';
   const isVideoPlaying = isVideoStep && isAutoPlay && !isVideoFinished && !isMediaNotFound;
 
-  const currentChoiceConfig = useMemo(() => {
-    return currentChapterConfig.choices?.find((c) => c.id === selectedChoiceId);
-  }, [currentChapterConfig, selectedChoiceId]);
-
-  const currentChoiceNum = useMemo(() => {
-    return parseInt(selectedChoiceId.replace('choice', '') || '1', 10);
-  }, [selectedChoiceId]);
-
-  const currentChoiceTitle = useMemo(() => {
-    if (!currentChoiceConfig) return `Choice ${currentChoiceNum}`;
-    return (
-      getChoiceLocalizedTitle(currentChoiceConfig, currentLang, currentWorld, currentChapterNumber) ||
-      currentChoiceConfig.title ||
-      `Choice ${currentChoiceNum}`
-    );
-  }, [
-    currentChoiceConfig,
-    currentLang,
-    currentChoiceNum,
-    currentWorld,
-    currentTaleName,
-    currentChapterNumber,
-  ]);
-
   const activeFeedbackLang = currentLang || selectedVttLang || 'EN';
 
   const targetLangDisplayName = useMemo(() => {
@@ -729,6 +634,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           characterName: 'Elion',
           gender: 'male',
           type: 'character',
+          videoUrl: currentWorld !== 'ElDorado' ? 'https://youtu.be/9Ozmoyei2-A' : undefined,
         };
       }
       if (currentStep === 'female_act') {
@@ -743,16 +649,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
 
     if (currentStep === 'choice_act' || currentStep === 'choice_feedback') {
-      const choiceCfg = currentChapterConfig.choices.find((c) => c.id === selectedChoiceId);
       const choiceNum = selectedChoiceId.replace('choice', '') || '1';
-      const choiceTitle = choiceCfg
-        ? (getChoiceLocalizedTitle(choiceCfg, currentLang, currentWorld, currentChapterNumber)
-           || `Chapter ${currentChapterNumber} • Choice ${choiceNum}`)
-        : `Chapter ${currentChapterNumber} • Choice ${choiceNum}`;
       return {
         chapter: currentChapterNumber,
         act: `choice${choiceNum}`,
-        title: choiceTitle,
         type: 'choice',
       };
     }
@@ -1226,12 +1126,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   useEffect(() => {
     if (currentYouTubeId) {
       if (isAutoPlay) {
+        ytMediaRef.current?.play().catch(() => {});
         sendYtCommand('playVideo');
         if (audioRef.current && !isMuted && currentAudioUrl) {
           audioRef.current.play().catch(() => {});
         }
       } else {
         setIsYtPlaying(false);
+        ytMediaRef.current?.pause();
         sendYtCommand('pauseVideo');
         if (audioRef.current) {
           audioRef.current.pause();
@@ -1242,6 +1144,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   useEffect(() => {
     if (currentYouTubeId) {
+      if (ytMediaRef.current) {
+        ytMediaRef.current.muted = isMuted;
+        ytMediaRef.current.volume = currentAudioUrl ? 0.25 : 1;
+      }
       if (isMuted) {
         sendYtCommand('mute');
       } else {
@@ -1260,6 +1166,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     setYtStartSeconds(0);
     ytCurrentTimeRef.current = 0;
     if (currentYouTubeId) {
+      if (ytMediaRef.current) {
+        ytMediaRef.current.currentTime = 0;
+        ytMediaRef.current.play().catch(() => {});
+      }
       sendYtCommand('seekTo', [0, true]);
       sendYtCommand('playVideo');
     } else if (videoRef.current) {
@@ -1279,6 +1189,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // Skip MP3 and MP4 playback
   const handleSkipMedia = () => {
     if (currentYouTubeId) {
+      ytMediaRef.current?.pause();
       sendYtCommand('pauseVideo');
       sendYtCommand('seekTo', [9999, true]);
     }
@@ -1733,7 +1644,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                       ? 'bg-[#d4af37] text-slate-950 shadow-sm ring-1 ring-[#ffe81f]'
                       : 'bg-black/50 text-amber-200/80 hover:text-white border border-[#d4af37]/40 hover:border-[#ffe81f]'
                   }`}
-                  title={`Chapter ${cfg.id}${cfg.skill ? ` (${cfg.skill})` : ''}`}
+                  title={`Chapter ${cfg.id}${cfg.skill ? ` (${t((`skill_${cfg.skill}`) as keyof Translations, currentLang)})` : ''}`}
                   aria-label={`Jump to Chapter ${cfg.id}`}
                 >
                   Ch {cfg.id}
@@ -1826,24 +1737,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
             />
 
             <div className="flex items-center gap-2 mb-2 flex-wrap justify-center">
-              <Sparkles className={`w-5 h-5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-600'} animate-pulse`} />
-              <span
-                className={`text-xs uppercase tracking-widest font-bold ${
-                  darkMode ? 'text-[#d4af37]' : 'text-amber-800'
-                }`}
-              >
-                {currentChapterNumber === 2
-                  ? 'Plan to Atlantis Flow'
-                  : currentChapterNumber === 3
-                  ? 'Win4All in Atlantis Flow'
-                  : (tale?.title || currentTaleName)} • Chapter {currentChapterNumber}
-              </span>
               {currentChapterConfig?.skill && (
                 <span className="px-2.5 py-0.5 text-[10px] rounded-full uppercase tracking-wider font-extrabold bg-amber-400/20 border border-amber-400/60 text-amber-300 shadow-xs">
-                  Skill: {currentChapterConfig.skill}
+                  Skill: {t((`skill_${currentChapterConfig.skill}`) as keyof Translations, currentLang)}
                 </span>
               )}
-              <Sparkles className={`w-5 h-5 ${darkMode ? 'text-[#d4af37]' : 'text-amber-600'} animate-pulse`} />
             </div>
 
             <h2
@@ -1867,8 +1765,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     currentChapterNumber,
                     choice.id
                   );
-                const choiceTitle = getChoiceLocalizedTitle(choice, currentLang, currentWorld, currentChapterNumber);
-                const choiceSubtitle = getChoiceLocalizedSubtitle(choice, currentLang, currentWorld, currentChapterNumber);
 
                 return (
                   <button
@@ -1882,7 +1778,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     <div className="relative w-full aspect-video overflow-hidden rounded-xl bg-slate-950">
                       <img
                         src={choiceImgUrl}
-                        alt={choiceTitle || `Choice ${idx + 1}`}
+                        alt={`Choice ${idx + 1}`}
                         crossOrigin="anonymous"
                         loading="eager"
                         className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 ${
@@ -1917,22 +1813,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                           </span>
                         </div>
                       </div>
-
-                      {/* Bottom Info overlay: Localized Title & Subtitle */}
-                      {(choiceTitle || choiceSubtitle) && (
-                        <div className="absolute bottom-2.5 sm:bottom-3 left-2.5 sm:left-3 right-2.5 sm:right-3 z-10 pointer-events-none">
-                          {choiceTitle && choiceTitle.trim() !== '' && (
-                            <h4 className="text-sm sm:text-base font-cinzel font-bold text-amber-200 group-hover:text-[#ffe81f] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] line-clamp-2">
-                              {choiceTitle}
-                            </h4>
-                          )}
-                          {choiceSubtitle && choiceSubtitle.trim() !== '' && (
-                            <div className="text-[11px] sm:text-xs text-[#d4af37] font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] italic line-clamp-1">
-                              {choiceSubtitle}
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   </button>
                 );
@@ -1982,33 +1862,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   className="absolute w-[92%] sm:w-[80%] max-w-2xl text-center origin-[50%_100%] [transform:rotateX(25deg)] animate-starwars-crawl pointer-events-none"
                   onAnimationEnd={() => setIsCrawlFinished(true)}
                 >
-                  <div className="mb-6">
-                    <p
-                      className={`text-sm sm:text-base font-cinzel font-bold tracking-widest uppercase mb-1 ${
-                        darkMode
-                          ? 'text-[#ffe81f] drop-shadow-[0_0_10px_rgba(255,232,31,0.6)]'
-                          : 'text-amber-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]'
-                      }`}
-                    >
-                      Chapter {currentChapterNumber} • Feedback
-                    </p>
-                    {isBestChoice(selectedChoiceId) && (
+                  {isBestChoice(selectedChoiceId) && (
+                    <div className="mb-6">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/25 border border-amber-400/80 text-[#ffe81f] font-bold text-xs uppercase tracking-wider mb-2 drop-shadow-md">
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>{t('bestChoiceTitle', currentLang)}</span>
                         <Sparkles className="w-3.5 h-3.5" />
                       </div>
-                    )}
-                    <h2
-                      className={`text-2xl sm:text-4xl font-cinzel font-black uppercase tracking-wider ${
-                        darkMode
-                          ? 'text-[#ffe81f] drop-shadow-[0_0_15px_rgba(255,232,31,0.6)]'
-                          : 'text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)]'
-                      }`}
-                    >
-                      {currentChoiceTitle}
-                    </h2>
-                  </div>
+                    </div>
+                  )}
 
                   <div
                     className={`space-y-6 text-base sm:text-xl font-cinzel font-semibold leading-relaxed ${
@@ -2043,23 +1905,16 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 transition={{ duration: 0.35 }}
                 className="relative z-30 w-full max-w-3xl flex flex-col p-4 sm:p-6 select-text"
               >
-                {/* Header: Choice Title + Best Choice Badge + Read Aloud prompt with Read Aloud button near text */}
+                {/* Header: Best Choice Badge + Read Aloud prompt with Read Aloud button near text */}
                 <div className="mb-4">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h2
-                      className={`text-xl sm:text-3xl font-cinzel font-bold tracking-wide ${
-                        darkMode ? 'text-amber-200' : 'text-amber-950 font-black'
-                      }`}
-                    >
-                      {currentChoiceTitle}
-                    </h2>
-                    {isBestChoice(selectedChoiceId) && (
+                  {isBestChoice(selectedChoiceId) && (
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/70 text-amber-300 font-bold text-xs uppercase tracking-wider shadow-sm">
                         <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
                         {t('bestChoiceTitle', currentLang)}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Read aloud prompt row: Read aloud button placed directly next to the instruction text */}
                   <div className="mt-3.5 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
@@ -2338,54 +2193,96 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black select-none"
                 style={{ overflow: 'hidden' }}
               >
-                {/* 
-                  Container with overflow: hidden.
-                  The iframe is scaled to 135% centered at 50%, shifting all border artifacts:
-                  - Top: video title / avatar / share button (top ~50px) shifted outside visible bounds
-                  - Bottom: "Watch on YouTube" button (bottom ~45px) and player controls shifted outside visible bounds
-                  pointer-events: none prevents hover/touch interactions directly with YouTube so hover controls never trigger!
-                */}
-                <iframe
-                  id="act-fullscreen-youtube"
-                  ref={ytIframeRef}
-                  key={`yt-${currentYouTubeId}-${selectedAudioLang}`}
-                  src={`https://www.youtube-nocookie.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=1&cc_lang_pref=${encodeURIComponent(normalizeLangCode(ytInitialVttLangRef.current))}&hl=${encodeURIComponent(normalizeLangCode(selectedAudioLang))}${ytStartSeconds > 0 ? `&start=${ytStartSeconds}` : ''}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
-                  title="Chapter Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  tabIndex={-1}
-                  onLoad={() => {
-                    try {
-                      ytIframeRef.current?.contentWindow?.postMessage(
-                        JSON.stringify({ event: 'listening' }),
-                        '*'
-                      );
-                    } catch {}
-                    if (isAutoPlay) {
-                      sendYtCommand('playVideo');
-                    } else {
-                      sendYtCommand('pauseVideo');
-                    }
-                    if (isMuted) {
-                      sendYtCommand('mute');
-                    } else {
-                      sendYtCommand('unMute');
-                      sendYtCommand('setVolume', [currentAudioUrl ? 25 : 100]);
-                    }
-                    syncYouTubeAudioTrack();
-                    syncYouTubeSubtitles();
-                  }}
-                  className="absolute pointer-events-none border-0 select-none"
-                  style={{
-                    width: '100%',
-                    height: '100%',//'max(138%, calc(100% + 250px))',
-                    minWidth: '100%',//'135%',
-                    minHeight: '100%', //'max(138%, calc(100% + 250px))',
-                    top: '50%', //'47%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    pointerEvents: 'none',
-                  }}
-                />
+                <div
+                  className={`absolute -top-[100%] left-0 w-full h-[300%] pointer-events-none select-none overflow-hidden transition-opacity duration-200 ${
+                    isVideoFinished ? 'opacity-0' : 'opacity-100'
+                  }`}
+                >
+                  <SafeYouTubeVideo
+                    instanceKey={`yt-${currentYouTubeId}-${!currentAudioUrl ? normalizeLangCode(selectedAudioLang) : 'ext'}`}
+                    ref={ytIframeRef}
+                    mediaRef={ytMediaRef}
+                    src={currentVideoUrl}
+                    autoplay={true}
+                    defaultMuted={true}
+                    muted={isMuted}
+                    controls={false}
+                    playsInline={true}
+                    className="w-full h-full border-0 pointer-events-none select-none"
+                    style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+                    source={{
+                      src: currentVideoUrl,
+                      engine: {
+                        youtube: {
+                          controls: 0,
+                          modestbranding: 1,
+                          showinfo: 0,
+                          cc_load_policy: 0,
+                          cc_lang_pref: normalizeLangCode(ytInitialVttLangRef.current),
+                          hl: normalizeLangCode(selectedAudioLang),
+                          disablekb: 1,
+                          fs: 0,
+                          rel: 0,
+                          iv_load_policy: 3,
+                          ...(ytStartSeconds > 0 ? { start: ytStartSeconds } : {}),
+                          origin: typeof window !== 'undefined' ? window.location.origin : undefined,
+                          widget_referrer: typeof window !== 'undefined' ? window.location.origin : undefined,
+                        },
+                      },
+                    }}
+                    onLoadedMetadata={(e) => {
+                      e.currentTarget.muted = isMuted;
+                      e.currentTarget.volume = currentAudioUrl ? 0.25 : 1;
+                      if (isAutoPlay) {
+                        e.currentTarget.play().catch(() => {});
+                      } else {
+                        e.currentTarget.pause();
+                      }
+                      syncYouTubeAudioTrack();
+                      syncYouTubeSubtitles();
+                    }}
+                    onPlay={() => {
+                      if (!isAutoPlay) {
+                        setIsYtPlaying(false);
+                        ytMediaRef.current?.pause();
+                      } else {
+                        setIsYtPlaying(true);
+                        syncYouTubeAudioTrack();
+                        syncYouTubeSubtitles();
+                        if (audioRef.current && !isMuted && currentAudioUrl) {
+                          audioRef.current.play().catch(() => {});
+                        }
+                      }
+                    }}
+                    onPlaying={() => {
+                      if (isAutoPlay) {
+                        setIsYtPlaying(true);
+                      }
+                    }}
+                    onPause={() => {
+                      setIsYtPlaying(false);
+                      if (audioRef.current) {
+                        audioRef.current.pause();
+                      }
+                    }}
+                    onTimeUpdate={(e) => {
+                      const curr = e.currentTarget.currentTime;
+                      ytCurrentTimeRef.current = curr;
+                      handleTimeUpdate(curr);
+                      if (
+                        audioRef.current &&
+                        !audioRef.current.paused &&
+                        Math.abs(audioRef.current.currentTime - curr) > 0.75
+                      ) {
+                        audioRef.current.currentTime = curr;
+                      }
+                    }}
+                    onEnded={() => {
+                      setIsYtPlaying(false);
+                      handleVideoEnded();
+                    }}
+                  />
+                </div>
 
                 {/* Seamless overlay that intercepts taps/clicks to toggle play/pause and renders a Gold Circle button when paused */}
                 <div
@@ -2395,12 +2292,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   {!isVideoPlaying && (
                     <div
                       id="youtube-gold-pause-circle"
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                     >
                       {!isAutoPlay ? (
-                        <Play className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                        <Play className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                       ) : (
-                        <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                        <Pause className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                       )}
                     </div>
                   )}
@@ -2447,9 +2344,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 <div className="px-6 py-2 rounded-full border-2 border-[#d4af37] bg-slate-950 text-[#d4af37] font-bold text-base sm:text-xl font-cinzel">
                   {t('comingSoon', currentLang)}
                 </div>
-                <p className="text-xs sm:text-sm text-slate-300 max-w-sm">
-                  {currentActData.title}
-                </p>
               </div>
             )}
 
@@ -2564,12 +2458,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 {currentStep === 'choices'
                   ? ''
                   : currentStep === 'choice_act'
-                  ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : currentActData.title)
+                  ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : '')
                   : currentStep === 'choice_feedback'
                   ? `Language Practice: ${selectedVttLang}`
                   : isVideoFinished
                   ? t('actCompleted', currentLang)
-                  : currentActData.title}
+                  : ''}
               </p>
             </div>
 

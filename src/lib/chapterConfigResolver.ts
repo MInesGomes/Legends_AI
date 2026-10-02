@@ -13,19 +13,14 @@
  * here as a plain function both call sites can share.
  */
 import { ChapterChoiceConfig, ChapterConfig } from './chapterTypes';
-import { Translations } from './i18n';
 
 const ELDORADO_TORCH_CHAPTER0_CHOICES: ChapterChoiceConfig[] = [
   {
     id: 'choice1',
-    titleKey: 'eldorado_act0_choice1_title' as keyof Translations,
-    title: 'Give his light',
     available: true,
   },
   {
     id: 'choice2',
-    titleKey: 'eldorado_act0_choice2_title' as keyof Translations,
-    title: 'Afraid to lose his light',
     available: true,
   },
   { id: 'choice3', available: false },

@@ -13,14 +13,14 @@ const defaultState: DatabaseState = {
   user_profile: null,
   user_comments: [],
   user_skills_points: {
-    Leader: 3,
+    Proactive: 3,
     Plan: 2,
     Win4All: 5,
     Listen: 4,
     Recharge: 2,
   },
   user_stats: {
-    'EN:Leader': 1,
+    'EN:Proactive': 1,
     'EN:Plan': 1,
     'EN:Win4All': 1,
   },
@@ -245,7 +245,7 @@ export async function syncSkillPointsToSupabase(userId: string, points: UserSkil
   try {
     const { error } = await supabase.from('user_skills_points').upsert({
       user_id: userId,
-      leader_points: points.Leader,
+      leader_points: points.Proactive ?? points.Leader ?? 0,
       plan_points: points.Plan,
       win4all_points: points.Win4All,
       listen_points: points.Listen,

@@ -368,7 +368,7 @@ export const AddTaleModal: React.FC<AddTaleModalProps> = ({
               Primary Skill Focus
             </label>
             <div className="flex flex-wrap gap-1.5">
-              {(['Leader', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((sk) => {
+              {(['Proactive', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((sk) => {
                 const isSelected = skill === sk;
                 return (
                   <button

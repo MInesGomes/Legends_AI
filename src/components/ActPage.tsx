@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import {
+  SafeYouTubeVideo,
+  type YouTubeAdapter,
+} from './SafeYouTubeVideo';
 import { Language, UserProfile, SkillType, ChapterComment, Tale } from '../types';
 import { ActItem, getAtlantisActItems, getTaleActItems } from '../lib/taleData';
 import {
@@ -304,6 +308,7 @@ export const ActPage: React.FC<ActPageProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const ytIframeRef = useRef<HTMLIFrameElement>(null);
+  const ytMediaRef = useRef<YouTubeAdapter>(null);
 
   // Candidate video URLs for resilient playback
   const videoCandidates = useMemo(() => {
@@ -798,64 +803,123 @@ export const ActPage: React.FC<ActPageProps> = ({
               className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black select-none"
               style={{ overflow: 'hidden' }}
             >
-              {/* 
-                Cropped YouTube embed:
-                Scaled by 135% centered at 50%, completely hiding title bar, Watch on YouTube, and controls outside visible bounds.
-                pointer-events: none ensures YouTube never receives hover or tap events.
-              */}
-              <iframe
-                id="act-fullscreen-youtube"
-                ref={ytIframeRef}
-                key={`yt-${currentYouTubeId}-${!actAudioUrl ? getYouTubeAudioLangCode(selectedAudioLang) : 'ext'}`}
-                src={`https://www.youtube.com/embed/${currentYouTubeId}?enablejsapi=1&autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&cc_load_policy=1&cc_lang_pref=${encodeURIComponent(normalizeLangCode(selectedVttLang))}&hl=${encodeURIComponent(getYouTubeAudioLangCode(selectedAudioLang))}&showinfo=0&autohide=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}&widget_referrer=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
-                title="Chapter Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                tabIndex={-1}
-                onLoad={() => {
-                  try {
-                    ytIframeRef.current?.contentWindow?.postMessage(
-                      JSON.stringify({ event: 'listening' }),
-                      '*'
-                    );
-                  } catch {}
-                  if (isAutoPlay) {
-                    sendYtCommand('playVideo');
-                  } else {
-                    sendYtCommand('pauseVideo');
-                  }
-                  if (isMuted) {
-                    sendYtCommand('mute');
-                  } else {
-                    sendYtCommand('unMute');
-                    sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
-                  }
-                }}
-                className="absolute pointer-events-none border-0 select-none"
-                style={{
-                  width: '100%',
-                  height: '100%',//'max(138%, calc(100% + 250px))',
-                  minWidth: '100%',//'135%',
-                  minHeight: '100%', //'max(138%, calc(100% + 250px))',
-                  top: '50%', //'47%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  pointerEvents: 'none',
-                }}
-              />
+              <div
+                className={`absolute -top-[100%] left-0 w-full h-[300%] pointer-events-none select-none overflow-hidden transition-opacity duration-200 ${
+                  isVideoFinished ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
+                <SafeYouTubeVideo
+                  instanceKey={`yt-${currentYouTubeId}-${!actAudioUrl ? getYouTubeAudioLangCode(selectedAudioLang) : 'ext'}`}
+                  ref={ytIframeRef}
+                  mediaRef={ytMediaRef}
+                  src={currentVideoUrl}
+                  autoplay={true}
+                  defaultMuted={true}
+                  muted={isMuted}
+                  controls={false}
+                  playsInline={true}
+                  className="w-full h-full border-0 pointer-events-none select-none"
+                  style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+                  source={{
+                    src: currentVideoUrl,
+                    engine: {
+                      youtube: {
+                        controls: 0,
+                        modestbranding: 1,
+                        showinfo: 0,
+                        cc_load_policy: 0,
+                        cc_lang_pref: normalizeLangCode(selectedVttLang),
+                        hl: getYouTubeAudioLangCode(selectedAudioLang),
+                        disablekb: 1,
+                        fs: 0,
+                        rel: 0,
+                        iv_load_policy: 3,
+                        origin: typeof window !== 'undefined' ? window.location.origin : undefined,
+                        widget_referrer: typeof window !== 'undefined' ? window.location.origin : undefined,
+                      },
+                    },
+                  }}
+                  onLoadedMetadata={(e) => {
+                    e.currentTarget.muted = isMuted;
+                    e.currentTarget.volume = actAudioUrl ? 0.25 : 1;
+                    if (isAutoPlay) {
+                      e.currentTarget.play().catch(() => {});
+                    } else {
+                      e.currentTarget.pause();
+                    }
+                    sendYtCommand('unloadModule', ['captions']);
+                    sendYtCommand('unloadModule', ['cc']);
+                  }}
+                  onPlay={() => {
+                    if (!isAutoPlay) {
+                      setIsYtPlaying(false);
+                      ytMediaRef.current?.pause();
+                    } else {
+                      setIsYtPlaying(true);
+                      sendYtCommand('unloadModule', ['captions']);
+                      sendYtCommand('unloadModule', ['cc']);
+                      if (audioRef.current && !isMuted) {
+                        audioRef.current.play().catch(() => {});
+                      }
+                    }
+                  }}
+                  onPlaying={() => {
+                    if (isAutoPlay) {
+                      setIsYtPlaying(true);
+                    }
+                  }}
+                  onPause={() => {
+                    setIsYtPlaying(false);
+                    if (audioRef.current) {
+                      audioRef.current.pause();
+                    }
+                  }}
+                  onTimeUpdate={(e) => {
+                    const curr = e.currentTarget.currentTime;
+                    handleTimeUpdate(curr);
+                    if (
+                      audioRef.current &&
+                      !audioRef.current.paused &&
+                      Math.abs(audioRef.current.currentTime - curr) > 0.75
+                    ) {
+                      audioRef.current.currentTime = curr;
+                    }
+                  }}
+                  onEnded={() => {
+                    setIsYtPlaying(false);
+                    setIsVideoFinished(true);
+                    setActiveSubtitle('');
+                    if (audioRef.current) {
+                      audioRef.current.pause();
+                      audioRef.current.currentTime = 0;
+                    }
+                    if (isAutoPlay && currentIndex < actItems.length - 1) {
+                      setTimeout(() => {
+                        goToNext();
+                      }, 3500);
+                    }
+                  }}
+                />
+              </div>
               <div
                 className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isAutoPlay || !isYtPlaying) {
                     setIsAutoPlay(true);
+                    ytMediaRef.current?.play().catch(() => {});
                     sendYtCommand('playVideo');
                     if (!isMuted) {
+                      if (ytMediaRef.current) {
+                        ytMediaRef.current.muted = false;
+                        ytMediaRef.current.volume = actAudioUrl ? 0.25 : 1;
+                      }
                       sendYtCommand('unMute');
                       sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
                     }
                   } else {
                     setIsAutoPlay(false);
+                    ytMediaRef.current?.pause();
                     sendYtCommand('pauseVideo');
                   }
                 }}
@@ -864,12 +928,12 @@ export const ActPage: React.FC<ActPageProps> = ({
                 {(!isAutoPlay || !isYtPlaying) && (
                   <div
                     id="youtube-gold-pause-circle"
-                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                   >
                     {!isAutoPlay || !isYtPlaying ? (
-                      <Play className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                      <Play className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                     ) : (
-                      <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
+                      <Pause className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                     )}
                   </div>
                 )}
@@ -1031,20 +1095,22 @@ export const ActPage: React.FC<ActPageProps> = ({
         </button>
       </div>
 
-      {/* 3. TOP CENTER: ACT TITLE */}
-      <div className="absolute top-3 sm:top-6 inset-x-0 mx-auto z-20 flex flex-col items-center justify-center pointer-events-none px-14 sm:px-44 text-center">
-        <div
-          className={`backdrop-blur-md px-4 sm:px-6 py-1.5 rounded-full border ${
-            darkMode
-              ? 'bg-black/80 border-[#d4af37]/70 text-[#d4af37] shadow-[0_4px_20px_rgba(0,0,0,0.8)]'
-              : 'bg-white/95 border-[#d4af37] text-amber-900 shadow-md'
-          } max-w-full truncate flex items-center justify-center`}
-        >
-          <span className="text-[11px] sm:text-xs md:text-sm font-bold uppercase tracking-wider font-cinzel truncate">
-            {currentAct.actTitle}
-          </span>
+      {/* 3. TOP CENTER: ACT TITLE (only if present) */}
+      {currentAct.actTitle && (
+        <div className="absolute top-3 sm:top-6 inset-x-0 mx-auto z-20 flex flex-col items-center justify-center pointer-events-none px-14 sm:px-44 text-center">
+          <div
+            className={`backdrop-blur-md px-4 sm:px-6 py-1.5 rounded-full border ${
+              darkMode
+                ? 'bg-black/80 border-[#d4af37]/70 text-[#d4af37] shadow-[0_4px_20px_rgba(0,0,0,0.8)]'
+                : 'bg-white/95 border-[#d4af37] text-amber-900 shadow-md'
+            } max-w-full truncate flex items-center justify-center`}
+          >
+            <span className="text-[11px] sm:text-xs md:text-sm font-bold uppercase tracking-wider font-cinzel truncate">
+              {currentAct.actTitle}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 4. TOP RIGHT: COMMENTS, AUTOPLAY TOGGLE, SOUND TOGGLE & MP3 AUDIO SELECTOR */}
       <div className="flex absolute top-3 right-3 sm:top-6 sm:right-6 z-30 items-center gap-2">
@@ -1379,7 +1445,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     ? t('comingSoon', currentLang)
                     : isVideoFinished
                     ? t('actCompleted', selectedVttLang)
-                    : currentAct.actTitle}
+                    : ''}
                 </p>
               )}
             </div>

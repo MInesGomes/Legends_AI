@@ -8,6 +8,8 @@
         "@google/genai": "^2.4.0",
         "@supabase/supabase-js": "^2.112.3",
         "@tailwindcss/vite": "^4.1.14",
+        "@videojs/react": "^10.0.0",
+        "@videojs/youtube-video": "^10.0.0",
         "@vitejs/plugin-react": "^5.0.4",
         "canvas-confetti": "^1.9.4",
         "dotenv": "^17.2.3",
@@ -286,6 +288,22 @@
 
     "@types/serve-static": ["@types/serve-static@1.15.10", "", { "dependencies": { "@types/http-errors": "*", "@types/node": "*", "@types/send": "<1" } }, "sha512-tRs1dB+g8Itk72rlSI2ZrW6vZg0YrLI81iQSTkMmOqnqCaNr/8Ek4VwWcN5vZgCYWbg/JJSGBlUaYGAOP73qBw=="],
 
+    "@videojs/core": ["@videojs/core@10.0.0", "", { "dependencies": { "@videojs/media": "10.0.0", "@videojs/store": "10.0.0", "@videojs/utils": "10.0.0" } }, "sha512-U5tYZGH3q96K/dlgytYCA3A4zGSlsWy2Ldy7A9rjCf3a/Zxc8Dc62TFRIDgsedpCMvBiBhWz1xlIeX/nPS5mog=="],
+
+    "@videojs/media": ["@videojs/media@10.0.0", "", { "dependencies": { "@videojs/utils": "10.0.0" } }, "sha512-qO1Wpdv0e9F+XtcsCl2kJuLPIJO83qgJM+mZ4FgiVvgyg8l6nABqWBe83jaYdV9VGL8vSfqolhUfrgMGAOicgA=="],
+
+    "@videojs/native-hls-video": ["@videojs/native-hls-video@10.0.0", "", { "dependencies": { "@videojs/media": "10.0.0", "@videojs/utils": "10.0.0" } }, "sha512-O9Nh9eDclzL34dd9CzFgW42V5aGu6Y541wRc/9sKvLiAtwIAQlff8CAQN27lDTn9Cz9KKDzd6P8Yxgjk1frPpQ=="],
+
+    "@videojs/react": ["@videojs/react@10.0.0", "", { "dependencies": { "@videojs/core": "10.0.0", "@videojs/media": "10.0.0", "@videojs/native-hls-video": "10.0.0", "@videojs/spf": "10.0.0", "@videojs/store": "10.0.0", "@videojs/utils": "10.0.0", "react-compiler-runtime": "^1.0.0" }, "peerDependencies": { "@videojs/cloudflare-video": "10.0.0", "@videojs/dash-video": "10.0.0", "@videojs/google-cast": "10.0.0", "@videojs/hlsjs-video": "10.0.0", "@videojs/mux-audio": "10.0.0", "@videojs/mux-data": "10.0.0", "@videojs/mux-video": "10.0.0", "@videojs/shaka-video": "10.0.0", "@videojs/spotify-audio": "10.0.0", "@videojs/tiktok-video": "10.0.0", "@videojs/twitch-video": "10.0.0", "@videojs/vimeo-video": "10.0.0", "@videojs/wistia-video": "10.0.0", "@videojs/youtube-video": "10.0.0", "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["@videojs/cloudflare-video", "@videojs/dash-video", "@videojs/google-cast", "@videojs/hlsjs-video", "@videojs/mux-audio", "@videojs/mux-data", "@videojs/mux-video", "@videojs/shaka-video", "@videojs/spotify-audio", "@videojs/tiktok-video", "@videojs/twitch-video", "@videojs/vimeo-video", "@videojs/wistia-video", "@videojs/youtube-video"] }, "sha512-w6y9Fns+51nsd6qSv8tYT0RCcPVvXN+tKlVwHfVsYuFyPH6odaDu947MT7ncuZUDGRynY6RoKJnigjPX5LPp9w=="],
+
+    "@videojs/spf": ["@videojs/spf@10.0.0", "", { "dependencies": { "@videojs/media": "10.0.0", "@videojs/utils": "10.0.0", "signal-polyfill": "^0.2.2" } }, "sha512-Zka8t+ead3/6sFhWfU7WYYJWvL3d//QDuNm3JeRDABTvH8Qz9JQb6FD/NPIffWeGbaSYdW4vQk1Btz0Ol8HIOA=="],
+
+    "@videojs/store": ["@videojs/store@10.0.0", "", { "dependencies": { "@videojs/utils": "10.0.0", "react-compiler-runtime": "^1.0.0" }, "peerDependencies": { "@videojs/element": "10.0.0", "react": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["@videojs/element", "react"] }, "sha512-SeJ/PERBssswgfHTiSGfzlMEQ1N8sHjxQ2jp02hf760mNGYx6idtV4HvRbcNo5Ccn6O1OOiN/0Aim5Xc+E6ZAQ=="],
+
+    "@videojs/utils": ["@videojs/utils@10.0.0", "", {}, "sha512-TKT61xKZAato+zpYII4TwCJsg662+14GmRKx10WmVsGIP8T2JMh1qCJnwhpc9RyfvmFG1M4eJkIh5eqzZhHmZQ=="],
+
+    "@videojs/youtube-video": ["@videojs/youtube-video@10.0.0", "", { "dependencies": { "@videojs/media": "10.0.0", "@videojs/utils": "10.0.0" } }, "sha512-DFw1KVkYJEHFsOoJiPN+g0XA77Upa0oBLMQeraVXD8tkfWcS3iNdQuM1w8S2xABZkOo/G/U+3PjP7pkVODNMhg=="],
+
     "@vitejs/plugin-react": ["@vitejs/plugin-react@5.2.0", "", { "dependencies": { "@babel/core": "^7.29.0", "@babel/plugin-transform-react-jsx-self": "^7.27.1", "@babel/plugin-transform-react-jsx-source": "^7.27.1", "@rolldown/pluginutils": "1.0.0-rc.3", "@types/babel__core": "^7.20.5", "react-refresh": "^0.18.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0" } }, "sha512-YmKkfhOAi3wsB1PhJq5Scj3GXMn3WvtQ/JC0xoopuHoXSdmtdStOpFrYaT1kie2YgFBcIe64ROzMYRjCrYOdYw=="],
 
     "accepts": ["accepts@1.3.8", "", { "dependencies": { "mime-types": "~2.1.34", "negotiator": "0.6.3" } }, "sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw=="],
@@ -532,6 +550,8 @@
 
     "react": ["react@19.2.8", "", {}, "sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw=="],
 
+    "react-compiler-runtime": ["react-compiler-runtime@1.0.0", "", { "peerDependencies": { "react": "^17.0.0 || ^18.0.0 || ^19.0.0 || ^0.0.0-experimental" } }, "sha512-rRfjYv66HlG8896yPUDONgKzG5BxZD1nV9U6rkm+7VCuvQc903C4MjcoZR4zPw53IKSOX9wMQVpA1IAbRtzQ7w=="],
+
     "react-dom": ["react-dom@19.2.8", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.8" } }, "sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ=="],
 
     "react-refresh": ["react-refresh@0.18.0", "", {}, "sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw=="],
@@ -561,6 +581,8 @@
     "side-channel-map": ["side-channel-map@1.0.1", "", { "dependencies": { "call-bound": "^1.0.2", "es-errors": "^1.3.0", "get-intrinsic": "^1.2.5", "object-inspect": "^1.13.3" } }, "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA=="],
 
     "side-channel-weakmap": ["side-channel-weakmap@1.0.2", "", { "dependencies": { "call-bound": "^1.0.2", "es-errors": "^1.3.0", "get-intrinsic": "^1.2.5", "object-inspect": "^1.13.3", "side-channel-map": "^1.0.1" } }, "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A=="],
+
+    "signal-polyfill": ["signal-polyfill@0.2.2", "", {}, "sha512-p63Y4Er5/eMQ9RHg0M0Y64NlsQKpiu6MDdhBXpyywRuWiPywhJTpKJ1iB5K2hJEbFZ0BnDS7ZkJ+0AfTuL37Rg=="],
 
     "source-map-js": ["source-map-js@1.2.1", "", {}, "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="],
 

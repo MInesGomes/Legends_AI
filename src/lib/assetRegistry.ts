@@ -96,6 +96,10 @@ export function normalizeLangCode(lang: Language | string = 'EN'): string {
   return 'en';
 }
 
+export function getYouTubeAudioLangCode(lang: Language | string = 'EN'): string {
+  return normalizeLangCode(lang);
+}
+
 /**
  * Constructs the base folder path for an Act.
  * e.g. folderPath + chapter + "/" + act
@@ -127,11 +131,11 @@ export function getActMp3CandidateUrls(act: Act, lang: Language | string = 'EN',
   const langCode = normalizeLangCode(lang);
   const isElDorado = folder.toLowerCase().includes('eldorado');
 
-  // For Atlantis act0 (Chapter 0 act0 or any act0 with a YouTube video), do not load MP3 from Supabase
+  // For Atlantis act0 (Chapter 0 or 1 act0 or any act0 with a YouTube video), do not load MP3 from Supabase
   if (
     (actName === 'act0' || !act.act) &&
     (Boolean(extractYouTubeVideoId(act.videoUrl)) ||
-      (act.chapter === 0 && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)))
+      ((act.chapter === 0 || act.chapter === 1) && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)))
   ) {
     return [];
   }
@@ -201,9 +205,18 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
     candidates.push(act.videoUrl);
   }
 
-  // Atlantis Chapter 0 act0 video source
-  if (act.chapter === 0 && (actName === 'act0' || !act.act) && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
-    candidates.push('https://youtu.be/-B_vlZaUDDc');
+  // Atlantis Chapter 0 act0 and male_act video sources
+  if (act.chapter === 0 && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
+    if (actName === 'act0' || !act.act) {
+      candidates.push('https://youtu.be/-B_vlZaUDDc');
+    } else if (actName === 'male_act') {
+      candidates.push('https://youtu.be/9Ozmoyei2-A');
+    }
+  }
+
+  // Atlantis Chapter 1 act0 video source
+  if (act.chapter === 1 && (actName === 'act0' || !act.act) && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)) {
+    candidates.push('https://youtu.be/LBCpY7bI638');
   }
 
   // Atlantis Chapter 3 acts video sources
@@ -258,16 +271,6 @@ export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN',
   const langCode = normalizeLangCode(lang);
   const isElDorado = folder.toLowerCase().includes('eldorado');
 
-  // For Atlantis Chapter 0 - Act 0, load subtitles from YouTube instead of Supabase
-  if (
-    act.chapter === 0 &&
-    (actName === 'act0' || !act.act) &&
-    (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)
-  ) {
-    const ytId = extractYouTubeVideoId(act.videoUrl) || '-B_vlZaUDDc';
-    return [`/api/youtube/vtt?videoId=${encodeURIComponent(ytId)}&lang=${encodeURIComponent(langCode)}`];
-  }
-
   const candidates: string[] = [];
   if (isElDorado) {
     candidates.push(
@@ -285,9 +288,16 @@ export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN',
       `${chapterFolder}/${actName}/vtt/${actName}_${langCode}.vtt`,
       `${chapterFolder}/${actName}/vvt/${actName}_${langCode}.vtt`,
       `${chapterFolder}/vtt/${actName}_${langCode}.vtt`,
+      `${chapterFolder}/vvt/${actName}_${langCode}.vtt`,
       `${chapterFolder}/${actName}_${langCode}.vtt`
     );
   }
+
+  const ytId = extractYouTubeVideoId(act.videoUrl);
+  if (ytId) {
+    candidates.push(`/api/youtube/vtt?videoId=${encodeURIComponent(ytId)}&lang=${encodeURIComponent(langCode)}`);
+  }
+
   return Array.from(new Set(candidates));
 }
 
@@ -298,14 +308,12 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
   {
     chapter: 0,
     act: 'act0',
-    title: 'The Heart of Atlantis',
     type: 'narrative',
     videoUrl: 'https://youtu.be/-B_vlZaUDDc',
   },
   {
     chapter: 0,
     act: 'female_act',
-    title: 'Alethea, Guardian of Archives',
     characterName: 'Alethea',
     gender: 'female',
     type: 'character',
@@ -313,90 +321,78 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
   {
     chapter: 0,
     act: 'male_act',
-    title: 'Elion, Keeper of Machines',
     characterName: 'Elion',
     gender: 'male',
     type: 'character',
+    videoUrl: 'https://youtu.be/9Ozmoyei2-A',
   },
   {
     chapter: 1,
     act: 'act0',
-    title: 'The Celebration',
     type: 'dialogue',
+    videoUrl: 'https://youtu.be/LBCpY7bI638',
   },
   {
     chapter: 1,
     act: 'choice1',
-    title: 'BEST: Organize the Evacuation',
     type: 'choice',
   },
   {
     chapter: 1,
     act: 'choice2',
-    title: 'SAFE: Try to Solve Everything Alone',
     type: 'choice',
   },
   {
     chapter: 1,
     act: 'choice3',
-    title: 'WEAK: Wait for the Council',
     type: 'choice',
   },
   {
     chapter: 1,
     act: 'choice4',
-    title: 'HARMFUL: Force the System and Blame Others',
     type: 'choice',
   },
   {
     chapter: 2,
     act: 'act0',
-    title: 'Plan to Atlantis Flow',
     type: 'narrative',
   },
   {
     chapter: 2,
     act: 'choice1',
-    title: 'BEST: Many Hands',
     type: 'choice',
   },
   {
     chapter: 2,
     act: 'choice2',
-    title: 'Into the Flood',
     type: 'choice',
   },
   {
     chapter: 2,
     act: 'choice3',
-    title: 'The Difficult Choice',
     type: 'choice',
   },
   {
     chapter: 3,
     act: 'act0',
-    title: 'Win4All in Atlantis Flow',
     type: 'narrative',
     videoUrl: 'https://youtu.be/-64kwqW5q6k',
   },
   {
     chapter: 3,
     act: 'choice1',
-    title: 'BEST: Shift the Ground',
     type: 'choice',
     videoUrl: 'https://youtu.be/7DEPbiuRvuU',
   },
   {
     chapter: 3,
     act: 'choice2',
-    title: 'Keep the Flow',
     type: 'choice',
     videoUrl: 'https://youtu.be/B4bsJHLc7V0',
   },
   {
     chapter: 3,
     act: 'choice3',
-    title: 'Draw the Line',
     type: 'choice',
     videoUrl: 'https://youtu.be/TP1-nip4GiM',
   },

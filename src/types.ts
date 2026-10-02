@@ -8,7 +8,7 @@ export const SUPPORTED_LANGUAGES: { code: Language; label: string; flag: string 
   { code: 'NL', label: 'Nederlands', flag: '🇳🇱' },
 ];
 
-export type SkillType = 'Leader' | 'Plan' | 'Win4All' | 'Listen' | 'Recharge';
+export type SkillType = 'Proactive' | 'Leader' | 'Plan' | 'Win4All' | 'Listen' | 'Recharge';
 
 export type ChoiceOptionType = 'Best' | 'Safe' | 'Weak' | 'Harmful';
 
@@ -29,7 +29,8 @@ export interface UserProfile {
 }
 
 export interface UserSkillsPoints {
-  Leader: number;
+  Proactive: number;
+  Leader?: number;
   Plan: number;
   Win4All: number;
   Listen: number;

@@ -213,7 +213,7 @@ export default function App() {
         ),
         chapters_id_Comments: updatedChapterComments,
         user_skills_points: {
-          Leader: 0,
+          Proactive: 0,
           Plan: 0,
           Win4All: 0,
           Listen: 0,

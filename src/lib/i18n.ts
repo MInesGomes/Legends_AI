@@ -64,38 +64,6 @@ export interface Translations {
   nextChapter: string;
   backToChoices: string;
   bestChoiceTitle: string;
-  choice1_title: string;
-  choice1_subtitle: string;
-  choice1_description: string;
-  choice2_title: string;
-  choice2_subtitle: string;
-  choice2_description: string;
-  choice3_title: string;
-  choice3_subtitle: string;
-  choice3_description: string;
-  choice4_title: string;
-  choice4_subtitle: string;
-  choice4_description: string;
-
-  // El Dorado Act 0 Choices
-  eldorado_act0_choice1_title: string;
-  eldorado_act0_choice2_title: string;
-
-  // Atlantis Chapter 2 Choices
-  atlantis_act2_choice1_title: string;
-  atlantis_act2_choice1_subtitle: string;
-  atlantis_act2_choice2_title: string;
-  atlantis_act2_choice2_subtitle: string;
-  atlantis_act2_choice3_title: string;
-  atlantis_act2_choice3_subtitle: string;
-
-  // Atlantis Chapter 3 Choices
-  atlantis_act3_choice1_title: string;
-  atlantis_act3_choice1_subtitle: string;
-  atlantis_act3_choice2_title: string;
-  atlantis_act3_choice2_subtitle: string;
-  atlantis_act3_choice3_title: string;
-  atlantis_act3_choice3_subtitle: string;
   readAloudEarnPoints: string;
 
   // Comments Drawer
@@ -170,6 +138,7 @@ export interface Translations {
   dateOfBirth: string;
 
   // Skills
+  skill_Proactive: string;
   skill_Leader: string;
   skill_Plan: string;
   skill_Win4All: string;
@@ -237,32 +206,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     nextChapter: 'Next Chapter',
     backToChoices: 'Back to Choices',
     bestChoiceTitle: 'Best Choice!',
-    choice1_title: 'Organize the Evacuation',
-    choice1_subtitle: 'Community Leadership',
-    choice1_description: "Don’t ask for permission and risk losing everything.",
-    choice2_title: 'Try to Solve Everything Alone',
-    choice2_subtitle: 'Cautious Heroism',
-    choice2_description: 'Attempt to stabilize the central reactor yourself before alarming the public.',
-    choice3_title: 'Wait for the Council',
-    choice3_subtitle: 'Passive Compliance',
-    choice3_description: 'Delay action until the High Council issues formal evacuation orders.',
-    choice4_title: 'Force the System',
-    choice4_subtitle: 'Act immediately',
-    choice4_description: 'Override security safeguards by force, so all can be saved quickly.',
-    eldorado_act0_choice1_title: 'Give his light',
-    eldorado_act0_choice2_title: 'Afraid to lose his light',
-    atlantis_act2_choice1_title: 'Many Hands',
-    atlantis_act2_choice1_subtitle: 'Coordinated Strategy',
-    atlantis_act2_choice2_title: 'Into the Flood',
-    atlantis_act2_choice2_subtitle: 'Direct Confrontation',
-    atlantis_act2_choice3_title: 'The Difficult Choice',
-    atlantis_act2_choice3_subtitle: 'Calculated Sacrifice',
-    atlantis_act3_choice1_title: 'Shift the Ground',
-    atlantis_act3_choice1_subtitle: 'Make space for another way.',
-    atlantis_act3_choice2_title: 'Keep the Flow',
-    atlantis_act3_choice2_subtitle: 'Let the moment move forward.',
-    atlantis_act3_choice3_title: 'Draw the Line',
-    atlantis_act3_choice3_subtitle: 'Take a stand when it matters.',
     readAloudEarnPoints: 'Train articulation for {lang} and earn points. Drastically over-pronouncing every single syllable. Move your jaw, lips, and tongue with theatrical exaggeration. This builds muscle memory',
 
     commentsTitle: 'Comments',
@@ -332,7 +275,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     yourFullName: 'Your Full Name',
     dateOfBirth: 'Date of Birth',
 
-    skill_Leader: 'Leadership',
+    skill_Proactive: 'Proactive',
+    skill_Leader: 'Proactive',
     skill_Plan: 'Planning',
     skill_Win4All: 'Win4All',
     skill_Listen: 'Listening',
@@ -398,32 +342,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     nextChapter: 'Siguiente capítulo',
     backToChoices: 'Volver a opciones',
     bestChoiceTitle: '¡Mejor elección!',
-    choice1_title: 'Organizar la evacuación',
-    choice1_subtitle: 'Liderazgo comunitario',
-    choice1_description: 'No pidas permiso y arriésgate a perderlo todo.',
-    choice2_title: 'Intentar resolver todo solo',
-    choice2_subtitle: 'Heroísmo cauteloso',
-    choice2_description: 'Intenta estabilizar el reactor central tú mismo antes de alarmar al público.',
-    choice3_title: 'Esperar al Consejo',
-    choice3_subtitle: 'Cumplimiento pasivo',
-    choice3_description: 'Retrasa la acción hasta que el Alto Consejo emita órdenes formales de evacuación.',
-    choice4_title: 'Forzar el sistema',
-    choice4_subtitle: 'Actúa de inmediato',
-    choice4_description: 'Anula las medidas de seguridad por la fuerza para salvar a todos rápidamente.',
-    eldorado_act0_choice1_title: 'Da su luz',
-    eldorado_act0_choice2_title: 'Miedo a perder su luz',
-    atlantis_act2_choice1_title: 'Muchas manos',
-    atlantis_act2_choice1_subtitle: 'Estrategia coordinada',
-    atlantis_act2_choice2_title: 'Hacia la inundación',
-    atlantis_act2_choice2_subtitle: 'Confrontación directa',
-    atlantis_act2_choice3_title: 'La elección difícil',
-    atlantis_act2_choice3_subtitle: 'Sacrificio calculado',
-    atlantis_act3_choice1_title: 'Cambiar el terreno',
-    atlantis_act3_choice1_subtitle: 'Hacer espacio para otro camino.',
-    atlantis_act3_choice2_title: 'Mantener el flujo',
-    atlantis_act3_choice2_subtitle: 'Dejar que el momento avance.',
-    atlantis_act3_choice3_title: 'Trazar la línea',
-    atlantis_act3_choice3_subtitle: 'Tomar una postura cuando importa.',
     readAloudEarnPoints: 'Entrena la articulación para {lang} y gana puntos. Exagera drásticamente la pronunciación de cada sílaba. Mueve la mandíbula, los labios y la lengua con exageración teatral. Esto crea memoria muscular',
 
     commentsTitle: 'Comentarios',
@@ -493,7 +411,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     yourFullName: 'Tu nombre completo',
     dateOfBirth: 'Fecha de nacimiento',
 
-    skill_Leader: 'Liderazgo',
+    skill_Proactive: 'Proactivo',
+    skill_Leader: 'Proactivo',
     skill_Plan: 'Planificación',
     skill_Win4All: 'Win4All',
     skill_Listen: 'Escucha activa',
@@ -559,32 +478,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     nextChapter: 'Capitolo successivo',
     backToChoices: 'Torna alle scelte',
     bestChoiceTitle: 'Migliore scelta!',
-    choice1_title: "Organizzare l'evacuazione",
-    choice1_subtitle: 'Leadership comunitaria',
-    choice1_description: 'Non chiedere il permesso e rischia di perdere tutto.',
-    choice2_title: 'Tentare di risolvere tutto da solo',
-    choice2_subtitle: 'Eroismo cauto',
-    choice2_description: 'Tenta di stabilizzare il reattore centrale da solo prima di allarmare la popolazione.',
-    choice3_title: 'Attendere il Consiglio',
-    choice3_subtitle: 'Conformità passiva',
-    choice3_description: "Ritarda l'azione finché l'Alto Consiglio non emette ordini formali di evacuazione.",
-    choice4_title: 'Forzare il sistema',
-    choice4_subtitle: 'Agisci immediatamente',
-    choice4_description: 'Bypassa i sistemi di sicurezza con la forza per salvare tutti rapidamente.',
-    eldorado_act0_choice1_title: 'Dà la sua luce',
-    eldorado_act0_choice2_title: 'Ha paura di perdere la sua luce',
-    atlantis_act2_choice1_title: 'Molte mani',
-    atlantis_act2_choice1_subtitle: 'Strategia coordinata',
-    atlantis_act2_choice2_title: "Nell'inondazione",
-    atlantis_act2_choice2_subtitle: 'Confronto diretto',
-    atlantis_act2_choice3_title: 'La scelta difficile',
-    atlantis_act2_choice3_subtitle: 'Sacrificio calcolato',
-    atlantis_act3_choice1_title: 'Cambiare il terreno',
-    atlantis_act3_choice1_subtitle: "Fare spazio a un'altra via.",
-    atlantis_act3_choice2_title: 'Mantenere il flusso',
-    atlantis_act3_choice2_subtitle: 'Lasciare che il momento avanzi.',
-    atlantis_act3_choice3_title: 'Tracciare la linea',
-    atlantis_act3_choice3_subtitle: 'Prendere posizione quando conta.',
     readAloudEarnPoints: "Allena l'articolazione per {lang} e guadagna punti. Pronuncia drasticamente ogni singola sillaba in modo esagerato. Muovi la mandibola, le labbra e la lingua con esagerazione teatrale. Questo sviluppa la memoria muscolare",
 
     commentsTitle: 'Commenti',
@@ -654,7 +547,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     yourFullName: 'Il tuo nome completo',
     dateOfBirth: 'Data di nascita',
 
-    skill_Leader: 'Leadership',
+    skill_Proactive: 'Proattivo',
+    skill_Leader: 'Proattivo',
     skill_Plan: 'Pianificazione',
     skill_Win4All: 'Win4All',
     skill_Listen: 'Ascolto',
@@ -720,32 +614,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     nextChapter: 'Próximo capítulo',
     backToChoices: 'Voltar às escolhas',
     bestChoiceTitle: 'Melhor escolha!',
-    choice1_title: 'Organizar a evacuação',
-    choice1_subtitle: 'Liderança comunitária',
-    choice1_description: 'Não peça permissão e arrisque perder tudo.',
-    choice2_title: 'Tentar resolver tudo sozinho',
-    choice2_subtitle: 'Heroísmo cauteloso',
-    choice2_description: 'Tente estabilizar o reator central sozinho antes de alarmar a população.',
-    choice3_title: 'Aguardar o Conselho',
-    choice3_subtitle: 'Conformidade passiva',
-    choice3_description: 'Atrase a ação até que o Alto Conselho emita ordens formais de evacuação.',
-    choice4_title: 'Forçar o sistema',
-    choice4_subtitle: 'Age imediatamente',
-    choice4_description: 'Subverta os sistemas de segurança pela força para que todos possam ser salvos rapidamente.',
-    eldorado_act0_choice1_title: 'Dá a sua luz',
-    eldorado_act0_choice2_title: 'Com medo de perder a sua luz',
-    atlantis_act2_choice1_title: 'Muitas mãos',
-    atlantis_act2_choice1_subtitle: 'Estratégia coordenada',
-    atlantis_act2_choice2_title: 'Para a inundação',
-    atlantis_act2_choice2_subtitle: 'Confronto direto',
-    atlantis_act2_choice3_title: 'A escolha difícil',
-    atlantis_act2_choice3_subtitle: 'Sacrifício calculado',
-    atlantis_act3_choice1_title: 'Mudar o terreno',
-    atlantis_act3_choice1_subtitle: 'Abrir espaço para outro caminho.',
-    atlantis_act3_choice2_title: 'Manter o fluxo',
-    atlantis_act3_choice2_subtitle: 'Deixar o momento avançar.',
-    atlantis_act3_choice3_title: 'Traçar a linha',
-    atlantis_act3_choice3_subtitle: 'Tomar uma posição quando importar.',
     readAloudEarnPoints: 'Treina a articulação para {lang} e ganha pontos. Exagera drasticamente a pronúncia de cada sílaba. Move o maxilar, os lábios e a língua com exagero teatral. Isto desenvolve a memória muscular',
 
     commentsTitle: 'Comentários',
@@ -815,7 +683,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     yourFullName: 'O seu nome completo',
     dateOfBirth: 'Data de nascimento',
 
-    skill_Leader: 'Liderança',
+    skill_Proactive: 'Proativo',
+    skill_Leader: 'Proativo',
     skill_Plan: 'Planeamento',
     skill_Win4All: 'Win4All',
     skill_Listen: 'Escuta',
@@ -881,32 +750,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     nextChapter: 'Volgend hoofdstuk',
     backToChoices: 'Terug naar keuzes',
     bestChoiceTitle: 'Beste keuze!',
-    choice1_title: 'Organiseer de evacuatie',
-    choice1_subtitle: 'Gemeenschapsleiderschap',
-    choice1_description: 'Vraag niet om toestemming en riskeer alles te verliezen.',
-    choice2_title: 'Probeer alles alleen op te lossen',
-    choice2_subtitle: 'Voorzichtige heldenmoed',
-    choice2_description: 'Probeer de centrale reactor zelf te stabiliseren voordat je paniek veroorzaakt.',
-    choice3_title: 'Wacht op de Raad',
-    choice3_subtitle: 'Passieve volgzaamheid',
-    choice3_description: 'Wacht met handelen totdat de Hoge Raad formele evacuatiebevelen uitvaardigt.',
-    choice4_title: 'Forceer het systeem',
-    choice4_subtitle: 'Handel onmiddellijk',
-    choice4_description: 'Omzeil beveiligingssystemen met geweld, zodat iedereen snel kan worden gered.',
-    eldorado_act0_choice1_title: 'Geeft zijn licht',
-    eldorado_act0_choice2_title: 'Bang om zijn licht te verliezen',
-    atlantis_act2_choice1_title: 'Vele handen',
-    atlantis_act2_choice1_subtitle: 'Gecoördineerde strategie',
-    atlantis_act2_choice2_title: 'De vloed in',
-    atlantis_act2_choice2_subtitle: 'Directe confrontatie',
-    atlantis_act2_choice3_title: 'De moeilijke keuze',
-    atlantis_act2_choice3_subtitle: 'Berekend offer',
-    atlantis_act3_choice1_title: 'Verplaats de grond',
-    atlantis_act3_choice1_subtitle: 'Maak ruimte voor een andere weg.',
-    atlantis_act3_choice2_title: 'Behoud de stroom',
-    atlantis_act3_choice2_subtitle: 'Laat het moment vooruitgaan.',
-    atlantis_act3_choice3_title: 'Trek de grens',
-    atlantis_act3_choice3_subtitle: 'Neem een standpunt in wanneer het ertoe doet.',
     readAloudEarnPoints: 'Train articulatie voor {lang} en verdien punten. Overdrijf de uitspraak van elke afzonderlijke lettergreep drastisch. Beweeg je kaak, lippen en tong met theatrale overdrijving. Dit bouwt spiergeheugen op',
 
     commentsTitle: 'Reacties',
@@ -976,7 +819,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     yourFullName: 'Je volledige naam',
     dateOfBirth: 'Geboortedatum',
 
-    skill_Leader: 'Leiderschap',
+    skill_Proactive: 'Proactief',
+    skill_Leader: 'Proactief',
     skill_Plan: 'Planning',
     skill_Win4All: 'Win4All',
     skill_Listen: 'Luisteren',

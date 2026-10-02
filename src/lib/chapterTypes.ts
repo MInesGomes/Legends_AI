@@ -1,15 +1,10 @@
 import { SkillType } from '../types';
-import { Translations } from './i18n';
 
 export type ChoiceId = 'choice1' | 'choice2' | 'choice3' | 'choice4';
 
 export interface ChapterChoiceConfig {
   id: ChoiceId;
   available: boolean; // some chapters only have 2 of the 4 choices
-  title?: string;
-  subtitle?: string;
-  titleKey?: keyof Translations;
-  subtitleKey?: keyof Translations;
   imageUrl?: string;
   videoUrl?: string;
 }
