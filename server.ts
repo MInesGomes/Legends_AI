@@ -90,7 +90,7 @@ async function startServer() {
             </div>
             <script>
               if (window.opener) {
-                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${postMessageError} }, '*');
+                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${postMessageError} }, window.location.origin);
                 setTimeout(() => window.close(), 1500);
               }
             </script>
@@ -177,7 +177,7 @@ async function startServer() {
                   window.opener.postMessage({
                     type: 'GOOGLE_AUTH_SUCCESS',
                     user: ${JSON.stringify(userPayload)}
-                  }, '*');
+                  }, window.location.origin);
                   setTimeout(() => window.close(), 600);
                 } else {
                   window.location.href = '/';
@@ -215,7 +215,7 @@ async function startServer() {
             </div>
             <script>
               if (window.opener) {
-                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${JSON.stringify(err?.message || 'Error')} }, '*');
+                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${JSON.stringify(err?.message || 'Error')} }, window.location.origin);
               }
             </script>
           </body>

@@ -438,9 +438,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         return;
       }
       if (ytIframeRef.current?.contentWindow) {
+        const targetOrigin = ytIframeRef.current.src
+          ? new URL(ytIframeRef.current.src).origin
+          : 'https://www.youtube.com';
         ytIframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func, args }),
-          '*'
+          targetOrigin
         );
       }
     } catch {}
@@ -1172,6 +1175,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (!currentYouTubeId) return;
 
     const handleMessage = (event: MessageEvent) => {
+      if (
+        event.origin !== 'https://www.youtube.com' &&
+        event.origin !== 'https://www.youtube-nocookie.com'
+      ) {
+        return;
+      }
+
       try {
         const raw = event.data;
         const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
@@ -1245,9 +1255,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     window.addEventListener('message', handleMessage);
     const interval = setInterval(() => {
       if (ytIframeRef.current?.contentWindow) {
+        const targetOrigin = ytIframeRef.current.src
+          ? new URL(ytIframeRef.current.src).origin
+          : 'https://www.youtube.com';
         ytIframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'listening' }),
-          '*'
+          targetOrigin
         );
       }
     }, 1000);

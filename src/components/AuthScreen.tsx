@@ -73,6 +73,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   // Listen for Google OAuth popup postMessage
   useEffect(() => {
     const handleAuthMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+
       if (event.data?.type === 'GOOGLE_AUTH_SUCCESS' && event.data.user) {
         setIsGoogleLoading(false);
         const gUser = event.data.user;
