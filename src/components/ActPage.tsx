@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import {
-  SafeYouTubeVideo,
-  type YouTubeAdapter,
-} from './SafeYouTubeVideo';
+import { motion } from 'motion/react';
+import { SafeYouTubeVideo, type YouTubeAdapter } from './SafeYouTubeVideo';
 import { Language, UserProfile, SkillType, ChapterComment, Tale } from '../types';
 import { ActItem, getAtlantisActItems, getTaleActItems } from '../lib/taleData';
 import {
   getActMp4CandidateUrls,
-  getActVttCandidateUrls,
   extractYouTubeVideoId,
   normalizeLangCode,
   getYouTubeAudioLangCode,
@@ -26,16 +22,10 @@ import {
   Volume2,
   VolumeX,
   MessageSquare,
-  Sparkles,
   CheckCircle2,
   RotateCcw,
   Film,
   FastForward,
-  FileText,
-  ChevronUp,
-  ChevronDown,
-  Copy,
-  Check
 } from 'lucide-react';
 
 interface ActPageProps {
@@ -55,116 +45,44 @@ interface ActPageProps {
   darkMode?: boolean;
 }
 
-interface SubtitleCue {
-  start: number;
-  end: number;
-  text: string;
-}
+const YT_ORIGINS = ['https://www.youtube.com', 'https://www.youtube-nocookie.com'];
+const AUTONEXT_DELAY_MS = 3500;
 
-function parseVttToCues(vttText: string): SubtitleCue[] {
-  const parseTime = (t: string): number => {
-    const parts = t.trim().split(':');
-    if (parts.length === 3) {
-      return Number.parseFloat(parts[0]) * 3600 + Number.parseFloat(parts[1]) * 60 + Number.parseFloat(parts[2].replace(',', '.'));
-    } else if (parts.length === 2) {
-      return Number.parseFloat(parts[0]) * 60 + Number.parseFloat(parts[1].replace(',', '.'));
-    }
-    return 0;
-  };
+// YouTube player states
+const YT_ENDED = 0;
+const YT_PLAYING = 1;
+const YT_INACTIVE_STATES = [2, -1, 5]; // paused, unstarted, cued
 
-  const regex = /((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})\s*-->\s*((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})/g;
-  const cues: SubtitleCue[] = [];
-  const matches: { start: number; end: number; index: number; length: number }[] = [];
-  let match;
-  while ((match = regex.exec(vttText)) !== null) {
-    matches.push({
-      start: parseTime(match[1]),
-      end: parseTime(match[2]),
-      index: match.index,
-      length: match[0].length,
-    });
-  }
+const getYtPlayerState = (data: any): number | undefined => {
+  if (data?.event === 'onStateChange') return data.info;
+  if (data?.event === 'infoDelivery') return data.info?.playerState;
+  return undefined;
+};
 
-  for (let i = 0; i < matches.length; i++) {
-    const current = matches[i];
-    const textStart = current.index + current.length;
-    const textEnd = i + 1 < matches.length ? matches[i + 1].index : vttText.length;
-    let cueText = vttText.substring(textStart, textEnd).trim();
-    cueText = cueText.replace(/\s*\d+$/, '').trim();
-    if (cueText) {
-      cues.push({ start: current.start, end: current.end, text: cueText });
-    }
-  }
-  return cues;
-}
+// Shared style helpers (previously repeated inline for every button)
+const topIconBtn = (darkMode: boolean) =>
+  `p-2 sm:p-3 rounded-full border sm:border-2 border-[#d4af37]/70 ${
+    darkMode
+      ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
+      : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
+  } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center`;
 
-/**
- * Cleanly extracts readable text paragraphs from a WebVTT string
- */
-function extractCleanTextFromVtt(vttContent: string): string[] {
-  const lines = vttContent.split('\n');
-  const paragraphs: string[] = [];
-  let currentPara: string[] = [];
+const navBtn = (darkMode: boolean) =>
+  `absolute top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] ${
+    darkMode
+      ? 'bg-slate-900/85 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 shadow-lg sm:shadow-2xl'
+      : 'bg-white/98 hover:bg-[#d4af37] text-slate-900 hover:text-slate-950 shadow-xl'
+  } disabled:opacity-20 disabled:pointer-events-none transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group`;
 
-  for (let line of lines) {
-    line = line.trim();
-    if (!line) {
-      if (currentPara.length > 0) {
-        paragraphs.push(currentPara.join(' '));
-        currentPara = [];
-      }
-      continue;
-    }
-    if (
-      line.startsWith('WEBVTT') ||
-      line.startsWith('NOTE') ||
-      /^\d+$/.test(line) ||
-      /^\d{1,2}:\d{2}/.test(line)
-    ) {
-      continue;
-    }
-    const cleanLine = line.replace(/<[^>]+>/g, '').trim();
-    if (cleanLine) {
-      currentPara.push(cleanLine);
-    }
-  }
-  if (currentPara.length > 0) {
-    paragraphs.push(currentPara.join(' '));
-  }
-  return paragraphs.filter((p) => p.length > 0);
-}
+const pillBtn = (darkMode: boolean, textDark = 'text-[#d4af37]') =>
+  `flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
+    darkMode
+      ? `bg-slate-950 ${textDark} hover:bg-[#d4af37] hover:text-slate-950`
+      : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
+  } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`;
 
-const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT'];
-const vttUrlCache = new Map<string, boolean>();
-
-async function checkVttUrl(url: string): Promise<boolean> {
-  if (vttUrlCache.has(url)) {
-    return vttUrlCache.get(url)!;
-  }
-  try {
-    const headRes = await fetch(url, { method: 'HEAD' });
-    if (headRes.ok && headRes.status === 200) {
-      vttUrlCache.set(url, true);
-      return true;
-    }
-    if (headRes.status === 404) {
-      vttUrlCache.set(url, false);
-      return false;
-    }
-    const getRes = await fetch(url);
-    if (getRes.ok && getRes.status === 200) {
-      const text = await getRes.text();
-      const isValid = text.includes('WEBVTT') || text.includes('-->');
-      vttUrlCache.set(url, isValid);
-      return isValid;
-    }
-    vttUrlCache.set(url, false);
-    return false;
-  } catch {
-    vttUrlCache.set(url, false);
-    return false;
-  }
-}
+const primaryBtn =
+  'flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap';
 
 export const ActPage: React.FC<ActPageProps> = ({
   tale,
@@ -174,7 +92,6 @@ export const ActPage: React.FC<ActPageProps> = ({
   currentLang,
   onLanguageChange,
   onClose,
-  onEarnSkillPoint,
   onRecordView,
   commentsMap,
   onAddComment,
@@ -189,14 +106,11 @@ export const ActPage: React.FC<ActPageProps> = ({
       : 'female');
 
   // Load act items for this tale (or default to Atlantis)
-  const actItems: ActItem[] = useMemo(() => {
-    if (tale) {
-      return getTaleActItems(tale, currentLang, userGender);
-    }
-    return getAtlantisActItems(currentLang, userGender);
-  }, [tale, currentLang, userGender]);
+  const actItems: ActItem[] = useMemo(
+    () => (tale ? getTaleActItems(tale, currentLang, userGender) : getAtlantisActItems(currentLang, userGender)),
+    [tale, currentLang, userGender]
+  );
 
-  // Find initial index
   const initialIdx = Math.max(
     0,
     actItems.findIndex(
@@ -204,32 +118,15 @@ export const ActPage: React.FC<ActPageProps> = ({
     )
   );
 
-  const [currentIndex, setCurrentIndex] = useState<number>(initialIdx >= 0 ? initialIdx : 0);
+  const [currentIndex, setCurrentIndex] = useState<number>(initialIdx);
   const [isMuted, setIsMuted] = useState(false);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
   const [isYtPlaying, setIsYtPlaying] = useState<boolean>(false);
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
   const canAccessComments = isUserOver16(user);
 
-  // Video and Audio Language tracks
   const [selectedAudioLang, setSelectedAudioLang] = useState<Language>(currentLang);
-  const [selectedVttLang, setSelectedVttLang] = useState<Language>(currentLang);
-  const [availableVttLangs, setAvailableVttLangs] = useState<Language[]>(ALL_SUPPORTED_LANGUAGES);
-  const [isCheckingVttLangs, setIsCheckingVttLangs] = useState<boolean>(false);
-
-  // Subtitles & Video Finished State
-  const [isAudioLoaded, setIsAudioLoaded] = useState<boolean>(false);
-  const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
-  const [activeSubtitle, setActiveSubtitle] = useState<string>('');
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
-
-  // Complete VTT File Text State
-  const [rawVttText, setRawVttText] = useState<string>('');
-  const [isVttLoading, setIsVttLoading] = useState<boolean>(false);
-  const [isVttCardCollapsed, setIsVttCardCollapsed] = useState<boolean>(false);
-  const [vttViewMode, setVttViewMode] = useState<'clean' | 'raw'>('clean');
-  const [vttFontSize, setVttFontSize] = useState<'normal' | 'large'>('normal');
-  const [copiedRawVtt, setCopiedRawVtt] = useState<boolean>(false);
 
   // Media loading & "Coming soon" state
   const [candidateVideoIdx, setCandidateVideoIdx] = useState<number>(0);
@@ -237,164 +134,113 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const currentAct = actItems[currentIndex] || actItems[0];
   const currentChapterId = tale ? `${tale.id}-ch${currentAct.chapterNumber}` : `atlantis-ch${currentAct.chapterNumber}`;
-
-  // Synchronize audio and subtitle language when parent currentLang prop updates
-  useEffect(() => {
-    if (currentLang && (currentLang !== selectedAudioLang || currentLang !== selectedVttLang)) {
-      setActiveSubtitle('');
-      setSelectedAudioLang(currentLang);
-      setSelectedVttLang(currentLang);
-      setIsAutoPlay(true);
-      setIsVideoFinished(false);
-    }
-  }, [currentLang, selectedAudioLang, selectedVttLang]);
-
-  // Check available VTT languages for the current act
-  // "if a vtt file is not available for an act, play only the mp3 file and remove the language dropdown choice of that language. e.g if act0_en.vtt is not available remove the English in the dropdown button"
-  useEffect(() => {
-    let isMounted = true;
-    setIsCheckingVttLangs(true);
-
-    async function checkLanguages() {
-      const validLangs: Language[] = [];
-
-      await Promise.all(
-        ALL_SUPPORTED_LANGUAGES.map(async (lang) => {
-          const urls = getActVttCandidateUrls(currentAct.actData, lang, currentAct.folderPath);
-          for (const url of urls) {
-            const ok = await checkVttUrl(url);
-            if (ok) {
-              validLangs.push(lang);
-              return;
-            }
-          }
-        })
-      );
-
-      if (isMounted) {
-        const sorted = ALL_SUPPORTED_LANGUAGES.filter((l) => validLangs.includes(l));
-        setAvailableVttLangs(sorted);
-        setIsCheckingVttLangs(false);
-
-        if (sorted.length > 0 && !sorted.includes(selectedVttLang)) {
-          setSelectedVttLang(sorted[0]);
-        }
-      }
-    }
-
-    void checkLanguages();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentAct.actData, currentAct.folderPath]);
-
-  // Record view on chapter transition
-  useEffect(() => {
-    if (onRecordView && currentChapterId) {
-      onRecordView(currentChapterId, currentLang);
-    }
-  }, [currentChapterId, currentLang]);
+  const isLastAct = currentIndex >= actItems.length - 1;
 
   const ytIframeRef = useRef<HTMLIFrameElement>(null);
   const ytMediaRef = useRef<YouTubeAdapter>(null);
 
   // Candidate video URLs for resilient playback
-  const videoCandidates = useMemo(() => {
-    return getActMp4CandidateUrls(currentAct.actData, currentAct.folderPath);
-  }, [currentAct.actData, currentAct.folderPath]);
-
+  const videoCandidates = useMemo(
+    () => getActMp4CandidateUrls(currentAct.actData, currentAct.folderPath),
+    [currentAct.actData, currentAct.folderPath]
+  );
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
-  const currentYouTubeId = useMemo(() => {
-    return extractYouTubeVideoId(currentVideoUrl);
-  }, [currentVideoUrl]);
+  const currentYouTubeId = useMemo(() => extractYouTubeVideoId(currentVideoUrl), [currentVideoUrl]);
 
-  const sendYtCommand = useCallback((func: string, args: any[] = []) => {
+  // ---- YouTube helpers -------------------------------------------------------
+  const postToYt = useCallback((payload: object) => {
     try {
-      if (ytIframeRef.current?.contentWindow) {
-        const targetOrigin = ytIframeRef.current.src
-          ? new URL(ytIframeRef.current.src).origin
-          : 'https://www.youtube.com';
-        ytIframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func, args }),
-          targetOrigin
-        );
-      }
+      const iframe = ytIframeRef.current;
+      if (!iframe?.contentWindow) return;
+      const targetOrigin = iframe.src ? new URL(iframe.src).origin : YT_ORIGINS[0];
+      iframe.contentWindow.postMessage(JSON.stringify(payload), targetOrigin);
     } catch {}
   }, []);
 
-  // Comments for this chapter
-  const currentComments: ChapterComment[] = useMemo(() => {
-    const allComments = (commentsMap && commentsMap[currentChapterId]) || [];
-    return allComments.filter((c) => {
-      if (!user || user.user_id === 'guest_user' || user.user_id === 'guest') {
-        return !c.user_id || c.user_id === 'guest' || c.user_id === 'guest_user';
-      }
-      return c.user_id === user.user_id;
-    });
-  }, [commentsMap, currentChapterId, user]);
+  const sendYtCommand = useCallback(
+    (func: string, args: any[] = []) => postToYt({ event: 'command', func, args }),
+    [postToYt]
+  );
 
-  // Reset state when switching act index or audio language
-  useEffect(() => {
-    setCandidateVideoIdx(0);
-    setIsMediaNotFound(false);
-    setIsVideoFinished(false);
-    setActiveSubtitle('');
-    setRawVttText('');
-  }, [currentIndex, selectedAudioLang]);
+  const applyAudioState = useCallback(() => {
+    if (isMuted) {
+      sendYtCommand('mute');
+      sendYtCommand('setVolume', [0]);
+    } else {
+      sendYtCommand('unMute');
+      sendYtCommand('setVolume', [100]);
+    }
+  }, [isMuted, sendYtCommand]);
 
-  // Fetch VTT subtitles from candidate URLs when selectedVttLang changes (lower button)
-  useEffect(() => {
-    let isMounted = true;
-    setActiveSubtitle('');
-    setIsVttLoading(true);
+  const applyPlayState = useCallback(() => {
+    if (isAutoPlay) {
+      sendYtCommand('playVideo');
+    } else {
+      setIsYtPlaying(false);
+      sendYtCommand('pauseVideo');
+    }
+  }, [isAutoPlay, sendYtCommand]);
 
-    const vttCandidates = getActVttCandidateUrls(currentAct.actData, selectedVttLang, currentAct.folderPath);
+  const hideYtCaptions = useCallback(() => {
+    sendYtCommand('unloadModule', ['captions']);
+    sendYtCommand('unloadModule', ['cc']);
+  }, [sendYtCommand]);
 
-    async function loadVtt() {
-      for (const url of vttCandidates) {
-        try {
-          const res = await fetch(url);
-          if (res.ok) {
-            const text = await res.text();
-            if (isMounted) {
-              const cues = parseVttToCues(text);
-              if (cues.length > 0 || text.includes('WEBVTT')) {
-                setRawVttText(text);
-                setSubtitles(cues);
-                setIsVttLoading(false);
-                return;
-              }
-            }
-          }
-        } catch {
-          // Try next candidate URL
+  // ---- Navigation ------------------------------------------------------------
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev < actItems.length - 1 ? prev + 1 : prev));
+  }, [actItems.length]);
+
+  const goToPrev = () => setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
+
+  // Single handler for "video ended" (was duplicated for iframe messages and the player's onEnded)
+  const handleVideoEnded = useCallback(() => {
+    setIsYtPlaying(false);
+    setIsVideoFinished(true);
+    if (isAutoPlay && !isLastAct) {
+      setTimeout(goToNext, AUTONEXT_DELAY_MS);
+    }
+  }, [isAutoPlay, isLastAct, goToNext]);
+
+  // Single handler for play/pause toggling from the video overlay
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAutoPlay || !isYtPlaying) {
+      setIsAutoPlay(true);
+      try {
+        const p = ytMediaRef.current?.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } catch {}
+      sendYtCommand('playVideo');
+      if (!isMuted) {
+        if (ytMediaRef.current) {
+          ytMediaRef.current.muted = false;
+          ytMediaRef.current.volume = 1;
         }
+        sendYtCommand('unMute');
+        sendYtCommand('setVolume', [100]);
       }
-      if (isMounted) {
-        setRawVttText('');
-        setSubtitles([]);
-        setIsVttLoading(false);
-      }
+    } else {
+      setIsAutoPlay(false);
+      ytMediaRef.current?.pause();
+      sendYtCommand('pauseVideo');
     }
+  };
 
-    void loadVtt();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentAct.actData, currentAct.folderPath, selectedVttLang]);
-
-  const handleTimeUpdate = (curr: number) => {
-    if (!subtitles || subtitles.length === 0) {
-      if (activeSubtitle) setActiveSubtitle('');
-      return;
+  const handleReplay = () => {
+    setIsVideoFinished(false);
+    if (currentYouTubeId) {
+      sendYtCommand('seekTo', [0, true]);
+      if (isAutoPlay) sendYtCommand('playVideo');
     }
-    const matchingCue = subtitles.find((c) => curr >= c.start && curr <= c.end);
-    const newText = matchingCue ? matchingCue.text : '';
-    if (newText !== activeSubtitle) {
-      setActiveSubtitle(newText);
+  };
+
+  const handleSkipMedia = () => {
+    if (currentYouTubeId) {
+      sendYtCommand('pauseVideo');
+      sendYtCommand('seekTo', [9999, true]);
     }
+    setIsVideoFinished(true);
   };
 
   const handleVideoError = () => {
@@ -405,182 +251,110 @@ export const ActPage: React.FC<ActPageProps> = ({
       setIsMediaNotFound(true);
     }
   };
+  void handleVideoError;
 
-  // Synchronize YouTube video autoplay, play/pause and mute/volume
+  const handleAudioLanguageSelected = (newLang: Language) => {
+    setSelectedAudioLang(newLang);
+    setIsAutoPlay(true);
+    setIsVideoFinished(false);
+    onLanguageChange?.(newLang);
+  };
+
+  // ---- Effects ---------------------------------------------------------------
+  // Sync audio language when the parent prop changes
+  useEffect(() => {
+    if (currentLang && currentLang !== selectedAudioLang) {
+      setSelectedAudioLang(currentLang);
+      setIsAutoPlay(true);
+      setIsVideoFinished(false);
+    }
+  }, [currentLang, selectedAudioLang]);
+
+  // Record view on chapter transition
+  useEffect(() => {
+    if (onRecordView && currentChapterId) {
+      onRecordView(currentChapterId, currentLang);
+    }
+  }, [currentChapterId, currentLang]);
+
+  // Reset state when switching act or audio language
+  useEffect(() => {
+    setCandidateVideoIdx(0);
+    setIsMediaNotFound(false);
+    setIsVideoFinished(false);
+  }, [currentIndex, selectedAudioLang]);
+
   useEffect(() => {
     setIsYtPlaying(false);
   }, [currentYouTubeId]);
 
+  // Sync play/pause and mute state to the YouTube player
   useEffect(() => {
-    if (currentYouTubeId) {
-      if (isAutoPlay) {
-        sendYtCommand('playVideo');
-      } else {
-        setIsYtPlaying(false);
-        sendYtCommand('pauseVideo');
-      }
-    }
-  }, [isAutoPlay, currentYouTubeId, sendYtCommand]);
+    if (currentYouTubeId) applyPlayState();
+  }, [currentYouTubeId, applyPlayState]);
 
   useEffect(() => {
-    if (currentYouTubeId) {
-      if (isMuted) {
-        sendYtCommand('mute');
-        sendYtCommand('setVolume', [0]);
-      } else {
-        sendYtCommand('unMute');
-        sendYtCommand('setVolume', [100]);
-      }
-    }
-  }, [isMuted, currentYouTubeId, sendYtCommand]);
+    if (currentYouTubeId) applyAudioState();
+  }, [currentYouTubeId, applyAudioState]);
 
-  const handleReplay = () => {
-    setIsVideoFinished(false);
-    setActiveSubtitle('');
-    if (currentYouTubeId) {
-      sendYtCommand('seekTo', [0, true]);
-      if (isAutoPlay) {
-        sendYtCommand('playVideo');
-      }
-    }
-  };
-
-  const handleSkipMedia = () => {
-    if (currentYouTubeId) {
-      sendYtCommand('pauseVideo');
-      sendYtCommand('seekTo', [9999, true]);
-    }
-    setIsVideoFinished(true);
-    setActiveSubtitle('');
-  };
-
-  const handleCopyRawVtt = async () => {
-    if (!rawVttText) return;
-    try {
-      await navigator.clipboard.writeText(rawVttText);
-      setCopiedRawVtt(true);
-      setTimeout(() => setCopiedRawVtt(false), 2000);
-    } catch {
-      // Fallback
-    }
-  };
-
-  const goToNext = () => {
-    if (currentIndex < actItems.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
-
-  const goToPrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
-  };
-
+  // Listen to YouTube iframe messages
   useEffect(() => {
     if (!currentYouTubeId) return;
 
     const handleMessage = (event: MessageEvent) => {
-      if (
-        event.origin !== 'https://www.youtube.com' &&
-        event.origin !== 'https://www.youtube-nocookie.com'
-      ) {
-        return;
-      }
-
+      if (!YT_ORIGINS.includes(event.origin)) return;
       try {
         const raw = event.data;
         const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
         if (!data) return;
 
         if (data.event === 'onReady') {
-          if (isAutoPlay) {
-            sendYtCommand('playVideo');
-          } else {
-            sendYtCommand('pauseVideo');
-          }
-          if (isMuted) {
-            sendYtCommand('mute');
-            sendYtCommand('setVolume', [0]);
-          } else {
-            sendYtCommand('unMute');
-            sendYtCommand('setVolume', [100]);
-          }
+          applyPlayState();
+          applyAudioState();
+          return;
         }
 
-        if (
-          (data.event === 'onStateChange' && data.info === 0) ||
-          (data.event === 'infoDelivery' && data.info && data.info.playerState === 0)
-        ) {
-          setIsYtPlaying(false);
-          setIsVideoFinished(true);
-          setActiveSubtitle('');
-          if (isAutoPlay && currentIndex < actItems.length - 1) {
-            setTimeout(() => {
-              goToNext();
-            }, 3500);
-          }
-        } else if (
-          (data.event === 'onStateChange' && data.info === 1) ||
-          (data.event === 'infoDelivery' && data.info && data.info.playerState === 1)
-        ) {
-          if (!isAutoPlay) {
+        const state = getYtPlayerState(data);
+        if (state === YT_ENDED) {
+          handleVideoEnded();
+        } else if (state === YT_PLAYING) {
+          if (isAutoPlay) {
+            setIsYtPlaying(true);
+          } else {
             setIsYtPlaying(false);
             sendYtCommand('pauseVideo');
-          } else {
-            setIsYtPlaying(true);
           }
-        } else if (
-          (data.event === 'onStateChange' && (data.info === 2 || data.info === -1 || data.info === 5)) ||
-          (data.event === 'infoDelivery' &&
-            data.info &&
-            (data.info.playerState === 2 || data.info.playerState === -1 || data.info.playerState === 5))
-        ) {
+        } else if (state !== undefined && YT_INACTIVE_STATES.includes(state)) {
           setIsYtPlaying(false);
-        } else if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
-          handleTimeUpdate(data.info.currentTime);
         }
       } catch {}
     };
 
     window.addEventListener('message', handleMessage);
-    const interval = setInterval(() => {
-      if (ytIframeRef.current?.contentWindow) {
-        const targetOrigin = ytIframeRef.current.src
-          ? new URL(ytIframeRef.current.src).origin
-          : 'https://www.youtube.com';
-        ytIframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'listening' }),
-          targetOrigin
-        );
-      }
-    }, 1000);
+    const interval = setInterval(() => postToYt({ event: 'listening' }), 1000);
 
     return () => {
       window.removeEventListener('message', handleMessage);
       clearInterval(interval);
     };
-  }, [currentYouTubeId, isAutoPlay, isMuted, currentIndex, actItems.length, goToNext]);
+  }, [currentYouTubeId, isAutoPlay, applyPlayState, applyAudioState, handleVideoEnded, sendYtCommand, postToYt]);
 
-  const isLastAct = currentIndex >= actItems.length - 1;
+  // ---- Comments --------------------------------------------------------------
+  const currentComments: ChapterComment[] = useMemo(() => {
+    const allComments = (commentsMap && commentsMap[currentChapterId]) || [];
+    const isGuest = !user || user.user_id === 'guest_user' || user.user_id === 'guest';
+    return allComments.filter((c) =>
+      isGuest ? !c.user_id || c.user_id === 'guest' || c.user_id === 'guest_user' : c.user_id === user!.user_id
+    );
+  }, [commentsMap, currentChapterId, user]);
 
-  // Upper button: Audio language handler
-  const handleAudioLanguageSelected = (newLang: Language) => {
-    setActiveSubtitle('');
-    setSelectedAudioLang(newLang);
-    setSelectedVttLang(newLang);
-    setIsAutoPlay(true);
-    setIsVideoFinished(false);
-    if (onLanguageChange) {
-      onLanguageChange(newLang);
-    }
-  };
-
-  // Lower button: VTT Subtitles language handler
-  const handleVttLanguageSelected = (newLang: Language) => {
-    setActiveSubtitle('');
-    setSelectedVttLang(newLang);
-  };
+  const showPlayOverlay = !isAutoPlay || !isYtPlaying;
+  const statusText =
+    !currentYouTubeId || isMediaNotFound
+      ? t('comingSoon', selectedAudioLang || currentLang)
+      : isVideoFinished
+      ? t('actCompleted', selectedAudioLang)
+      : '';
 
   return (
     <div
@@ -601,8 +375,6 @@ export const ActPage: React.FC<ActPageProps> = ({
         title={isAutoPlay ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
       >
         <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950">
-          {/* Ambient backdrop poster */}
-
           {currentYouTubeId ? (
             <div
               className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black select-none"
@@ -633,7 +405,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                         modestbranding: 1,
                         showinfo: 0,
                         cc_load_policy: 0,
-                        cc_lang_pref: normalizeLangCode(selectedVttLang),
+                        cc_lang_pref: normalizeLangCode(selectedAudioLang),
                         hl: getYouTubeAudioLangCode(selectedAudioLang),
                         disablekb: 1,
                         fs: 0,
@@ -655,8 +427,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     } else {
                       e.currentTarget.pause();
                     }
-                    sendYtCommand('unloadModule', ['captions']);
-                    sendYtCommand('unloadModule', ['cc']);
+                    hideYtCaptions();
                   }}
                   onPlay={() => {
                     if (!isAutoPlay) {
@@ -664,79 +435,36 @@ export const ActPage: React.FC<ActPageProps> = ({
                       ytMediaRef.current?.pause();
                     } else {
                       setIsYtPlaying(true);
-                      sendYtCommand('unloadModule', ['captions']);
-                      sendYtCommand('unloadModule', ['cc']);
+                      hideYtCaptions();
                     }
                   }}
                   onPlaying={() => {
-                    if (isAutoPlay) {
-                      setIsYtPlaying(true);
-                    }
+                    if (isAutoPlay) setIsYtPlaying(true);
                   }}
-                  onPause={() => {
-                    setIsYtPlaying(false);
-                  }}
-                  onTimeUpdate={(e) => {
-                    const curr = e.currentTarget.currentTime;
-                    handleTimeUpdate(curr);
-                  }}
-                  onEnded={() => {
-                    setIsYtPlaying(false);
-                    setIsVideoFinished(true);
-                    setActiveSubtitle('');
-                    if (isAutoPlay && currentIndex < actItems.length - 1) {
-                      setTimeout(() => {
-                        goToNext();
-                      }, 3500);
-                    }
-                  }}
+                  onPause={() => setIsYtPlaying(false)}
+                  onEnded={handleVideoEnded}
                 />
               </div>
+
               <div
                 className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
                 role="button"
                 tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isAutoPlay || !isYtPlaying) {
-                    setIsAutoPlay(true);
-                    try {
-                      const p = ytMediaRef.current?.play();
-                      if (p && typeof p.catch === 'function') p.catch(() => {});
-                    } catch {}
-                    sendYtCommand('playVideo');
-                    if (!isMuted) {
-                      if (ytMediaRef.current) {
-                        ytMediaRef.current.muted = false;
-                        ytMediaRef.current.volume = 1;
-                      }
-                      sendYtCommand('unMute');
-                      sendYtCommand('setVolume', [100]);
-                    }
-                  } else {
-                    setIsAutoPlay(false);
-                    ytMediaRef.current?.pause();
-                    sendYtCommand('pauseVideo');
-                  }
-                }}
-                title={isAutoPlay && isYtPlaying ? t('clickToPause', currentLang) : t('clickToPlay', currentLang)}
+                onClick={handleOverlayClick}
+                title={showPlayOverlay ? t('clickToPlay', currentLang) : t('clickToPause', currentLang)}
               >
-                {(!isAutoPlay || !isYtPlaying) && (
+                {showPlayOverlay && (
                   <div
                     id="youtube-gold-pause-circle"
                     className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                   >
-                    {!isAutoPlay || !isYtPlaying ? (
-                      <Play className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
-                    ) : (
-                      <Pause className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
-                    )}
+                    <Play className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            /* COMING SOON BADGE IN VIDEO AREA WHEN MEDIA DOES NOT EXIST */
+            /* COMING SOON BADGE WHEN MEDIA DOES NOT EXIST */
             <div className="flex flex-col items-center justify-center gap-3 p-6 text-center z-10 animate-fadeIn">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-900/90 border-2 border-[#d4af37] flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.4)] mb-2">
                 <Film className="w-8 h-8 sm:w-10 sm:h-10 text-[#d4af37]" />
@@ -752,7 +480,7 @@ export const ActPage: React.FC<ActPageProps> = ({
         </div>
       </div>
 
-      {/* 2. TOP LEFT: CLOSE 'X' BUTTON */}
+      {/* 2. TOP LEFT: CLOSE BUTTON */}
       <div className="absolute top-3 left-3 sm:top-6 sm:left-6 z-30 flex items-center gap-2 sm:gap-3">
         <button
           id="act-close-button"
@@ -769,7 +497,7 @@ export const ActPage: React.FC<ActPageProps> = ({
         </button>
       </div>
 
-      {/* 3. TOP CENTER: ACT TITLE (only if present) */}
+      {/* 3. TOP CENTER: ACT TITLE */}
       {currentAct.actTitle && (
         <div className="absolute top-3 sm:top-6 inset-x-0 mx-auto z-20 flex flex-col items-center justify-center pointer-events-none px-14 sm:px-44 text-center">
           <div
@@ -786,18 +514,13 @@ export const ActPage: React.FC<ActPageProps> = ({
         </div>
       )}
 
-      {/* 4. TOP RIGHT: COMMENTS, AUTOPLAY TOGGLE, SOUND TOGGLE & AUDIO SELECTOR */}
+      {/* 4. TOP RIGHT: COMMENTS, AUTOPLAY, SOUND & AUDIO LANGUAGE */}
       <div className="flex absolute top-3 right-3 sm:top-6 sm:right-6 z-30 items-center gap-2">
-        {/* Comments Drawer Button - Only visible if user is > 16 */}
         {canAccessComments && (
           <button
             id="act-top-comments-btn"
             onClick={() => setShowCommentsDrawer(true)}
-            className={`p-2 sm:p-3 rounded-full border sm:border-2 border-[#d4af37]/70 ${
-              darkMode
-                ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
-                : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
-            } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center relative`}
+            className={`${topIconBtn(darkMode)} relative`}
             title={t('comments', currentLang)}
           >
             <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
@@ -809,7 +532,6 @@ export const ActPage: React.FC<ActPageProps> = ({
           </button>
         )}
 
-        {/* Autoplay Toggle Button */}
         <button
           id="act-autoplay-toggle"
           onClick={() => setIsAutoPlay(!isAutoPlay)}
@@ -839,15 +561,10 @@ export const ActPage: React.FC<ActPageProps> = ({
           )}
         </button>
 
-        {/* Sound Mute Toggle */}
         <button
           id="act-sound-toggle"
           onClick={() => setIsMuted(!isMuted)}
-          className={`p-2 sm:p-3 rounded-full border sm:border-2 border-[#d4af37]/70 ${
-            darkMode
-              ? 'bg-black/60 hover:bg-black/90 text-amber-200 shadow-lg sm:shadow-2xl'
-              : 'bg-white/95 hover:bg-amber-50 text-slate-800 shadow-md'
-          } transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center`}
+          className={topIconBtn(darkMode)}
           title={isMuted ? t('unmuteAudio', currentLang) : t('muteAudio', currentLang)}
         >
           {isMuted ? (
@@ -857,7 +574,6 @@ export const ActPage: React.FC<ActPageProps> = ({
           )}
         </button>
 
-        {/* Audio Language Selector */}
         <FlagLanguageDropdown
           id="act-top-audio-selector"
           type="language"
@@ -868,217 +584,30 @@ export const ActPage: React.FC<ActPageProps> = ({
         />
       </div>
 
-      {/* 5. COMPLETE VTT FILE TEXT DISPLAY ABOVE THE VIDEO */}
-      <div
-        id="act-complete-vtt-box"
-        role="button"
-        tabIndex={0}
-        className="relative z-25 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-16 sm:pt-20 pb-2 select-text pointer-events-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className={`w-full rounded-2xl border-2 transition-all duration-300 ${
-            darkMode
-              ? 'bg-slate-950/90 border-[#d4af37]/70 text-slate-100 shadow-[0_8px_32px_rgba(0,0,0,0.85)]'
-              : 'bg-white/95 border-[#c69214] text-slate-900 shadow-[0_8px_25px_rgba(212,175,55,0.2)]'
-          } backdrop-blur-xl p-3 sm:p-4`}
-        >
-          {/* Header of VTT Card */}
-          <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#d4af37]/30 mb-2.5">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#d4af37]" />
-              <span
-                className={`text-xs sm:text-sm font-cinzel font-bold tracking-wider uppercase ${
-                  darkMode ? 'text-amber-200' : 'text-amber-900'
-                }`}
-              >
-                Complete Story Text
-              </span>
-              <span
-                className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold ${
-                  darkMode
-                    ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
-                    : 'bg-amber-100 text-amber-900 border border-amber-300'
-                }`}
-              >
-                {selectedVttLang}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Clean Story vs Raw VTT Mode Toggle */}
-              <div
-                className={`flex items-center rounded-lg border p-0.5 text-xs font-semibold ${
-                  darkMode ? 'bg-slate-900 border-slate-700 text-slate-300' : 'bg-amber-50 border-amber-200 text-slate-700'
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setVttViewMode('clean')}
-                  className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
-                    vttViewMode === 'clean'
-                      ? darkMode
-                        ? 'bg-amber-400/25 text-amber-200 font-bold'
-                        : 'bg-white text-amber-950 font-bold shadow-xs'
-                      : 'hover:opacity-80'
-                  }`}
-                  title="View clean story text"
-                >
-                  Story
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVttViewMode('raw')}
-                  className={`px-2 py-0.5 rounded text-xs transition-colors cursor-pointer ${
-                    vttViewMode === 'raw'
-                      ? darkMode
-                        ? 'bg-amber-400/25 text-amber-200 font-bold'
-                        : 'bg-white text-amber-950 font-bold shadow-xs'
-                      : 'hover:opacity-80'
-                  }`}
-                  title="View raw VTT file text with timecodes"
-                >
-                  Raw VTT
-                </button>
-              </div>
-
-              {/* Font Size Toggle */}
-              <button
-                type="button"
-                onClick={() => setVttFontSize(vttFontSize === 'normal' ? 'large' : 'normal')}
-                className={`px-2 py-0.5 rounded-lg border text-xs font-bold transition-all cursor-pointer ${
-                  darkMode
-                    ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-amber-200'
-                    : 'bg-amber-50 border-amber-200 text-slate-800 hover:bg-amber-100'
-                }`}
-                title="Toggle Text Size"
-              >
-                {vttFontSize === 'normal' ? 'A+' : 'A'}
-              </button>
-
-              {/* Copy Raw Text (when in raw mode) */}
-              {vttViewMode === 'raw' && rawVttText && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void handleCopyRawVtt();
-                  }}
-                  className={`p-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
-                    darkMode ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-amber-200' : 'bg-amber-50 border-amber-200 text-slate-800'
-                  }`}
-                  title="Copy Raw VTT Text"
-                >
-                  {copiedRawVtt ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
-              )}
-
-              {/* Collapse / Expand Toggle */}
-              <button
-                type="button"
-                onClick={() => setIsVttCardCollapsed(!isVttCardCollapsed)}
-                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                  darkMode
-                    ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-amber-200'
-                    : 'bg-amber-50 border-amber-200 text-slate-800 hover:bg-amber-100'
-                }`}
-                title={isVttCardCollapsed ? 'Expand Story Text' : 'Minimize Story Text'}
-              >
-                {isVttCardCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Body Content */}
-          {!isVttCardCollapsed && (
-            <div
-              className={`overflow-y-auto pr-1 transition-all ${
-                vttFontSize === 'large' ? 'max-h-[26vh] sm:max-h-[30vh]' : 'max-h-[20vh] sm:max-h-[24vh]'
-              }`}
-            >
-              {isVttLoading ? (
-                <div className="py-3 text-center text-xs text-amber-300/80 animate-pulse">
-                  Loading subtitles for {selectedVttLang}...
-                </div>
-              ) : vttViewMode === 'raw' ? (
-                rawVttText ? (
-                  <pre className="font-mono text-[11px] sm:text-xs leading-relaxed whitespace-pre-wrap text-amber-100/95 select-all p-2.5 rounded-lg bg-black/50 border border-slate-800">
-                    {rawVttText}
-                  </pre>
-                ) : (
-                  <p className="text-xs italic text-slate-400 py-2">No raw VTT file content available.</p>
-                )
-              ) : (
-                /* Clean formatted story text with real-time active cue highlight */
-                subtitles.length > 0 ? (
-                  <div
-                    className={`leading-relaxed space-y-1.5 ${
-                      vttFontSize === 'large' ? 'text-base sm:text-lg' : 'text-xs sm:text-sm md:text-base'
-                    }`}
-                  >
-                    {subtitles.map((cue, idx) => {
-                      const isCurrent = activeSubtitle && cue.text.trim() === activeSubtitle.trim();
-                      return (
-                        <span
-                          key={idx}
-                          className={`inline transition-all duration-200 mr-1.5 ${
-                            isCurrent
-                              ? darkMode
-                                ? 'bg-amber-400/25 text-amber-200 font-bold px-1.5 py-0.5 rounded shadow-sm border border-amber-400/40'
-                                : 'bg-amber-200 text-amber-950 font-bold px-1.5 py-0.5 rounded shadow-sm border border-amber-400'
-                              : darkMode
-                              ? 'text-slate-200'
-                              : 'text-stone-800'
-                          }`}
-                        >
-                          {cue.text}{' '}
-                        </span>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-2 text-center text-xs italic text-slate-400">
-                    No subtitles available for {selectedVttLang}. You can switch subtitle language from the bottom-right menu.
-                  </div>
-                )
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 6. CENTER LEFT: PREVIOUS `<` BUTTON */}
+      {/* 5. PREVIOUS / NEXT ARROWS */}
       <button
         id="act-prev-button"
         onClick={goToPrev}
         disabled={currentIndex === 0}
         aria-label={t('previousAct', currentLang)}
-        className={`absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] ${
-          darkMode
-            ? 'bg-slate-900/85 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 shadow-lg sm:shadow-2xl'
-            : 'bg-white/98 hover:bg-[#d4af37] text-slate-900 hover:text-slate-950 shadow-xl'
-        } disabled:opacity-20 disabled:pointer-events-none transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group`}
+        className={`${navBtn(darkMode)} left-3 sm:left-6`}
         title={t('previousAct', currentLang)}
       >
         <ChevronLeft className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:-translate-x-0.5" />
       </button>
 
-      {/* 6. CENTER RIGHT: NEXT `>` BUTTON */}
       <button
         id="act-next-button"
         onClick={goToNext}
-        disabled={currentIndex === actItems.length - 1}
+        disabled={isLastAct}
         aria-label={t('nextAct', currentLang)}
-        className={`absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-14 sm:h-14 rounded-full border sm:border-2 border-[#d4af37] ${
-          darkMode
-            ? 'bg-slate-900/85 hover:bg-[#d4af37] text-amber-200 hover:text-slate-950 shadow-lg sm:shadow-2xl'
-            : 'bg-white/98 hover:bg-[#d4af37] text-slate-900 hover:text-slate-950 shadow-xl'
-        } disabled:opacity-20 disabled:pointer-events-none transition-all hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer group`}
+        className={`${navBtn(darkMode)} right-3 sm:right-6`}
         title={t('nextAct', currentLang)}
       >
         <ChevronRight className="w-5 h-5 sm:w-8 sm:h-8 transition-transform group-hover:translate-x-0.5" />
       </button>
 
-      {/* 7. BOTTOM SUBTITLES & COMPLETION CONTROLS BAR */}
+      {/* 6. BOTTOM STATUS & CONTROLS BAR */}
       <motion.div
         key={`bottom-bar-${currentIndex}`}
         initial={{ opacity: 0, y: 15 }}
@@ -1093,56 +622,18 @@ export const ActPage: React.FC<ActPageProps> = ({
               : 'bg-white/98 border-t-2 border-[#d4af37] text-slate-900 shadow-[0_-10px_35px_rgba(212,175,55,0.15)]'
           } backdrop-blur-xl animate-fadeIn p-3 sm:px-6 sm:py-3.5 relative z-30`}
         >
-          <div className="min-h-[2.75rem] sm:min-h-[3.25rem] flex items-center justify-between gap-3 px-1 sm:px-2">
-            {/* Left Spacer for perfect visual centering */}
-            <div className="w-8 shrink-0 hidden sm:block" />
-
-            {/* Subtitle Text in Center */}
-            <div className="flex-1 flex items-center justify-center text-center px-2">
-              {activeSubtitle ? (
-                <motion.p
-                  key={activeSubtitle}
-                  initial={{ opacity: 0, y: 3 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className={`font-sans text-sm sm:text-base md:text-lg font-medium leading-relaxed tracking-wide text-center max-w-4xl ${
-                    darkMode
-                      ? 'text-amber-200 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
-                      : 'text-amber-950 font-bold drop-shadow-none'
-                  }`}
-                >
-                  {activeSubtitle}
-                </motion.p>
-              ) : (
-                <p
-                  className={`font-sans text-xs sm:text-sm italic text-center ${
-                    darkMode ? 'text-slate-400' : 'text-slate-500 font-medium'
-                  }`}
-                >
-                  {!currentYouTubeId || isMediaNotFound
-                    ? t('comingSoon', selectedAudioLang || currentLang)
-                    : isVideoFinished
-                    ? t('actCompleted', selectedVttLang)
-                    : ''}
-                </p>
-              )}
+          {statusText && (
+            <div className="min-h-[2.75rem] sm:min-h-[3.25rem] flex items-center justify-center text-center px-2">
+              <p
+                className={`font-sans text-xs sm:text-sm italic text-center ${
+                  darkMode ? 'text-slate-400' : 'text-slate-500 font-medium'
+                }`}
+              >
+                {statusText}
+              </p>
             </div>
+          )}
 
-            {/* Bottom Right VTT Subtitle Language Selector */}
-            <div className="shrink-0 flex items-center">
-              <FlagLanguageDropdown
-                id="act-bottom-vtt-selector"
-                type="vtt"
-                selectedLang={selectedVttLang}
-                onSelectLang={handleVttLanguageSelected}
-                darkMode={darkMode}
-                availableLangs={availableVttLangs}
-                tooltip={availableVttLangs.length === 0 ? 'No Subtitles Available for this Act' : t('selectSubtitlesVtt', currentLang)}
-              />
-            </div>
-          </div>
-
-          {/* Act Completion and Media Controls Bar */}
           <div
             id="act-controls-bottom-bar"
             className={`w-full flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 pt-2.5 pb-1 px-2 sm:px-3 border-t mt-2 rounded-2xl ${
@@ -1151,7 +642,6 @@ export const ActPage: React.FC<ActPageProps> = ({
                 : 'bg-amber-50/95 border-[#d4af37]/40 text-slate-900 shadow-sm'
             }`}
           >
-            {/* Comment Button - Only visible if user is > 16 */}
             {canAccessComments && (
               <button
                 id="act-write-comment-btn"
@@ -1159,49 +649,34 @@ export const ActPage: React.FC<ActPageProps> = ({
                   e.stopPropagation();
                   setShowCommentsDrawer(true);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                  darkMode
-                    ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
-                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
-                } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+                className={pillBtn(darkMode)}
               >
                 <MessageSquare className="w-3.5 h-3.5 text-[#d4af37]" />
                 <span>{t('commentBtn', currentLang)}</span>
               </button>
             )}
 
-            {/* Middle Action Group: Replay and Skip MP3 & MP4 */}
             <div className="flex items-center gap-2">
-              {/* Replay Button */}
               <button
                 id="act-replay-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleReplay();
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                  darkMode
-                    ? 'bg-slate-950 text-[#d4af37] hover:bg-[#d4af37] hover:text-slate-950'
-                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
-                } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+                className={pillBtn(darkMode)}
                 title={t('replayBtn', currentLang)}
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#d4af37]" />
                 <span>{t('replayBtn', currentLang)}</span>
               </button>
 
-              {/* Skip Button */}
               <button
                 id="act-skip-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSkipMedia();
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 border-[#d4af37] ${
-                  darkMode
-                    ? 'bg-slate-950 text-amber-200 hover:bg-[#d4af37] hover:text-slate-950'
-                    : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
-                } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
+                className={pillBtn(darkMode, 'text-amber-200')}
                 title={t('skipMediaBtn', currentLang)}
               >
                 <FastForward className="w-3.5 h-3.5 text-[#d4af37]" />
@@ -1209,32 +684,27 @@ export const ActPage: React.FC<ActPageProps> = ({
               </button>
             </div>
 
-            {/* Next / Finish Button */}
-            {!isLastAct ? (
-              <button
-                id="act-next-completion-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToNext();
-                }}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
-              >
-                <span>{t('nextAct', currentLang)}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                id="act-close-completion-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border-2 border-[#d4af37] bg-[#d4af37] hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
-              >
-                <span>{t('finishBtn', currentLang)}</span>
-                <CheckCircle2 className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              id={isLastAct ? 'act-close-completion-btn' : 'act-next-completion-btn'}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isLastAct) onClose();
+                else goToNext();
+              }}
+              className={primaryBtn}
+            >
+              {isLastAct ? (
+                <>
+                  <span>{t('finishBtn', currentLang)}</span>
+                  <CheckCircle2 className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <span>{t('nextAct', currentLang)}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
           </div>
         </div>
       </motion.div>
@@ -1248,9 +718,9 @@ export const ActPage: React.FC<ActPageProps> = ({
           user={user}
           currentLang={currentLang}
           onClose={() => setShowCommentsDrawer(false)}
-          onAddComment={(text) => onAddComment && onAddComment(currentChapterId, text)}
-          onEditComment={(cId, text) => onEditComment && onEditComment(currentChapterId, cId, text)}
-          onDeleteComment={(cId) => onDeleteComment && onDeleteComment(currentChapterId, cId)}
+          onAddComment={(text) => onAddComment?.(currentChapterId, text)}
+          onEditComment={(cId, text) => onEditComment?.(currentChapterId, cId, text)}
+          onDeleteComment={(cId) => onDeleteComment?.(currentChapterId, cId)}
           darkMode={darkMode}
         />
       )}
