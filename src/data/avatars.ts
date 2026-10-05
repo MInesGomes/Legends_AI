@@ -6,8 +6,6 @@ export const avatarMen = `${AVATAR_BASE_URL}/AvatarMen.jpg`;
 
 // Female Avatars
 export const female1 = `${AVATAR_BASE_URL}/female1.jpg`;
-export const female2 = `${AVATAR_BASE_URL}/female2.jpg`;
-export const female3 = `${AVATAR_BASE_URL}/female3.jpg`;
 export const female4 = `${AVATAR_BASE_URL}/female4.jpg`;
 export const female_13 = `${AVATAR_BASE_URL}/female_13.jpg`;
 export const female_18 = `${AVATAR_BASE_URL}/female_18.jpg`;
@@ -18,7 +16,6 @@ export const female50 = `${AVATAR_BASE_URL}/female50.jpg`;
 
 // Male Avatars
 export const male1 = `${AVATAR_BASE_URL}/male1.jpg`;
-export const male2 = `${AVATAR_BASE_URL}/male2.jpg`;
 export const male3 = `${AVATAR_BASE_URL}/male3.jpg`;
 export const male4 = `${AVATAR_BASE_URL}/male4.jpg`;
 export const male_13 = `${AVATAR_BASE_URL}/male_13.jpg`;
@@ -48,24 +45,6 @@ export const FEMALE_AVATARS: AvatarOption[] = [
     gender: 'female',
     url: female1,
     description: 'Keeper of ancient lore, wisdom & grand archives.',
-  },
-  {
-    id: 'female_wayfinder',
-    name: 'Aria',
-    title: 'The Wayfinder',
-    role: 'Pathfinder',
-    gender: 'female',
-    url: female2,
-    description: 'Spirited scout & voyager of uncharted realms.',
-  },
-  {
-    id: 'female_mystic',
-    name: 'Seraphina',
-    title: 'The Crystal Mystic',
-    role: 'Oracle',
-    gender: 'female',
-    url: female3,
-    description: 'Wielder of luminous elemental energies & visions.',
   },
   {
     id: 'female_explorer',
@@ -143,15 +122,6 @@ export const MALE_AVATARS: AvatarOption[] = [
     gender: 'male',
     url: male1,
     description: 'Noble guardian & defender of the high kingdoms.',
-  },
-  {
-    id: 'male_wanderer',
-    name: 'Kaelen',
-    title: 'The Wanderer',
-    role: 'Ranger',
-    gender: 'male',
-    url: male2,
-    description: 'Free-spirited ranger traversing the mythical wild.',
   },
   {
     id: 'male_scholar',
