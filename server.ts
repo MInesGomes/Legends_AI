@@ -29,14 +29,20 @@ function escapeHtml(value: unknown): string {
   );
 }
 
-// Safe for embedding JSON inside <script> blocks (prevents </script> breakout).
-function jsonForScript(value: unknown): string {
-  return JSON.stringify(value)
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026')
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
+// Builds a JavaScript string literal that is safe inside a <script> block.
+// Every character outside [A-Za-z0-9 ] becomes a \uXXXX escape, so no input can
+// close the literal or the script tag. Avoids JSON.stringify on untrusted data.
+function jsString(value: unknown): string {
+  const escaped = String(value ?? '').replace(
+    /[^A-Za-z0-9 ]/g,
+    (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'),
+  );
+  return `"${escaped}"`;
+}
+
+// Object literal for the Google user payload, built field by field with jsString.
+function jsUserObject(user: { name: string; email: string; picture: string; sub: string }): string {
+  return `{ name: ${jsString(user.name)}, email: ${jsString(user.email)}, picture: ${jsString(user.picture)}, sub: ${jsString(user.sub)} }`;
 }
 
 function safeHttpsUrl(value: unknown): string {
@@ -152,7 +158,7 @@ async function startServer() {
       const errorCode =
         typeof error === 'string' && OAUTH_ERROR_MESSAGES.has(error) ? error : 'error';
       const displayMessage = OAUTH_ERROR_MESSAGES.get(errorCode) ?? 'Google sign-in failed.';
-      const postMessageError = jsonForScript(errorCode);
+      const postMessageError = jsString(errorCode);
 
       const nonce = setHtmlHeaders(res);
       return res.status(400).send(`
@@ -268,7 +274,7 @@ async function startServer() {
                 if (window.opener) {
                   window.opener.postMessage({
                     type: 'GOOGLE_AUTH_SUCCESS',
-                    user: ${jsonForScript(userPayload)}
+                    user: ${jsUserObject(userPayload)}
                   }, window.location.origin);
                   setTimeout(function () { window.close(); }, 600);
                 } else {
@@ -309,7 +315,7 @@ async function startServer() {
             <script nonce="${nonce}">
               document.getElementById('close-btn').addEventListener('click', function () { window.close(); });
               if (window.opener) {
-                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${jsonForScript(err?.message || 'Error')} }, window.location.origin);
+                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${jsString(err?.message || 'Error')} }, window.location.origin);
               }
             </script>
           </body>
