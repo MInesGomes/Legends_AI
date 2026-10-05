@@ -21,30 +21,6 @@ const OAUTH_ERROR_MESSAGES = new Map<string, string>([
   ['temporarily_unavailable', 'Google is temporarily unavailable. Please try again.'],
 ]);
 
-function escapeHtml(value: unknown): string {
-  return String(value ?? '').replace(
-    /[&<>"']/g,
-    (m) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] as string),
-  );
-}
-
-// Builds a JavaScript string literal that is safe inside a <script> block.
-// Every character outside [A-Za-z0-9 ] becomes a \uXXXX escape, so no input can
-// close the literal or the script tag. Avoids JSON.stringify on untrusted data.
-function jsString(value: unknown): string {
-  const escaped = String(value ?? '').replace(
-    /[^A-Za-z0-9 ]/g,
-    (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'),
-  );
-  return `"${escaped}"`;
-}
-
-// Object literal for the Google user payload, built field by field with jsString.
-function jsUserObject(user: { name: string; email: string; picture: string; sub: string }): string {
-  return `{ name: ${jsString(user.name)}, email: ${jsString(user.email)}, picture: ${jsString(user.picture)}, sub: ${jsString(user.sub)} }`;
-}
-
 function safeHttpsUrl(value: unknown): string {
   try {
     const u = new URL(String(value));
@@ -54,11 +30,10 @@ function safeHttpsUrl(value: unknown): string {
   }
 }
 
-// Sets the HTML content type plus a nonce-based CSP, and returns the nonce
-// to put on inline <style> and <script> tags.
+// Sets a nonce-based CSP and returns the nonce for the inline <style>/<script>
+// tags in the ejs views. res.render sets the text/html content type itself.
 function setHtmlHeaders(res: express.Response): string {
   const nonce = crypto.randomBytes(16).toString('base64');
-  res.set('Content-Type', 'text/html; charset=utf-8');
   res.set(
     'Content-Security-Policy',
     `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; img-src https:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
@@ -104,6 +79,9 @@ function resolveOrigin(req: express.Request): string {
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(process.cwd(), 'views'));
 
   app.use(express.json());
 
@@ -158,39 +136,9 @@ async function startServer() {
       const errorCode =
         typeof error === 'string' && OAUTH_ERROR_MESSAGES.has(error) ? error : 'error';
       const displayMessage = OAUTH_ERROR_MESSAGES.get(errorCode) ?? 'Google sign-in failed.';
-      const postMessageError = jsString(errorCode);
 
       const nonce = setHtmlHeaders(res);
-      return res.status(400).send(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <title>Authentication Cancelled</title>
-            <style nonce="${nonce}">
-              body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
-              .card { background: #121824; border: 1px solid #d4af37; border-radius: 16px; padding: 28px; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-              h2 { color: #f87171; margin-top: 0; }
-              p { color: #94a3b8; font-size: 14px; line-height: 1.5; }
-              button { background: #d4af37; color: #0f141c; border: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 12px; }
-            </style>
-          </head>
-          <body>
-            <div class="card">
-              <h2>Authentication Failed</h2>
-              <p>${escapeHtml(displayMessage)}</p>
-              <button id="close-btn">Close Window</button>
-            </div>
-            <script nonce="${nonce}">
-              document.getElementById('close-btn').addEventListener('click', function () { window.close(); });
-              if (window.opener) {
-                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${postMessageError} }, window.location.origin);
-                setTimeout(function () { window.close(); }, 1500);
-              }
-            </script>
-          </body>
-        </html>
-      `);
+      return res.status(400).render('auth-failed', { nonce, errorCode, message: displayMessage });
     }
 
     if (!code) {
@@ -246,81 +194,14 @@ async function startServer() {
       };
 
       const nonce = setHtmlHeaders(res);
-      res.send(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <title>Google Sign-In Successful</title>
-            <style nonce="${nonce}">
-              body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
-              .card { background: #121824; border: 1px solid #d4af37; border-radius: 16px; padding: 32px; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-              .avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #d4af37; margin: 0 auto 16px; object-fit: cover; }
-              h2 { color: #fce0a2; margin: 0 0 8px; font-size: 20px; }
-              p { color: #94a3b8; font-size: 14px; margin: 0; }
-              .spinner { width: 24px; height: 24px; border: 3px solid rgba(212,175,55,0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 16px auto 0; }
-              @keyframes spin { to { transform: rotate(360deg); } }
-            </style>
-          </head>
-          <body>
-            <div class="card">
-              ${userPayload.picture ? `<img class="avatar" src="${escapeHtml(userPayload.picture)}" alt="" />` : ''}
-              <h2>Welcome, ${escapeHtml(userPayload.name)}!</h2>
-              <p>Signing in to Learn with Legends...</p>
-              <div class="spinner"></div>
-            </div>
-            <script nonce="${nonce}">
-              try {
-                if (window.opener) {
-                  window.opener.postMessage({
-                    type: 'GOOGLE_AUTH_SUCCESS',
-                    user: ${jsUserObject(userPayload)}
-                  }, window.location.origin);
-                  setTimeout(function () { window.close(); }, 600);
-                } else {
-                  window.location.href = '/';
-                }
-              } catch (err) {
-                console.error('PostMessage error:', err);
-              }
-            </script>
-          </body>
-        </html>
-      `);
+      res.render('auth-success', { nonce, user: userPayload });
     } catch (err: any) {
       console.error('OAuth Callback exchange error:', err);
       const nonce = setHtmlHeaders(res);
-      res.status(500).send(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <title>OAuth Error</title>
-            <style nonce="${nonce}">
-              body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
-              .card { background: #121824; border: 1px solid #ef4444; border-radius: 16px; padding: 28px; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-              h2 { color: #f87171; margin-top: 0; }
-              p { color: #cbd5e1; font-size: 14px; line-height: 1.5; }
-              .details { background: #1e293b; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; color: #fca5a5; margin: 14px 0; word-break: break-all; }
-              button { background: #d4af37; color: #0f141c; border: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-            </style>
-          </head>
-          <body>
-            <div class="card">
-              <h2>Authentication Error</h2>
-              <p>Could not complete Google authentication.</p>
-              <div class="details">${escapeHtml(err?.message || 'Unknown error during token exchange')}</div>
-              <button id="close-btn">Close Window</button>
-            </div>
-            <script nonce="${nonce}">
-              document.getElementById('close-btn').addEventListener('click', function () { window.close(); });
-              if (window.opener) {
-                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${jsString(err?.message || 'Error')} }, window.location.origin);
-              }
-            </script>
-          </body>
-        </html>
-      `);
+      res.status(500).render('auth-exception', {
+        nonce,
+        message: String(err?.message || 'Unknown error during token exchange'),
+      });
     }
   };
 

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Authentication Cancelled</title>
+    <style nonce="<%= nonce %>">
+      body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+      .card { background: #121824; border: 1px solid #d4af37; border-radius: 16px; padding: 28px; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+      h2 { color: #f87171; margin-top: 0; }
+      p { color: #94a3b8; font-size: 14px; line-height: 1.5; }
+      button { background: #d4af37; color: #0f141c; border: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="payload" data-error="<%= errorCode %>">
+      <h2>Authentication Failed</h2>
+      <p><%= message %></p>
+      <button id="close-btn">Close Window</button>
+    </div>
+    <script nonce="<%= nonce %>">
+      document.getElementById('close-btn').addEventListener('click', function () { window.close(); });
+      if (window.opener) {
+        var errorCode = document.getElementById('payload').dataset.error;
+        window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: errorCode }, window.location.origin);
+        setTimeout(function () { window.close(); }, 1500);
+      }
+    </script>
+  </body>
+</html>

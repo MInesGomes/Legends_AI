@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>OAuth Error</title>
+    <style nonce="<%= nonce %>">
+      body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+      .card { background: #121824; border: 1px solid #ef4444; border-radius: 16px; padding: 28px; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+      h2 { color: #f87171; margin-top: 0; }
+      p { color: #cbd5e1; font-size: 14px; line-height: 1.5; }
+      .details { background: #1e293b; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; color: #fca5a5; margin: 14px 0; word-break: break-all; }
+      button { background: #d4af37; color: #0f141c; border: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="payload" data-error="<%= message %>">
+      <h2>Authentication Error</h2>
+      <p>Could not complete Google authentication.</p>
+      <div class="details"><%= message %></div>
+      <button id="close-btn">Close Window</button>
+    </div>
+    <script nonce="<%= nonce %>">
+      document.getElementById('close-btn').addEventListener('click', function () { window.close(); });
+      if (window.opener) {
+        var msg = document.getElementById('payload').dataset.error;
+        window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: msg }, window.location.origin);
+      }
+    </script>
+  </body>
+</html>
