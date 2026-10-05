@@ -1,9 +1,99 @@
 import express from 'express';
 import path from 'path';
+import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+/* -------------------------------------------------------------------------- */
+/* Security helpers                                                           */
+/* -------------------------------------------------------------------------- */
+
+// Fixed messages for known Google OAuth error codes. Query input is never reflected.
+const OAUTH_ERROR_MESSAGES = new Map<string, string>([
+  ['access_denied', 'Google sign-in was cancelled.'],
+  ['invalid_request', 'The sign-in request was invalid.'],
+  ['unauthorized_client', 'This app is not authorized for Google sign-in.'],
+  ['unsupported_response_type', 'Google sign-in is misconfigured.'],
+  ['invalid_scope', 'Google sign-in is misconfigured.'],
+  ['server_error', 'Google had a problem. Please try again.'],
+  ['temporarily_unavailable', 'Google is temporarily unavailable. Please try again.'],
+]);
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    (m) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] as string),
+  );
+}
+
+// Safe for embedding JSON inside <script> blocks (prevents </script> breakout).
+function jsonForScript(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+function safeHttpsUrl(value: unknown): string {
+  try {
+    const u = new URL(String(value));
+    return u.protocol === 'https:' ? u.toString() : '';
+  } catch {
+    return '';
+  }
+}
+
+// Sets the HTML content type plus a nonce-based CSP, and returns the nonce
+// to put on inline <style> and <script> tags.
+function setHtmlHeaders(res: express.Response): string {
+  const nonce = crypto.randomBytes(16).toString('base64');
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.set(
+    'Content-Security-Policy',
+    `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; img-src https:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
+  );
+  res.set('X-Content-Type-Options', 'nosniff');
+  return nonce;
+}
+
+// Optional comma-separated list of extra origins allowed for the OAuth redirect URI,
+// e.g. ALLOWED_ORIGINS=https://app.example.com,https://staging.example.com
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+function getRequestOrigin(req: express.Request): string {
+  const host = req.get('host');
+  const forwarded = req.headers['x-forwarded-proto'];
+  const protocol = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0].trim() || req.protocol || 'https';
+  return `${protocol}://${host}`;
+}
+
+// Returns the requested origin only if it is the server's own origin or allowlisted.
+function resolveOrigin(req: express.Request): string {
+  const ownOrigin = getRequestOrigin(req);
+  if (!req.query.origin) return ownOrigin;
+
+  try {
+    const requested = new URL(String(req.query.origin)).origin;
+    if (requested === ownOrigin || ALLOWED_ORIGINS.includes(requested)) {
+      return requested;
+    }
+  } catch {
+    // fall through
+  }
+  return ownOrigin;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Server                                                                     */
+/* -------------------------------------------------------------------------- */
 
 async function startServer() {
   const app = express();
@@ -19,12 +109,8 @@ async function startServer() {
   // Google OAuth Authorization URL endpoint
   app.get('/api/auth/google/url', (req, res) => {
     const clientId = process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID || '';
-    
-    // Determine dynamic origin (from query param or request headers)
-    const reqOrigin = req.query.origin ? String(req.query.origin).replace(/\/+$/, '') : '';
-    const host = req.get('host');
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-    const origin = reqOrigin || `${protocol}://${host}`;
+
+    const origin = resolveOrigin(req);
     const redirectUri = `${origin}/auth/google/callback`;
 
     if (!clientId) {
@@ -32,7 +118,8 @@ async function startServer() {
         configured: false,
         url: null,
         callbackUrl: redirectUri,
-        message: 'GOOGLE_CLIENT_ID is not configured in environment variables. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Settings.',
+        message:
+          'GOOGLE_CLIENT_ID is not configured in environment variables. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Settings.',
       });
     }
 
@@ -55,26 +142,26 @@ async function startServer() {
 
   // Google OAuth Callback Route
   const handleGoogleCallback = async (req: express.Request, res: express.Response) => {
-    const { code, error, error_description } = req.query;
+    const { code, error } = req.query;
 
-    const host = req.get('host');
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-    const origin = `${protocol}://${host}`;
+    const origin = getRequestOrigin(req);
     const redirectUri = `${origin}/auth/google/callback`;
 
     if (error) {
-      const sanitizedError = String(error_description || error || 'Google sign-in was cancelled.')
-        .replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] || m));
-      const postMessageError = JSON.stringify(String(error || 'error'));
+      // Never reflect query input: map to a known code/message.
+      const errorCode =
+        typeof error === 'string' && OAUTH_ERROR_MESSAGES.has(error) ? error : 'error';
+      const displayMessage = OAUTH_ERROR_MESSAGES.get(errorCode) ?? 'Google sign-in failed.';
+      const postMessageError = jsonForScript(errorCode);
 
-      res.set('Content-Type', 'text/html; charset=utf-8');
-      return res.send(`
+      const nonce = setHtmlHeaders(res);
+      return res.status(400).send(`
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8" />
             <title>Authentication Cancelled</title>
-            <style>
+            <style nonce="${nonce}">
               body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
               .card { background: #121824; border: 1px solid #d4af37; border-radius: 16px; padding: 28px; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
               h2 { color: #f87171; margin-top: 0; }
@@ -85,13 +172,14 @@ async function startServer() {
           <body>
             <div class="card">
               <h2>Authentication Failed</h2>
-              <p>${sanitizedError}</p>
-              <button onclick="window.close()">Close Window</button>
+              <p>${escapeHtml(displayMessage)}</p>
+              <button id="close-btn">Close Window</button>
             </div>
-            <script>
+            <script nonce="${nonce}">
+              document.getElementById('close-btn').addEventListener('click', function () { window.close(); });
               if (window.opener) {
                 window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${postMessageError} }, window.location.origin);
-                setTimeout(() => window.close(), 1500);
+                setTimeout(function () { window.close(); }, 1500);
               }
             </script>
           </body>
@@ -100,7 +188,7 @@ async function startServer() {
     }
 
     if (!code) {
-      res.set('Content-Type', 'text/plain');
+      res.set('Content-Type', 'text/plain; charset=utf-8');
       return res.status(400).send('Missing authorization code');
     }
 
@@ -109,7 +197,9 @@ async function startServer() {
 
     try {
       if (!clientId || !clientSecret) {
-        throw new Error('Google OAuth credentials not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.');
+        throw new Error(
+          'Google OAuth credentials not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.',
+        );
       }
 
       // Exchange authorization code for access tokens
@@ -128,7 +218,9 @@ async function startServer() {
       const tokenData = await tokenResponse.json();
 
       if (!tokenResponse.ok || !tokenData.access_token) {
-        throw new Error(tokenData.error_description || tokenData.error || 'Failed to exchange token with Google');
+        throw new Error(
+          tokenData.error_description || tokenData.error || 'Failed to exchange token with Google',
+        );
       }
 
       // Fetch user profile from Google UserInfo endpoint
@@ -143,18 +235,18 @@ async function startServer() {
       const userPayload = {
         name: googleUser.name || googleUser.given_name || 'Google Traveler',
         email: googleUser.email || '',
-        picture: googleUser.picture || '',
+        picture: safeHttpsUrl(googleUser.picture),
         sub: googleUser.sub || `google_${Date.now()}`,
       };
 
-      res.set('Content-Type', 'text/html; charset=utf-8');
+      const nonce = setHtmlHeaders(res);
       res.send(`
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8" />
             <title>Google Sign-In Successful</title>
-            <style>
+            <style nonce="${nonce}">
               body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
               .card { background: #121824; border: 1px solid #d4af37; border-radius: 16px; padding: 32px; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
               .avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #d4af37; margin: 0 auto 16px; object-fit: cover; }
@@ -166,19 +258,19 @@ async function startServer() {
           </head>
           <body>
             <div class="card">
-              ${userPayload.picture ? `<img class="avatar" src="${userPayload.picture}" alt="" />` : ''}
-              <h2>Welcome, ${userPayload.name}!</h2>
+              ${userPayload.picture ? `<img class="avatar" src="${escapeHtml(userPayload.picture)}" alt="" />` : ''}
+              <h2>Welcome, ${escapeHtml(userPayload.name)}!</h2>
               <p>Signing in to Learn with Legends...</p>
               <div class="spinner"></div>
             </div>
-            <script>
+            <script nonce="${nonce}">
               try {
                 if (window.opener) {
                   window.opener.postMessage({
                     type: 'GOOGLE_AUTH_SUCCESS',
-                    user: ${JSON.stringify(userPayload)}
+                    user: ${jsonForScript(userPayload)}
                   }, window.location.origin);
-                  setTimeout(() => window.close(), 600);
+                  setTimeout(function () { window.close(); }, 600);
                 } else {
                   window.location.href = '/';
                 }
@@ -191,13 +283,14 @@ async function startServer() {
       `);
     } catch (err: any) {
       console.error('OAuth Callback exchange error:', err);
-      res.status(500).set('Content-Type', 'text/html; charset=utf-8').send(`
+      const nonce = setHtmlHeaders(res);
+      res.status(500).send(`
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8" />
             <title>OAuth Error</title>
-            <style>
+            <style nonce="${nonce}">
               body { font-family: system-ui, -apple-system, sans-serif; background: #0f141c; color: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
               .card { background: #121824; border: 1px solid #ef4444; border-radius: 16px; padding: 28px; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
               h2 { color: #f87171; margin-top: 0; }
@@ -210,12 +303,13 @@ async function startServer() {
             <div class="card">
               <h2>Authentication Error</h2>
               <p>Could not complete Google authentication.</p>
-              <div class="details">${err?.message || 'Unknown error during token exchange'}</div>
-              <button onclick="window.close()">Close Window</button>
+              <div class="details">${escapeHtml(err?.message || 'Unknown error during token exchange')}</div>
+              <button id="close-btn">Close Window</button>
             </div>
-            <script>
+            <script nonce="${nonce}">
+              document.getElementById('close-btn').addEventListener('click', function () { window.close(); });
               if (window.opener) {
-                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${JSON.stringify(err?.message || 'Error')} }, window.location.origin);
+                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${jsonForScript(err?.message || 'Error')} }, window.location.origin);
               }
             </script>
           </body>
@@ -240,6 +334,7 @@ async function startServer() {
     const lang = String(req.query.lang || 'en').trim().toLowerCase();
 
     res.set('Content-Type', 'text/vtt; charset=utf-8');
+    res.set('X-Content-Type-Options', 'nosniff');
     res.set('Cache-Control', 'public, max-age=300');
 
     // 1. Try YouTube timedtext endpoints directly
@@ -363,4 +458,3 @@ async function startServer() {
 startServer().catch((err) => {
   console.error('Failed to start server:', err);
 });
-
