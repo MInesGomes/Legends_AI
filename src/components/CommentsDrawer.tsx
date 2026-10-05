@@ -200,6 +200,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                         onChange={(e) => setEditInputText(e.target.value)}
                         onKeyDown={(e) => e.stopPropagation()}
                         rows={2}
+                        aria-label={t('edit', currentLang) || 'Edit comment'}
                         className={`w-full text-xs rounded-lg p-2 border focus:outline-none focus:border-[#d4af37] ${
                           darkMode
                             ? 'bg-[#121824] border-slate-700 text-slate-100 placeholder-slate-500'
@@ -249,6 +250,7 @@ export const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.stopPropagation()}
                 placeholder={t('leaveCommentPlaceholder', currentLang)}
+                aria-label={t('leaveCommentPlaceholder', currentLang) || 'Add comment'}
                 className={`flex-1 border border-slate-300 focus:border-[#d4af37] rounded-xl px-3.5 py-2.5 text-xs focus:outline-none ${
                   darkMode ? 'bg-[#121824] text-slate-100 placeholder-slate-500' : 'bg-[#fbf9f4] text-slate-900 placeholder-slate-400'
                 }`}

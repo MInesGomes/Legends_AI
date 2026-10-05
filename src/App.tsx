@@ -120,14 +120,19 @@ export default function App() {
 
   const handleInstallPWA = () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult && choiceResult.outcome === 'accepted') {
-          setIsInstalled(true);
-          localStorage.setItem('pwa_is_installed', 'true');
-        }
-        setDeferredPrompt(null);
-      });
+      void deferredPrompt.prompt();
+      deferredPrompt.userChoice
+        .then((choiceResult: any) => {
+          if (choiceResult && choiceResult.outcome === 'accepted') {
+            setIsInstalled(true);
+            localStorage.setItem('pwa_is_installed', 'true');
+          }
+          setDeferredPrompt(null);
+        })
+        .catch((error: any) => {
+          console.error('PWA install prompt error:', error);
+          setDeferredPrompt(null);
+        });
     }
   };
 
@@ -140,17 +145,21 @@ export default function App() {
   useEffect(() => {
     const userId = dbState.user_profile?.user_id;
     if (userId && userId !== 'guest') {
-      fetchUserStatsFromSupabase(userId).then((serverStats) => {
-        if (serverStats && Object.keys(serverStats).length > 0) {
-          setDbState((prev) => ({
-            ...prev,
-            user_stats: {
-              ...(prev.user_stats || {}),
-              ...serverStats,
-            },
-          }));
-        }
-      });
+      fetchUserStatsFromSupabase(userId)
+        .then((serverStats) => {
+          if (serverStats && Object.keys(serverStats).length > 0) {
+            setDbState((prev) => ({
+              ...prev,
+              user_stats: {
+                ...(prev.user_stats || {}),
+                ...serverStats,
+              },
+            }));
+          }
+        })
+        .catch((error: any) => {
+          console.error('Failed to fetch user stats:', error);
+        });
     }
   }, [dbState.user_profile?.user_id]);
 
@@ -162,7 +171,7 @@ export default function App() {
         ? { ...prev.user_profile, language: lang }
         : null;
       if (updatedProfile) {
-        syncUserProfileToSupabase(updatedProfile);
+        void syncUserProfileToSupabase(updatedProfile);
       }
       return { ...prev, user_profile: updatedProfile };
     });
@@ -176,8 +185,8 @@ export default function App() {
     }));
     setCurrentLang(userProfile.language);
     setCurrentPage('dashboard');
-    syncUserProfileToSupabase(userProfile);
-    syncSkillPointsToSupabase(userProfile.user_id, dbState.user_skills_points);
+    void syncUserProfileToSupabase(userProfile);
+    void syncSkillPointsToSupabase(userProfile.user_id, dbState.user_skills_points);
   };
 
   // Sign Out
@@ -277,7 +286,7 @@ export default function App() {
         ...prev.user_profile,
         daily_tale_limit: newLimit,
       };
-      syncUserProfileToSupabase(updatedProfile);
+      void syncUserProfileToSupabase(updatedProfile);
       return {
         ...prev,
         user_profile: updatedProfile,
@@ -298,7 +307,7 @@ export default function App() {
       ...prev,
       user_tales: [taleWithAuthorAndApproval, ...prev.user_tales],
     }));
-    syncTaleToSupabase(taleWithAuthorAndApproval);
+    void syncTaleToSupabase(taleWithAuthorAndApproval);
   };
 
   // Toggle Chapter Like
@@ -310,7 +319,7 @@ export default function App() {
         ? prev.chapters_id_Liked.filter((id) => id !== chapterId)
         : [...prev.chapters_id_Liked, chapterId];
       
-      syncChapterLikeToSupabase(userId, chapterId, !isLiked);
+      void syncChapterLikeToSupabase(userId, chapterId, !isLiked);
       return { ...prev, chapters_id_Liked: newLiked };
     });
   };
@@ -376,7 +385,7 @@ export default function App() {
       const updatedChapterComments = [newComment, ...existing];
       const updatedAllComments = [newComment, ...prev.user_comments];
 
-      syncCommentToSupabase(newComment);
+      void syncCommentToSupabase(newComment);
 
       return {
         ...prev,
@@ -400,7 +409,7 @@ export default function App() {
         c.id === commentId ? { ...c, text: newText } : c
       );
 
-      syncUpdateCommentToSupabase(commentId, newText);
+      void syncUpdateCommentToSupabase(commentId, newText);
 
       return {
         ...prev,
@@ -420,7 +429,7 @@ export default function App() {
       const updatedChapterComments = existing.filter((c) => c.id !== commentId);
       const updatedAllComments = prev.user_comments.filter((c) => c.id !== commentId);
 
-      syncDeleteCommentToSupabase(commentId);
+      void syncDeleteCommentToSupabase(commentId);
 
       return {
         ...prev,
@@ -442,7 +451,7 @@ export default function App() {
         ...prev.user_skills_points,
         [skill]: currentVal + 1,
       };
-      syncSkillPointsToSupabase(userId, updatedSkills);
+      void syncSkillPointsToSupabase(userId, updatedSkills);
       return {
         ...prev,
         user_skills_points: updatedSkills,
@@ -464,7 +473,7 @@ export default function App() {
         [statKey]: nextCount,
       };
 
-      incrementUserStatInSupabase(userId, lang, skill);
+      void incrementUserStatInSupabase(userId, lang, skill);
 
       return {
         ...prev,
@@ -484,7 +493,7 @@ export default function App() {
         avatar_url: newAvatarUrl,
         ...(newGender ? { gender: newGender } : {}),
       };
-      syncUserProfileToSupabase(updatedProfile);
+      void syncUserProfileToSupabase(updatedProfile);
       return {
         ...prev,
         user_profile: updatedProfile,

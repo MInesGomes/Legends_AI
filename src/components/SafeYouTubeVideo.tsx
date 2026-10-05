@@ -143,15 +143,17 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
 
     const startTicker = (player: YouTubePlayer) => {
       stopTicker();
-      tickerRef.current = window.setInterval(async () => {
-        try {
-          if (!player || typeof player.getCurrentTime !== 'function') return;
-          const time = await player.getCurrentTime();
-          if (typeof time === 'number' && !isNaN(time)) {
-            lastKnownTimeRef.current = time;
-            onTimeUpdate?.({ currentTarget: { currentTime: time } });
-          }
-        } catch {}
+      tickerRef.current = window.setInterval(() => {
+        void (async () => {
+          try {
+            if (!player || typeof player.getCurrentTime !== 'function') return;
+            const time = await player.getCurrentTime();
+            if (typeof time === 'number' && !Number.isNaN(time)) {
+              lastKnownTimeRef.current = time;
+              onTimeUpdate?.({ currentTarget: { currentTime: time } });
+            }
+          } catch {}
+        })();
       }, 250);
     };
 
@@ -336,7 +338,9 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
               key={key}
               videoId={effectiveVideoId}
               opts={opts}
-              onReady={handleReady}
+              onReady={(event) => {
+                void handleReady(event);
+              }}
               onPlay={handlePlay}
               onPause={handlePause}
               onEnd={handleEnd}

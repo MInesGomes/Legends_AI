@@ -167,7 +167,15 @@ export const TalesPage: React.FC<TalesPageProps> = ({
             return (
               <div
                 key={tale.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => handleCardClick(tale)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCardClick(tale);
+                  }
+                }}
                 className="group relative cursor-pointer p-[3px] rounded-[18px] transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30"
               >
                 {/* Inner Card Box without background color */}

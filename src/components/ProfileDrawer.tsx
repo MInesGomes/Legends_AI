@@ -550,16 +550,18 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 type="button"
                 id="btn-confirm-delete-account"
                 disabled={isDeleting}
-                onClick={async () => {
-                  setIsDeleting(true);
-                  try {
-                    if (onDeleteAccount) {
-                      await onDeleteAccount();
+                onClick={() => {
+                  void (async () => {
+                    setIsDeleting(true);
+                    try {
+                      if (onDeleteAccount) {
+                        await onDeleteAccount();
+                      }
+                    } finally {
+                      setIsDeleting(false);
+                      setShowDeleteConfirm(false);
                     }
-                  } finally {
-                    setIsDeleting(false);
-                    setShowDeleteConfirm(false);
-                  }
+                  })();
                 }}
                 className="flex-1 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
               >

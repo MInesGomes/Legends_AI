@@ -222,14 +222,14 @@ function parseVttToCues(vttText: string): SubtitleCue[] {
   const parseTime = (t: string): number => {
     const parts = t.trim().split(':');
     if (parts.length === 3) {
-      return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2].replace(',', '.'));
+      return Number.parseFloat(parts[0]) * 3600 + Number.parseFloat(parts[1]) * 60 + Number.parseFloat(parts[2].replace(',', '.'));
     } else if (parts.length === 2) {
-      return parseFloat(parts[0]) * 60 + parseFloat(parts[1].replace(',', '.'));
+      return Number.parseFloat(parts[0]) * 60 + Number.parseFloat(parts[1].replace(',', '.'));
     }
     return 0;
   };
 
-  const regex = /(\d{1,2}:\d{2}:\d{2}[\.,]\d{2,3}|\d{1,2}:\d{2}[\.,]\d{2,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[\.,]\d{2,3}|\d{1,2}:\d{2}[\.,]\d{2,3})/g;
+  const regex = /((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})\s*-->\s*((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})/g;
   const cues: SubtitleCue[] = [];
   const matches: { start: number; end: number; index: number; length: number }[] = [];
   let match;
@@ -276,7 +276,7 @@ function extractCleanTextFromVtt(vttContent: string): string[] {
       line.startsWith('WEBVTT') ||
       line.startsWith('NOTE') ||
       /^\d+$/.test(line) ||
-      /\d{1,2}:\d{2}/.test(line)
+      /^\d{1,2}:\d{2}/.test(line)
     ) {
       continue;
     }
@@ -756,7 +756,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     // connections before firing off up to 5 languages worth of VTT probes —
     // otherwise this competes for bandwidth right when audio most needs to
     // start loading, which reads as the audio "cutting out".
-    const kickoff = setTimeout(checkLanguages, 300);
+    const kickoff = setTimeout(() => {
+      void checkLanguages();
+    }, 300);
 
     return () => {
       isMounted = false;
@@ -833,7 +835,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
     }
 
-    loadStandardVtt();
+    void loadStandardVtt();
 
     return () => {
       isMounted = false;
@@ -906,7 +908,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       }
     }
 
-    fetchFeedbackVtt();
+    void fetchFeedbackVtt();
 
     return () => {
       isMounted = false;
@@ -2074,6 +2076,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 {/* Seamless overlay that intercepts taps/clicks to toggle play/pause and renders a Gold Circle button when paused */}
                 <div
                   className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setIsAutoPlay((prev) => !prev)}
                 >
                   {!isVideoPlaying && (

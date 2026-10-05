@@ -837,7 +837,7 @@ export function t(
   let text = dictionary[key] || TRANSLATIONS.EN[key] || String(key);
   if (params) {
     Object.entries(params).forEach(([paramKey, paramVal]) => {
-      text = text.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramVal));
+      text = text.replaceAll(`{${paramKey}}`, String(paramVal));
     });
   }
   return text;

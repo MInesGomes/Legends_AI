@@ -67,13 +67,13 @@ export const CHAPTER_3_MEDIA_URLS = {
 export function extractYouTubeVideoId(url?: string | null): string | null {
   if (!url) return null;
   const trimmed = url.trim();
-  const regExp = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/;
+  if (/^[\w-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const regExp = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?(?:[^&\s]+&)*v=))([\w-]{11})/;
   const match = trimmed.match(regExp);
   if (match && match[1]) {
     return match[1];
-  }
-  if (/^[\w-]{11}$/.test(trimmed)) {
-    return trimmed;
   }
   return null;
 }

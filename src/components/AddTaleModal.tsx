@@ -31,11 +31,11 @@ const PROFANITY_LIST = [
   'nude', 'nudes', 'naked', 'dildo'
 ];
 
-// Regex for email address detection
-const EMAIL_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/i;
+// Regex for email address detection (unambiguous domain label matching to prevent ReDoS)
+const EMAIL_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b/i;
 
-// Regex for phone number detection (matches standard 7-15 digit phone patterns with common separators, parentheses, or international +)
-const PHONE_REGEX = /(?:(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b|\b\d{10,13}\b)/;
+// Regex for phone number detection (anchored with word boundaries to eliminate backtracking)
+const PHONE_REGEX = /\b(?:\+?\d{1,3}[-.\s])?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b|\b\d{10,13}\b/;
 
 interface ValidationResult {
   hasEmail: boolean;
@@ -360,13 +360,13 @@ export const AddTaleModal: React.FC<AddTaleModalProps> = ({
 
           {/* Primary Skill Focus */}
           <div>
-            <label
+            <span
               className={`block text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-1.5 font-cinzel ${
                 darkMode ? 'text-[#fce0a2]' : 'text-[#78350f]'
               }`}
             >
               Primary Skill Focus
-            </label>
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {(['Proactive', 'Plan', 'Win4All', 'Listen', 'Recharge'] as SkillType[]).map((sk) => {
                 const isSelected = skill === sk;

@@ -65,14 +65,14 @@ function parseVttToCues(vttText: string): SubtitleCue[] {
   const parseTime = (t: string): number => {
     const parts = t.trim().split(':');
     if (parts.length === 3) {
-      return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2].replace(',', '.'));
+      return Number.parseFloat(parts[0]) * 3600 + Number.parseFloat(parts[1]) * 60 + Number.parseFloat(parts[2].replace(',', '.'));
     } else if (parts.length === 2) {
-      return parseFloat(parts[0]) * 60 + parseFloat(parts[1].replace(',', '.'));
+      return Number.parseFloat(parts[0]) * 60 + Number.parseFloat(parts[1].replace(',', '.'));
     }
     return 0;
   };
 
-  const regex = /(\d{1,2}:\d{2}:\d{2}[\.,]\d{2,3}|\d{1,2}:\d{2}[\.,]\d{2,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[\.,]\d{2,3}|\d{1,2}:\d{2}[\.,]\d{2,3})/g;
+  const regex = /((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})\s*-->\s*((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})/g;
   const cues: SubtitleCue[] = [];
   const matches: { start: number; end: number; index: number; length: number }[] = [];
   let match;
@@ -119,7 +119,7 @@ function extractCleanTextFromVtt(vttContent: string): string[] {
       line.startsWith('WEBVTT') ||
       line.startsWith('NOTE') ||
       /^\d+$/.test(line) ||
-      /\d{1,2}:\d{2}/.test(line)
+      /^\d{1,2}:\d{2}/.test(line)
     ) {
       continue;
     }
@@ -282,7 +282,7 @@ export const ActPage: React.FC<ActPageProps> = ({
       }
     }
 
-    checkLanguages();
+    void checkLanguages();
 
     return () => {
       isMounted = false;
@@ -378,7 +378,7 @@ export const ActPage: React.FC<ActPageProps> = ({
       }
     }
 
-    loadVtt();
+    void loadVtt();
 
     return () => {
       isMounted = false;
@@ -592,6 +592,8 @@ export const ActPage: React.FC<ActPageProps> = ({
       {/* 1. FULLSCREEN MEDIA CONTAINER */}
       <div
         id="act-fullscreen-media-box"
+        role="button"
+        tabIndex={0}
         className={`absolute inset-0 z-0 overflow-hidden ${
           darkMode ? 'bg-slate-950' : 'bg-stone-900'
         } flex items-center justify-center cursor-pointer select-none`}
@@ -692,6 +694,8 @@ export const ActPage: React.FC<ActPageProps> = ({
               </div>
               <div
                 className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isAutoPlay || !isYtPlaying) {
@@ -867,6 +871,8 @@ export const ActPage: React.FC<ActPageProps> = ({
       {/* 5. COMPLETE VTT FILE TEXT DISPLAY ABOVE THE VIDEO */}
       <div
         id="act-complete-vtt-box"
+        role="button"
+        tabIndex={0}
         className="relative z-25 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-16 sm:pt-20 pb-2 select-text pointer-events-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -954,7 +960,9 @@ export const ActPage: React.FC<ActPageProps> = ({
               {vttViewMode === 'raw' && rawVttText && (
                 <button
                   type="button"
-                  onClick={handleCopyRawVtt}
+                  onClick={() => {
+                    void handleCopyRawVtt();
+                  }}
                   className={`p-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
                     darkMode ? 'bg-slate-900 border-slate-700 text-slate-300 hover:text-amber-200' : 'bg-amber-50 border-amber-200 text-slate-800'
                   }`}

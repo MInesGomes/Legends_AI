@@ -350,7 +350,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         <div className="mb-5 space-y-2">
           <button
             type="button"
-            onClick={handleGoogleSignIn}
+            onClick={() => {
+              void handleGoogleSignIn();
+            }}
             disabled={isGoogleLoading}
             className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#d4af37] via-[#f3c457] to-[#d4af37] text-slate-950 font-bold text-sm flex items-center justify-center gap-3 transition-all cursor-pointer shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-[0.99] border border-[#f3c457]/40 disabled:opacity-75 disabled:cursor-not-allowed"
           >
@@ -493,7 +495,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         {/* Divider */}
         <div className="relative my-5 text-center">
           <div className="absolute inset-0 flex items-center">
-            <div className={`w-full border-t ${darkMode ? 'border-[#d4af37]/30' : 'border-[#d4af37]/30'}`} />
+            <div className="w-full border-t border-[#d4af37]/30" />
           </div>
           <span
             className={`relative px-3 text-xs font-semibold uppercase tracking-wider text-[#d4af37] ${
@@ -549,11 +551,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
               <label
+                htmlFor="login-email-input"
                 className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
               >
                 <Mail className="w-3.5 h-3.5 text-[#d4af37]" /> Email Address
               </label>
               <input
+                id="login-email-input"
                 type="email"
                 required
                 value={email}
@@ -570,6 +574,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label
+                  htmlFor="login-password-input"
                   className={`text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-[#d4af37]`}
                 >
                   <Lock className="w-3.5 h-3.5 text-[#d4af37]" /> Password
@@ -577,6 +582,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               </div>
               <div className="relative">
                 <input
+                  id="login-password-input"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
@@ -618,11 +624,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               <form onSubmit={handleCreateStep1Next} className="space-y-4">
                 <div>
                   <label
+                    htmlFor="create-name-input"
                     className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
                   >
                     <User className="w-3.5 h-3.5 text-[#d4af37]" /> Your Full Name
                   </label>
                   <input
+                    id="create-name-input"
                     type="text"
                     required
                     value={name}
@@ -638,11 +646,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                 <div>
                   <label
+                    htmlFor="create-email-input"
                     className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
                   >
                     <Mail className="w-3.5 h-3.5 text-[#d4af37]" /> Email Address
                   </label>
                   <input
+                    id="create-email-input"
                     type="email"
                     required
                     value={email}
@@ -658,12 +668,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                 <div>
                   <label
+                    htmlFor="create-password-input"
                     className={`block text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5 text-[#d4af37]`}
                   >
                     <Lock className="w-3.5 h-3.5 text-[#d4af37]" /> Password
                   </label>
                   <div className="relative">
                     <input
+                      id="create-password-input"
                       type={showPassword ? 'text' : 'password'}
                       required
                       value={password}
@@ -702,11 +714,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 {/* Google Play Age Signals API (Privacy-Preserving Age Verification - No DOB Stored) */}
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <label
+                    <span
                       className={`block text-xs sm:text-sm font-semibold flex items-center gap-1.5 font-cinzel text-[#d4af37]`}
                     >
                       <ShieldCheck className="w-4 h-4 text-[#d4af37]" /> Google Play Age Signals API
-                    </label>
+                    </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                       Google Ecosystem Verified
@@ -768,14 +780,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </span>
                     <button
                       type="button"
-                      onClick={async () => {
-                        setIsCheckingAgeSignal(true);
-                        try {
-                          const res = await queryGooglePlayAgeSignal(ageSignal);
-                          setAgeSignal(res.age_signal);
-                        } finally {
-                          setIsCheckingAgeSignal(false);
-                        }
+                      onClick={() => {
+                        void (async () => {
+                          setIsCheckingAgeSignal(true);
+                          try {
+                            const res = await queryGooglePlayAgeSignal(ageSignal);
+                            setAgeSignal(res.age_signal);
+                          } finally {
+                            setIsCheckingAgeSignal(false);
+                          }
+                        })();
                       }}
                       disabled={isCheckingAgeSignal}
                       className={`text-[10px] underline underline-offset-2 flex items-center gap-1 hover:text-amber-200 cursor-pointer disabled:opacity-50`}
@@ -789,11 +803,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 {/* Gender & Avatar Choice */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label
+                    <span
                       className={`text-xs sm:text-sm font-semibold font-cinzel flex items-center gap-1.5 text-[#d4af37]`}
                     >
                       <User className="w-4 h-4 text-[#d4af37]" /> Choose Archetype
-                    </label>
+                    </span>
                     <span className="text-xs font-medium text-[#d4af37]/80">
                       {activeAvatarsList.length} {gender === 'female' ? 'Lady' : 'Gentlemen'} Choices
                     </span>
