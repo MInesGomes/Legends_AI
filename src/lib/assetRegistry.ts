@@ -113,95 +113,39 @@ export function getActBaseFolder(act: Act, customFolder: string = ATLANTIS_5CRYS
 
 /**
  * Constructs MP3 URL for an Act and Language.
- * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".mp3"
- * or for ElDorado: folderPath + chapter + "/" + act + "_" + langCode + ".mp3"
+ * (Supabase MP3 retrieval removed - only YouTube audio is used).
  */
-export function getActMp3Url(act: Act, lang: Language | string = 'EN', customFolder?: string): string {
-  const candidates = getActMp3CandidateUrls(act, lang, customFolder);
+export function getActMp3Url(_act: Act, _lang: Language | string = 'EN', _customFolder?: string): string {
+  return '';
+}
+
+/**
+ * Candidate MP3 URLs for act voiceover.
+ * (Supabase MP3 retrieval removed - only YouTube audio is used).
+ */
+export function getActMp3CandidateUrls(_act: Act, _lang: Language | string = 'EN', _customFolder?: string): string[] {
+  return [];
+}
+
+/**
+ * Constructs MP4 video URL for an Act. Only returns YouTube video URLs.
+ */
+export function getActMp4Url(act: Act, customFolder?: string): string {
+  const candidates = getActMp4CandidateUrls(act, customFolder);
   return candidates[0] || '';
 }
 
 /**
- * Candidate MP3 URLs for act voiceover resilience.
- */
-export function getActMp3CandidateUrls(act: Act, lang: Language | string = 'EN', customFolder?: string): string[] {
-  const folder = (customFolder || ATLANTIS_5CRYSTALS_FOLDER_PATH).replace(/\/+$/, '');
-  const chapterFolder = `${folder}${act.chapter}`;
-  const actName = (act.act || 'act0').replace(/^\/+|\/+$/g, '');
-  const langCode = normalizeLangCode(lang);
-  const isElDorado = folder.toLowerCase().includes('eldorado');
-
-  // For Atlantis act0 (Chapter 0 or 1 act0 or any act0 with a YouTube video), do not load MP3 from Supabase
-  if (
-    (actName === 'act0' || !act.act) &&
-    (Boolean(extractYouTubeVideoId(act.videoUrl)) ||
-      ((act.chapter === 0 || act.chapter === 1) && (!customFolder || customFolder.toLowerCase().includes('atlantis') || !isElDorado)))
-  ) {
-    return [];
-  }
-
-  const candidates: string[] = [];
-
-  if (isElDorado) {
-    // For ElDorado (files live directly in chapterFolder: e.g. chapter0/act0_pt.mp3)
-    candidates.push(
-      `${chapterFolder}/${actName}_${langCode}.mp3`,
-      `${chapterFolder}/${actName}.mp3`,
-      `${chapterFolder}/${actName}/${actName}_${langCode}.mp3`,
-      `${chapterFolder}/${actName}/${actName}.mp3`,
-      `${chapterFolder}/mp3/${actName}_${langCode}.mp3`,
-      `${chapterFolder}/mp3/${actName}.mp3`,
-      `${chapterFolder}/${actName}/mp3/${actName}_${langCode}.mp3`
-    );
-    if (langCode !== 'en') {
-      candidates.push(
-        `${chapterFolder}/${actName}_en.mp3`,
-        `${chapterFolder}/${actName}/${actName}_en.mp3`
-      );
-    }
-  } else {
-    // For Atlantis and other realms (files live in act subfolder: e.g. chapter0/act0/act0_pt.mp3)
-    candidates.push(
-      `${chapterFolder}/${actName}/${actName}_${langCode}.mp3`,
-      `${chapterFolder}/${actName}/${actName}.mp3`,
-      `${chapterFolder}/${actName}/mp3/${actName}_${langCode}.mp3`,
-      `${chapterFolder}/${actName}/mp3/${actName}.mp3`,
-      `${chapterFolder}/${actName}_${langCode}.mp3`,
-      `${chapterFolder}/${actName}.mp3`
-    );
-    if (langCode !== 'en') {
-      candidates.push(
-        `${chapterFolder}/${actName}/${actName}_en.mp3`,
-        `${chapterFolder}/${actName}_en.mp3`
-      );
-    }
-  }
-  return Array.from(new Set(candidates));
-}
-
-/**
- * Constructs MP4 video URL for an Act.
- * e.g. folderPath + chapter + "/" + act + "/" + act + ".mp4"
- * or for ElDorado: folderPath + chapter + "/" + act + ".mp4"
- */
-export function getActMp4Url(act: Act, customFolder?: string): string {
-  const candidates = getActMp4CandidateUrls(act, customFolder);
-  return candidates[0];
-}
-
-/**
- * Candidate MP4 URLs for playback resilience.
+ * Candidate video URLs for playback. ONLY returns valid YouTube video URLs.
+ * If no YouTube video exists, returns an empty array.
  */
 export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[] {
-  const folder = (customFolder || ATLANTIS_5CRYSTALS_FOLDER_PATH).replace(/\/+$/, '');
-  const chapterFolder = `${folder}${act.chapter}`;
+  const isElDorado = (customFolder || '').toLowerCase().includes('eldorado');
   const actName = (act.act || 'act0').replace(/^\/+|\/+$/g, '');
-  const isElDorado = folder.toLowerCase().includes('eldorado');
-
   const candidates: string[] = [];
 
-  // Custom video URL configured on act if any
-  if (act.videoUrl) {
+  // Custom video URL configured on act if it is a valid YouTube video
+  if (act.videoUrl && extractYouTubeVideoId(act.videoUrl)) {
     candidates.push(act.videoUrl);
   }
 
@@ -232,22 +176,8 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
     }
   }
 
-  if (isElDorado) {
-    candidates.push(
-      `${chapterFolder}/${actName}.mp4`,
-      `${chapterFolder}/${actName}_en.mp4`,
-      `${chapterFolder}/${actName}/${actName}.mp4`,
-      `${chapterFolder}/${actName}/${actName}_en.mp4`
-    );
-  } else {
-    candidates.push(
-      `${chapterFolder}/${actName}/${actName}.mp4`,
-      `${chapterFolder}/${actName}.mp4`,
-      `${chapterFolder}/${actName}_en.mp4`,
-      `${chapterFolder}/${actName}/${actName}_en.mp4`
-    );
-  }
-  return Array.from(new Set(candidates));
+  // Only return valid YouTube video URLs - no Supabase MP4 files
+  return Array.from(new Set(candidates.filter((u) => Boolean(extractYouTubeVideoId(u)))));
 }
 
 /**
@@ -400,10 +330,9 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
 
 /**
  * Choice Media Helpers
- * URL Pattern requested:
- * eg https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/choice1.mp4 , mp3 vtt/choice1.vtt
- * After choices finishes feedback:
- * eg https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/vtt/feedback_en.vtt
+ * URL Pattern for choice assets (thumbnails, images, VTT subtitles).
+ * Feedback VTTs:
+ * e.g. https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/vtt/feedback_en.vtt
  */
 
 export function getChoiceBaseFolder(
@@ -472,15 +401,11 @@ export function getChoiceImageCandidateUrls(
 
 export function getChoiceMp4CandidateUrls(
   world = 'Atlantis',
-  taleName = '5crystals',
+  _taleName = '5crystals',
   chapterNumber = 1,
   choiceId = 'choice1'
 ): string[] {
   const choiceNum = choiceId.replace('choice', '') || '1';
-  const cName = `choice${choiceNum}`;
-  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
-  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
-
   const candidates: string[] = [];
 
   // For Atlantis Chapter 3 choices, load YouTube video sources
@@ -494,40 +419,18 @@ export function getChoiceMp4CandidateUrls(
     }
   }
 
-  candidates.push(
-    `${base}/${cName}.mp4`,
-    `${base}/${cName}_en.mp4`,
-    `${base}/video.mp4`,
-    `${altBase}/${cName}.mp4`
-  );
-
-  return Array.from(new Set(candidates));
+  // Only return valid YouTube video URLs
+  return Array.from(new Set(candidates.filter((u) => Boolean(extractYouTubeVideoId(u)))));
 }
 
 export function getChoiceMp3CandidateUrls(
-  world = 'Atlantis',
-  taleName = '5crystals',
-  chapterNumber = 1,
-  choiceId = 'choice1',
-  lang: Language | string = 'EN'
+  _world = 'Atlantis',
+  _taleName = '5crystals',
+  _chapterNumber = 1,
+  _choiceId = 'choice1',
+  _lang: Language | string = 'EN'
 ): string[] {
-  const choiceNum = choiceId.replace('choice', '') || '1';
-  const cName = `choice${choiceNum}`;
-  const langCode = normalizeLangCode(lang);
-  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
-  const altBase = `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${choiceNum}`;
-
-  return Array.from(
-    new Set([
-      `${base}/${cName}_${langCode}.mp3`,
-      `${base}/${cName}.mp3`,
-      `${base}/mp3/${cName}_${langCode}.mp3`,
-      `${base}/mp3/${cName}.mp3`,
-      `${base}/${cName}_en.mp3`,
-      `${altBase}/${cName}_${langCode}.mp3`,
-      `${altBase}/${cName}.mp3`,
-    ])
-  );
+  return [];
 }
 
 export function getChoiceVttCandidateUrls(

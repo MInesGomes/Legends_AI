@@ -63,6 +63,11 @@ async function startServer() {
     const redirectUri = `${origin}/auth/google/callback`;
 
     if (error) {
+      const sanitizedError = String(error_description || error || 'Google sign-in was cancelled.')
+        .replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m] || m));
+      const postMessageError = JSON.stringify(String(error || 'error'));
+
+      res.set('Content-Type', 'text/html; charset=utf-8');
       return res.send(`
         <!DOCTYPE html>
         <html>
@@ -80,12 +85,12 @@ async function startServer() {
           <body>
             <div class="card">
               <h2>Authentication Failed</h2>
-              <p>${error_description || error || 'Google sign-in was cancelled.'}</p>
+              <p>${sanitizedError}</p>
               <button onclick="window.close()">Close Window</button>
             </div>
             <script>
               if (window.opener) {
-                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: '${error}' }, '*');
+                window.opener.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: ${postMessageError} }, '*');
                 setTimeout(() => window.close(), 1500);
               }
             </script>
@@ -95,6 +100,7 @@ async function startServer() {
     }
 
     if (!code) {
+      res.set('Content-Type', 'text/plain');
       return res.status(400).send('Missing authorization code');
     }
 
@@ -141,6 +147,7 @@ async function startServer() {
         sub: googleUser.sub || `google_${Date.now()}`,
       };
 
+      res.set('Content-Type', 'text/html; charset=utf-8');
       res.send(`
         <!DOCTYPE html>
         <html>
@@ -184,7 +191,7 @@ async function startServer() {
       `);
     } catch (err: any) {
       console.error('OAuth Callback exchange error:', err);
-      res.status(500).send(`
+      res.status(500).set('Content-Type', 'text/html; charset=utf-8').send(`
         <!DOCTYPE html>
         <html>
           <head>
@@ -232,8 +239,8 @@ async function startServer() {
     const videoId = String(req.query.videoId || '-B_vlZaUDDc').trim();
     const lang = String(req.query.lang || 'en').trim().toLowerCase();
 
-    res.setHeader('Content-Type', 'text/vtt; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.set('Content-Type', 'text/vtt; charset=utf-8');
+    res.set('Cache-Control', 'public, max-age=300');
 
     // 1. Try YouTube timedtext endpoints directly
     const timedTextUrls = [
@@ -258,6 +265,7 @@ async function startServer() {
         if (ttRes.ok) {
           const text = await ttRes.text();
           if (text && text.includes('WEBVTT') && text.includes('-->')) {
+            res.set('Content-Type', 'text/vtt; charset=utf-8');
             return res.status(200).send(text);
           }
         }
@@ -315,6 +323,7 @@ async function startServer() {
               if (trackRes.ok) {
                 const vttText = await trackRes.text();
                 if (vttText && (vttText.includes('WEBVTT') || vttText.includes('-->'))) {
+                  res.set('Content-Type', 'text/vtt; charset=utf-8');
                   return res.status(200).send(vttText);
                 }
               }
@@ -327,6 +336,7 @@ async function startServer() {
     }
 
     // Return valid WebVTT header so language availability check succeeds while client YouTube IFrame Player renders native CC
+    res.set('Content-Type', 'text/vtt; charset=utf-8');
     return res.status(200).send('WEBVTT\n\nNOTE Subtitles loaded via YouTube IFrame Player\n');
   });
 

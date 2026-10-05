@@ -4,7 +4,6 @@ import {
   ATLANTIS_STORY_ACTS,
   SUPABASE_BASE_URL,
   getActMp4Url,
-  getActMp3Url,
   getActVttUrl,
   realmAtlantisJpg,
 } from './assetRegistry';
@@ -18,11 +17,6 @@ export interface ActItem {
   subtitle: string;
   actTitle: string;
   mp4: string;
-  audio?: string;
-  audio_es?: string;
-  audio_nl?: string;
-  audio_it?: string;
-  audio_pt?: string;
   vtt?: string;
   vtt_en?: string;
   vtt_es?: string;
@@ -137,7 +131,6 @@ export function getTaleActItems(
   return acts.map((actDef, idx) => {
     const actId = `${tale.id}-ch${actDef.chapter}-${actDef.act}-${idx}`;
     const mp4Url = getActMp4Url(actDef, folderPath);
-    const audioUrl = getActMp3Url(actDef, lang, folderPath);
     const vttUrl = getActVttUrl(actDef, lang, folderPath);
 
     return {
@@ -149,11 +142,6 @@ export function getTaleActItems(
       subtitle: '',
       actTitle: '',
       mp4: mp4Url,
-      audio: audioUrl,
-      audio_es: getActMp3Url(actDef, 'ES', folderPath),
-      audio_nl: getActMp3Url(actDef, 'NL', folderPath),
-      audio_it: getActMp3Url(actDef, 'IT', folderPath),
-      audio_pt: getActMp3Url(actDef, 'PT', folderPath),
       vtt: vttUrl,
       vtt_en: getActVttUrl(actDef, 'EN', folderPath),
       vtt_es: getActVttUrl(actDef, 'ES', folderPath),
@@ -177,7 +165,6 @@ export function getAtlantisActItems(
   return customActs.map((actDef, idx) => {
     const actId = `atlantis-ch${actDef.chapter}-${actDef.act}-${idx}`;
     const mp4Url = getActMp4Url(actDef);
-    const audioUrl = getActMp3Url(actDef, lang);
     const vttUrl = getActVttUrl(actDef, lang);
 
     return {
@@ -189,11 +176,6 @@ export function getAtlantisActItems(
       subtitle: '',
       actTitle: '',
       mp4: mp4Url,
-      audio: audioUrl,
-      audio_es: getActMp3Url(actDef, 'ES'),
-      audio_nl: getActMp3Url(actDef, 'NL'),
-      audio_it: getActMp3Url(actDef, 'IT'),
-      audio_pt: getActMp3Url(actDef, 'PT'),
       vtt: vttUrl,
       vtt_en: getActVttUrl(actDef, 'EN'),
       vtt_es: getActVttUrl(actDef, 'ES'),

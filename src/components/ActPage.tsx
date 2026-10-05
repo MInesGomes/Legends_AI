@@ -8,8 +8,6 @@ import { Language, UserProfile, SkillType, ChapterComment, Tale } from '../types
 import { ActItem, getAtlantisActItems, getTaleActItems } from '../lib/taleData';
 import {
   getActMp4CandidateUrls,
-  getActMp3Url,
-  getActMp3CandidateUrls,
   getActVttCandidateUrls,
   extractYouTubeVideoId,
   normalizeLangCode,
@@ -243,13 +241,6 @@ export const ActPage: React.FC<ActPageProps> = ({
   // Synchronize audio and subtitle language when parent currentLang prop updates
   useEffect(() => {
     if (currentLang && (currentLang !== selectedAudioLang || currentLang !== selectedVttLang)) {
-      if (videoRef.current) {
-        videoRef.current.pause();
-      }
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      setIsAudioLoaded(false);
       setActiveSubtitle('');
       setSelectedAudioLang(currentLang);
       setSelectedVttLang(currentLang);
@@ -305,8 +296,6 @@ export const ActPage: React.FC<ActPageProps> = ({
     }
   }, [currentChapterId, currentLang]);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const ytIframeRef = useRef<HTMLIFrameElement>(null);
   const ytMediaRef = useRef<YouTubeAdapter>(null);
 
@@ -331,30 +320,6 @@ export const ActPage: React.FC<ActPageProps> = ({
     } catch {}
   }, []);
 
-  // Candidate MP3 URLs and current active audio URL
-  const audioCandidates = useMemo(() => {
-    if (
-      (currentAct.actData.act === 'act0' || !currentAct.actData.act) &&
-      (Boolean(currentYouTubeId) || currentAct.chapterNumber === 0)
-    ) {
-      return [];
-    }
-    return getActMp3CandidateUrls(currentAct.actData, selectedAudioLang, currentAct.folderPath);
-  }, [currentAct.actData, currentAct.chapterNumber, selectedAudioLang, currentAct.folderPath, currentYouTubeId]);
-
-  const [candidateAudioIdx, setCandidateAudioIdx] = useState<number>(0);
-
-  const actAudioUrl = audioCandidates[candidateAudioIdx] || audioCandidates[0];
-
-  const handleAudioError = () => {
-    if (candidateAudioIdx + 1 < audioCandidates.length) {
-      setCandidateAudioIdx((prev) => prev + 1);
-      setIsAudioLoaded(false);
-    } else {
-      setIsAudioLoaded(true);
-    }
-  };
-
   // Comments for this chapter
   const currentComments: ChapterComment[] = useMemo(() => {
     const allComments = (commentsMap && commentsMap[currentChapterId]) || [];
@@ -369,22 +334,10 @@ export const ActPage: React.FC<ActPageProps> = ({
   // Reset state when switching act index or audio language
   useEffect(() => {
     setCandidateVideoIdx(0);
-    setCandidateAudioIdx(0);
     setIsMediaNotFound(false);
     setIsVideoFinished(false);
     setActiveSubtitle('');
     setRawVttText('');
-    setIsAudioLoaded(false);
-
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
   }, [currentIndex, selectedAudioLang]);
 
   // Fetch VTT subtitles from candidate URLs when selectedVttLang changes (lower button)
@@ -429,108 +382,7 @@ export const ActPage: React.FC<ActPageProps> = ({
     };
   }, [currentAct.actData, currentAct.folderPath, selectedVttLang]);
 
-  // Wait for the MP3 to be loaded before starting MP4 and VTT
-  useEffect(() => {
-    if (!actAudioUrl) {
-      setIsAudioLoaded(true);
-      if (videoRef.current && isAutoPlay) {
-        videoRef.current.play().catch(() => {});
-      }
-      return;
-    }
-
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    let isMounted = true;
-    setIsAudioLoaded(false);
-
-    if (videoRef.current) {
-      videoRef.current.pause();
-    }
-
-    try {
-      audio.load();
-    } catch {}
-
-    const onAudioReady = () => {
-      if (!isMounted) return;
-      setIsAudioLoaded(true);
-      if (isAutoPlay) {
-        if (videoRef.current && audioRef.current) {
-          const currentPos = videoRef.current.currentTime;
-          if (!isNaN(currentPos) && currentPos > 0) {
-            audioRef.current.currentTime = currentPos;
-          } else {
-            videoRef.current.currentTime = 0;
-            audioRef.current.currentTime = 0;
-          }
-          videoRef.current.play().catch(() => {});
-          if (!isMuted) {
-            audioRef.current.play().catch(() => {});
-          }
-        }
-      }
-    };
-
-    if (audio.readyState >= 2) {
-      onAudioReady();
-    } else {
-      audio.addEventListener('canplay', onAudioReady, { once: true });
-      audio.addEventListener('canplaythrough', onAudioReady, { once: true });
-      audio.addEventListener('loadeddata', onAudioReady, { once: true });
-      try {
-        audio.load();
-      } catch {}
-    }
-
-    const timer = setTimeout(() => {
-      if (isMounted) onAudioReady();
-    }, 7000);
-
-    return () => {
-      isMounted = false;
-      audio.removeEventListener('canplay', onAudioReady);
-      audio.removeEventListener('canplaythrough', onAudioReady);
-      audio.removeEventListener('loadeddata', onAudioReady);
-      clearTimeout(timer);
-    };
-  }, [actAudioUrl, selectedAudioLang, isAutoPlay, isMuted]);
-
-  // Synchronize video & audio play/pause
-  useEffect(() => {
-    if (!isAutoPlay) {
-      videoRef.current?.pause();
-      audioRef.current?.pause();
-    } else {
-      if (isAudioLoaded || !actAudioUrl) {
-        videoRef.current?.play().catch(() => {});
-        if (audioRef.current && actAudioUrl && !isMuted) {
-          if (videoRef.current && !isNaN(videoRef.current.currentTime)) {
-            audioRef.current.currentTime = videoRef.current.currentTime;
-          }
-          audioRef.current.play().catch(() => {});
-        }
-      }
-    }
-  }, [isAutoPlay, isAudioLoaded, actAudioUrl, isMuted]);
-
-  // Synchronize mute
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = isMuted;
-    if (audioRef.current) audioRef.current.muted = isMuted;
-  }, [isMuted]);
-
   const handleTimeUpdate = (curr: number) => {
-    if (!isAudioLoaded && Boolean(actAudioUrl)) {
-      if (activeSubtitle) setActiveSubtitle('');
-      return;
-    }
-
-    if (audioRef.current && videoRef.current && !audioRef.current.paused && Math.abs(audioRef.current.currentTime - curr) > 0.3) {
-      audioRef.current.currentTime = curr;
-    }
-
     if (!subtitles || subtitles.length === 0) {
       if (activeSubtitle) setActiveSubtitle('');
       return;
@@ -571,13 +423,13 @@ export const ActPage: React.FC<ActPageProps> = ({
     if (currentYouTubeId) {
       if (isMuted) {
         sendYtCommand('mute');
+        sendYtCommand('setVolume', [0]);
       } else {
         sendYtCommand('unMute');
-        sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
+        sendYtCommand('setVolume', [100]);
       }
     }
-  }, [isMuted, actAudioUrl, currentYouTubeId, sendYtCommand]);
-
+  }, [isMuted, currentYouTubeId, sendYtCommand]);
 
   const handleReplay = () => {
     setIsVideoFinished(false);
@@ -587,25 +439,6 @@ export const ActPage: React.FC<ActPageProps> = ({
       if (isAutoPlay) {
         sendYtCommand('playVideo');
       }
-    } else if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.pause();
-    }
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.pause();
-    }
-    if (!actAudioUrl || (audioRef.current && audioRef.current.readyState >= 3)) {
-      setIsAudioLoaded(true);
-      if (isAutoPlay) {
-        videoRef.current?.play().catch(() => {});
-        if (audioRef.current && actAudioUrl && !isMuted) {
-          audioRef.current.play().catch(() => {});
-        }
-      }
-    } else {
-      setIsAudioLoaded(false);
-      audioRef.current?.load();
     }
   };
 
@@ -614,25 +447,6 @@ export const ActPage: React.FC<ActPageProps> = ({
       sendYtCommand('pauseVideo');
       sendYtCommand('seekTo', [9999, true]);
     }
-    // 1. Pause and seek audio track to end
-    if (audioRef.current) {
-      audioRef.current.pause();
-      try {
-        if (!isNaN(audioRef.current.duration) && audioRef.current.duration > 0) {
-          audioRef.current.currentTime = audioRef.current.duration;
-        }
-      } catch {}
-    }
-    // 2. Pause and seek video track to end
-    if (videoRef.current) {
-      videoRef.current.pause();
-      try {
-        if (!isNaN(videoRef.current.duration) && videoRef.current.duration > 0) {
-          videoRef.current.currentTime = videoRef.current.duration;
-        }
-      } catch {}
-    }
-    // 3. Mark video as finished and clear active subtitle line
     setIsVideoFinished(true);
     setActiveSubtitle('');
   };
@@ -677,9 +491,10 @@ export const ActPage: React.FC<ActPageProps> = ({
           }
           if (isMuted) {
             sendYtCommand('mute');
+            sendYtCommand('setVolume', [0]);
           } else {
             sendYtCommand('unMute');
-            sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
+            sendYtCommand('setVolume', [100]);
           }
         }
 
@@ -690,10 +505,6 @@ export const ActPage: React.FC<ActPageProps> = ({
           setIsYtPlaying(false);
           setIsVideoFinished(true);
           setActiveSubtitle('');
-          if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-          }
           if (isAutoPlay && currentIndex < actItems.length - 1) {
             setTimeout(() => {
               goToNext();
@@ -708,9 +519,6 @@ export const ActPage: React.FC<ActPageProps> = ({
             sendYtCommand('pauseVideo');
           } else {
             setIsYtPlaying(true);
-            if (audioRef.current && !isMuted) {
-              audioRef.current.play().catch(() => {});
-            }
           }
         } else if (
           (data.event === 'onStateChange' && (data.info === 2 || data.info === -1 || data.info === 5)) ||
@@ -719,18 +527,8 @@ export const ActPage: React.FC<ActPageProps> = ({
             (data.info.playerState === 2 || data.info.playerState === -1 || data.info.playerState === 5))
         ) {
           setIsYtPlaying(false);
-          if (audioRef.current) {
-            audioRef.current.pause();
-          }
         } else if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
           handleTimeUpdate(data.info.currentTime);
-          if (
-            audioRef.current &&
-            !audioRef.current.paused &&
-            Math.abs(audioRef.current.currentTime - data.info.currentTime) > 0.75
-          ) {
-            audioRef.current.currentTime = data.info.currentTime;
-          }
         }
       } catch {}
     };
@@ -753,16 +551,8 @@ export const ActPage: React.FC<ActPageProps> = ({
 
   const isLastAct = currentIndex >= actItems.length - 1;
 
-  // Upper button: MP3 Audio language handler
+  // Upper button: Audio language handler
   const handleAudioLanguageSelected = (newLang: Language) => {
-    // When the user changes language, immediately pause video & audio and wait for MP3 to load
-    if (videoRef.current) {
-      videoRef.current.pause();
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    setIsAudioLoaded(false);
     setActiveSubtitle('');
     setSelectedAudioLang(newLang);
     setSelectedVttLang(newLang);
@@ -809,12 +599,12 @@ export const ActPage: React.FC<ActPageProps> = ({
                 }`}
               >
                 <SafeYouTubeVideo
-                  instanceKey={`yt-${currentYouTubeId}-${!actAudioUrl ? getYouTubeAudioLangCode(selectedAudioLang) : 'ext'}`}
+                  instanceKey={`yt-${currentYouTubeId}`}
                   ref={ytIframeRef}
                   mediaRef={ytMediaRef}
                   src={currentVideoUrl}
                   autoplay={true}
-                  defaultMuted={true}
+                  defaultMuted={false}
                   muted={isMuted}
                   controls={false}
                   playsInline={true}
@@ -841,9 +631,12 @@ export const ActPage: React.FC<ActPageProps> = ({
                   }}
                   onLoadedMetadata={(e) => {
                     e.currentTarget.muted = isMuted;
-                    e.currentTarget.volume = actAudioUrl ? 0.25 : 1;
+                    e.currentTarget.volume = 1;
                     if (isAutoPlay) {
-                      e.currentTarget.play().catch(() => {});
+                      try {
+                        const p = e.currentTarget?.play?.();
+                        if (p && typeof p.catch === 'function') p.catch(() => {});
+                      } catch {}
                     } else {
                       e.currentTarget.pause();
                     }
@@ -858,9 +651,6 @@ export const ActPage: React.FC<ActPageProps> = ({
                       setIsYtPlaying(true);
                       sendYtCommand('unloadModule', ['captions']);
                       sendYtCommand('unloadModule', ['cc']);
-                      if (audioRef.current && !isMuted) {
-                        audioRef.current.play().catch(() => {});
-                      }
                     }
                   }}
                   onPlaying={() => {
@@ -870,29 +660,15 @@ export const ActPage: React.FC<ActPageProps> = ({
                   }}
                   onPause={() => {
                     setIsYtPlaying(false);
-                    if (audioRef.current) {
-                      audioRef.current.pause();
-                    }
                   }}
                   onTimeUpdate={(e) => {
                     const curr = e.currentTarget.currentTime;
                     handleTimeUpdate(curr);
-                    if (
-                      audioRef.current &&
-                      !audioRef.current.paused &&
-                      Math.abs(audioRef.current.currentTime - curr) > 0.75
-                    ) {
-                      audioRef.current.currentTime = curr;
-                    }
                   }}
                   onEnded={() => {
                     setIsYtPlaying(false);
                     setIsVideoFinished(true);
                     setActiveSubtitle('');
-                    if (audioRef.current) {
-                      audioRef.current.pause();
-                      audioRef.current.currentTime = 0;
-                    }
                     if (isAutoPlay && currentIndex < actItems.length - 1) {
                       setTimeout(() => {
                         goToNext();
@@ -907,15 +683,18 @@ export const ActPage: React.FC<ActPageProps> = ({
                   e.stopPropagation();
                   if (!isAutoPlay || !isYtPlaying) {
                     setIsAutoPlay(true);
-                    ytMediaRef.current?.play().catch(() => {});
+                    try {
+                      const p = ytMediaRef.current?.play();
+                      if (p && typeof p.catch === 'function') p.catch(() => {});
+                    } catch {}
                     sendYtCommand('playVideo');
                     if (!isMuted) {
                       if (ytMediaRef.current) {
                         ytMediaRef.current.muted = false;
-                        ytMediaRef.current.volume = actAudioUrl ? 0.25 : 1;
+                        ytMediaRef.current.volume = 1;
                       }
                       sendYtCommand('unMute');
-                      sendYtCommand('setVolume', [actAudioUrl ? 25 : 100]);
+                      sendYtCommand('setVolume', [100]);
                     }
                   } else {
                     setIsAutoPlay(false);
@@ -939,48 +718,6 @@ export const ActPage: React.FC<ActPageProps> = ({
                 )}
               </div>
             </div>
-          ) : !isMediaNotFound ? (
-            <video
-              id="act-fullscreen-video"
-              ref={videoRef}
-              key={`${currentAct.id}-${currentVideoUrl}`}
-              src={currentVideoUrl}
-              muted={isMuted}
-              playsInline
-              crossOrigin="anonymous"
-              preload="auto"
-              onTimeUpdate={(e) => handleTimeUpdate(e.currentTarget.currentTime)}
-              onPlay={(e) => {
-                if (!isAudioLoaded && Boolean(actAudioUrl)) {
-                  videoRef.current?.pause();
-                  return;
-                }
-                if (audioRef.current && actAudioUrl && !isMuted) {
-                  audioRef.current.currentTime = e.currentTarget.currentTime;
-                  audioRef.current.play().catch(() => {});
-                }
-              }}
-              onPause={() => {
-                if (audioRef.current) {
-                  audioRef.current.pause();
-                }
-              }}
-              onEnded={() => {
-                setIsVideoFinished(true);
-                setActiveSubtitle('');
-                if (audioRef.current) {
-                  audioRef.current.pause();
-                  audioRef.current.currentTime = 0;
-                }
-                if (isAutoPlay && currentIndex < actItems.length - 1) {
-                  setTimeout(() => {
-                    goToNext();
-                  }, 4000);
-                }
-              }}
-              onError={handleVideoError}
-              className="w-full h-full object-contain z-0"
-            />
           ) : (
             /* COMING SOON BADGE IN VIDEO AREA WHEN MEDIA DOES NOT EXIST */
             <div className="flex flex-col items-center justify-center gap-3 p-6 text-center z-10 animate-fadeIn">
@@ -988,91 +725,11 @@ export const ActPage: React.FC<ActPageProps> = ({
                 <Film className="w-8 h-8 sm:w-10 sm:h-10 text-[#d4af37]" />
               </div>
               <div className="px-6 py-2 rounded-full border-2 border-[#d4af37] bg-slate-950 text-[#d4af37] font-bold text-base sm:text-xl tracking-wider font-cinzel shadow-2xl">
-                {t('comingSoon', currentLang)}
+                {t('comingSoon', selectedAudioLang || currentLang)}
               </div>
               <p className="text-xs sm:text-sm text-slate-300 max-w-sm leading-relaxed mt-1 font-sans">
-                {t('comingSoonDesc', currentLang, { title: currentAct.actTitle })}
+                {t('comingSoonDesc', selectedAudioLang || currentLang, { title: currentAct.actTitle })}
               </p>
-            </div>
-          )}
-
-          {/* Audio Loading Overlay - Shown while waiting for MP3 to load before MP4 & VTT play */}
-          {!isAudioLoaded && Boolean(actAudioUrl) && !isMediaNotFound && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] pointer-events-none transition-opacity duration-300">
-              <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/75 border border-[#d4af37]/50 shadow-[0_0_20px_rgba(0,0,0,0.8)]">
-                <div className="w-3.5 h-3.5 border-2 border-[#ffe81f] border-t-transparent rounded-full animate-spin" />
-                <span className="font-cinzel text-xs sm:text-sm font-bold tracking-wider text-[#ffe81f] drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
-                  Loading Audio...
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Synchronized Audio Track */}
-          {actAudioUrl && (
-            <audio
-              id="act-background-audio"
-              ref={audioRef}
-              key={`audio-${currentAct.id}-${actAudioUrl}-${selectedAudioLang}`}
-              src={actAudioUrl}
-              muted={isMuted}
-              preload="auto"
-              playsInline
-              onError={handleAudioError}
-              onCanPlay={() => {
-                setIsAudioLoaded(true);
-                if (isAutoPlay && videoRef.current && videoRef.current.paused) {
-                  const currentPos = videoRef.current.currentTime;
-                  if (audioRef.current && !isNaN(currentPos) && currentPos > 0) {
-                    audioRef.current.currentTime = currentPos;
-                  }
-                  videoRef.current.play().catch(() => {});
-                  if (!isMuted) {
-                    audioRef.current?.play().catch(() => {});
-                  }
-                }
-              }}
-              onCanPlayThrough={() => {
-                setIsAudioLoaded(true);
-                if (isAutoPlay && videoRef.current && videoRef.current.paused) {
-                  const currentPos = videoRef.current.currentTime;
-                  if (audioRef.current && !isNaN(currentPos) && currentPos > 0) {
-                    audioRef.current.currentTime = currentPos;
-                  }
-                  videoRef.current.play().catch(() => {});
-                  if (!isMuted) {
-                    audioRef.current?.play().catch(() => {});
-                  }
-                }
-              }}
-              onTimeUpdate={(e) => {
-                if (isMediaNotFound || !videoRef.current) {
-                  handleTimeUpdate(e.currentTarget.currentTime);
-                }
-              }}
-              onEnded={() => {
-                if (audioRef.current) {
-                  audioRef.current.currentTime = 0;
-                }
-                if (isMediaNotFound) {
-                  setIsVideoFinished(true);
-                  setActiveSubtitle('');
-                  if (isAutoPlay && currentIndex < actItems.length - 1) {
-                    setTimeout(() => {
-                      goToNext();
-                    }, 3500);
-                  }
-                }
-              }}
-            />
-          )}
-
-          {/* Play / Pause Indicator Badge overlay when paused (for non-YouTube videos) */}
-          {!isAutoPlay && !isMediaNotFound && !currentYouTubeId && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transform hover:scale-110 transition-transform">
-                <Play className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
-              </div>
             </div>
           )}
         </div>
@@ -1112,7 +769,7 @@ export const ActPage: React.FC<ActPageProps> = ({
         </div>
       )}
 
-      {/* 4. TOP RIGHT: COMMENTS, AUTOPLAY TOGGLE, SOUND TOGGLE & MP3 AUDIO SELECTOR */}
+      {/* 4. TOP RIGHT: COMMENTS, AUTOPLAY TOGGLE, SOUND TOGGLE & AUDIO SELECTOR */}
       <div className="flex absolute top-3 right-3 sm:top-6 sm:right-6 z-30 items-center gap-2">
         {/* Comments Drawer Button - Only visible if user is > 16 */}
         {canAccessComments && (
@@ -1183,14 +840,14 @@ export const ActPage: React.FC<ActPageProps> = ({
           )}
         </button>
 
-        {/* MP3 Audio Voice Selector */}
+        {/* Audio Language Selector */}
         <FlagLanguageDropdown
-          id="act-top-mp3-selector"
-          type="mp3"
+          id="act-top-audio-selector"
+          type="language"
           selectedLang={selectedAudioLang}
           onSelectLang={handleAudioLanguageSelected}
           darkMode={darkMode}
-          tooltip={t('selectVoiceMp3', currentLang)}
+          tooltip={t('selectLanguage', currentLang)}
         />
       </div>
 
@@ -1441,8 +1098,8 @@ export const ActPage: React.FC<ActPageProps> = ({
                     darkMode ? 'text-slate-400' : 'text-slate-500 font-medium'
                   }`}
                 >
-                  {isMediaNotFound
-                    ? t('comingSoon', currentLang)
+                  {!currentYouTubeId || isMediaNotFound
+                    ? t('comingSoon', selectedAudioLang || currentLang)
                     : isVideoFinished
                     ? t('actCompleted', selectedVttLang)
                     : ''}
@@ -1524,7 +1181,7 @@ export const ActPage: React.FC<ActPageProps> = ({
                     ? 'bg-slate-950 text-amber-200 hover:bg-[#d4af37] hover:text-slate-950'
                     : 'bg-white hover:bg-[#d4af37] text-amber-950 hover:text-slate-950 shadow-sm'
                 } text-xs sm:text-sm font-bold shadow transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap`}
-                title="Skip MP3 and MP4 playback"
+                title={t('skipMediaBtn', currentLang)}
               >
                 <FastForward className="w-3.5 h-3.5 text-[#d4af37]" />
                 <span>{t('skipBtn', currentLang)}</span>

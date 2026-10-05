@@ -6,7 +6,7 @@ export interface FlagDropdownProps {
   id?: string;
   selectedLang: Language;
   onSelectLang: (lang: Language) => void;
-  type?: 'mp3' | 'vtt' | 'language';
+  type?: 'audio' | 'mp3' | 'vtt' | 'language';
   darkMode?: boolean;
   availableLangs?: Language[];
   tooltip?: string;
@@ -221,7 +221,7 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
   const defaultTooltip = isAvailableEmpty
     ? 'No Subtitles Available for this Act'
     : tooltip ||
-      (type === 'mp3'
+      (type === 'mp3' || type === 'audio'
         ? `Audio Voice: ${currentMeta.label}`
         : type === 'vtt'
         ? `Subtitles: ${currentMeta.label}`
@@ -304,7 +304,7 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
             }`}
           >
             <div className="flex items-center gap-1.5">
-              {type === 'mp3' ? (
+              {type === 'mp3' || type === 'audio' ? (
                 <Volume2 className="w-3.5 h-3.5 text-[#d4af37]" />
               ) : type === 'vtt' ? (
                 <Subtitles className="w-3.5 h-3.5 text-[#d4af37]" />
@@ -312,8 +312,8 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
                 <Globe className="w-3.5 h-3.5 text-[#d4af37]" />
               )}
               <span>
-                {type === 'mp3'
-                  ? 'Audio (MP3)'
+                {type === 'mp3' || type === 'audio'
+                  ? 'Audio'
                   : type === 'vtt'
                   ? 'Subtitles (VTT)'
                   : 'Language'}
