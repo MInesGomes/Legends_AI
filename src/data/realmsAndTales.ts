@@ -1,7 +1,7 @@
 import { Realm, Tale } from '../types';
 import {
   realmAtlantisJpg,
-  realmWorkJpg,
+  realmLeaderJpg,
   realmElDoradoJpg,
   realmDadMomJpg,
   realmMarriageJpg,
@@ -43,9 +43,9 @@ export const REALMS: Realm[] = [
   {
     id: 'realm-work',
     key: 'work',
-    title: 'WORK',
+    title: 'LEADER',
     isAdultOnly: true,
-    bgImage: realmWorkJpg,
+    bgImage: realmLeaderJpg,
     iconName: 'Briefcase'
   },
   {
@@ -150,7 +150,7 @@ export const INITIAL_TALES: Tale[] = [
     commentsCount: 29
   },
 
-  // Work Tales (matching 2WorkTales.png reference)
+  // Leader Tales
   {
     id: 'tale-startup-winner',
     realmId: 'realm-work',

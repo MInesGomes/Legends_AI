@@ -49,7 +49,6 @@ export interface Translations {
   muteAudio: string;
   unmuteAudio: string;
   selectVoiceMp3: string;
-  selectSubtitlesVtt: string;
   previousAct: string;
   nextAct: string;
   comingSoon: string;
@@ -155,7 +154,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     toggleTheme: 'Toggle theme',
     selectLanguage: 'Select Language',
 
-    realm_work: 'WORK',
+    realm_work: 'LEADER',
     realm_marriage: 'MARRIAGE',
     realm_dad_mom: 'DAD & MOM',
     realm_atlantis: 'ATLANTIS',
@@ -191,7 +190,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     muteAudio: 'Mute Audio',
     unmuteAudio: 'Unmute Audio',
     selectVoiceMp3: 'Select Audio Voice & Play',
-    selectSubtitlesVtt: 'Select Subtitles (VTT) & Play',
     previousAct: 'Previous Act',
     nextAct: 'Next Act',
     comingSoon: 'Coming Soon',
@@ -327,7 +325,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     muteAudio: 'Silenciar audio',
     unmuteAudio: 'Activar audio',
     selectVoiceMp3: 'Seleccionar voz de audio y reproducir',
-    selectSubtitlesVtt: 'Seleccionar subtítulos (VTT) y reproducir',
     previousAct: 'Acto anterior',
     nextAct: 'Siguiente acto',
     comingSoon: 'Próximamente',
@@ -463,7 +460,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     muteAudio: 'Disattiva audio',
     unmuteAudio: 'Attiva audio',
     selectVoiceMp3: 'Seleziona voce audio e riproduci',
-    selectSubtitlesVtt: 'Seleziona sottotitoli (VTT) e riproduci',
     previousAct: 'Atto precedente',
     nextAct: 'Atto successivo',
     comingSoon: 'Prossimamente',
@@ -599,7 +595,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     muteAudio: 'Silenciar áudio',
     unmuteAudio: 'Ativar áudio',
     selectVoiceMp3: 'Selecionar voz de áudio e reproduzir',
-    selectSubtitlesVtt: 'Selecionar legendas (VTT) e reproduzir',
     previousAct: 'Ato anterior',
     nextAct: 'Próximo ato',
     comingSoon: 'Em breve',
@@ -735,7 +730,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     muteAudio: 'Geluid dempen',
     unmuteAudio: 'Geluid aanzetten',
     selectVoiceMp3: 'Selecteer audiostem en speel af',
-    selectSubtitlesVtt: 'Selecteer ondertitels (VTT) en speel af',
     previousAct: 'Vorige akte',
     nextAct: 'Volgende akte',
     comingSoon: 'Binnenkort beschikbaar',

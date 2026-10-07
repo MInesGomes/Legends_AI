@@ -12,29 +12,26 @@ import {
   Tale,
 } from '../types';
 import { ActItem, getTaleActItems, getAtlantisActItems, getTaleFolderPath } from '../lib/taleData';
-import { ChoiceId, ChapterChoiceConfig, ChapterConfig } from '../lib/chapterTypes';
+import { ChoiceId, ChapterChoiceConfig, ChapterConfig, resolveChapterChoices } from '../lib/chapterTypes';
 import { resolveChapterConfig, resolveChapterMeta } from '../lib/chapterConfigResolver';
 import {
   getChoiceLocalizedTitle,
   getChoiceLocalizedSubtitle,
-  getFallbackChoiceFeedback,
 } from '../lib/choiceLocalization';
 import { FlowStep, ChapterMeta, getNextFlowOutcome, getPrevFlowOutcome } from '../lib/chapterFlowMachine';
 import {
   Act,
   SUPABASE_BASE_URL,
   getActMp4CandidateUrls,
-  getActVttCandidateUrls,
   getChoiceImageUrl,
   getChoiceMp4CandidateUrls,
-  getChoiceVttCandidateUrls,
-  getChoiceFeedbackVttCandidateUrls,
   normalizeLangCode,
   realmAtlantisJpg,
   extractYouTubeVideoId,
 } from '../lib/assetRegistry';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
+import { ReadAloudPromptText } from './ReadAloudPromptText';
 import { isUserOver16 } from '../lib/googleAgeSignals';
 import { isBestChoice, fireVictoryConfetti, playVictorySound } from '../lib/celebration';
 import { t, Translations } from '../lib/i18n';
@@ -46,13 +43,8 @@ import {
   VolumeX,
   MessageSquare,
   Sparkles,
-  CheckCircle2,
-  RotateCcw,
   Film,
-  Mic,
-  MicOff,
   Headphones,
-  Award,
   FastForward,
   Shuffle,
   Compass,
@@ -60,7 +52,7 @@ import {
   Pause,
 } from 'lucide-react';
 
-const LANGUAGE_FULL_NAMES: Record<string, Record<Language, string>> = {
+export const LANGUAGE_FULL_NAMES: Record<string, Record<Language, string>> = {
   EN: { EN: 'English', ES: 'Inglés', IT: 'Inglese', PT: 'Inglês', NL: 'Engels' },
   ES: { EN: 'Spanish', ES: 'Español', IT: 'Spagnolo', PT: 'Espanhol', NL: 'Spaans' },
   IT: { EN: 'Italian', ES: 'Italiano', IT: 'Italiano', PT: 'Italiano', NL: 'Italiaans' },
@@ -75,7 +67,7 @@ export function getTaleWorldAndName(tale: Tale | undefined): { world: string; ta
   const taleTitle = (tale.title || '').toLowerCase();
 
   if (realmId === 'realm-work') {
-    return { world: 'Work', taleName: taleId === 'tale-job-quest' ? 'job_quest' : 'startup_winner' };
+    return { world: 'Leader', taleName: taleId === 'tale-job-quest' ? 'job_quest' : 'startup_winner' };
   }
   if (realmId === 'realm-marriage') {
     return { world: 'Marriage', taleName: taleId === 'tale-one-hart' ? 'one_hart' : 'pride_prejudice' };
@@ -102,6 +94,7 @@ export function getTaleWorldAndName(tale: Tale | undefined): { world: string; ta
 // ChoiceId / ChapterChoiceConfig / ChapterConfig now live in lib/chapterTypes.ts;
 // re-exported here so existing imports of `from './components/ChapterFlow'` keep working.
 export type { ChoiceId, ChapterChoiceConfig, ChapterConfig };
+export { resolveChapterChoices };
 
 // getChoiceLocalizedTitle/Subtitle/Description now live in lib/choiceLocalization.ts
 // (one shared lookup instead of three near-identical copies); re-exported for the same reason.
@@ -133,245 +126,29 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
     skill: 'Win4All',
-    act0VideoUrl: 'https://youtu.be/-B_vlZaUDDc',
+    act0VideoID: '-B_vlZaUDDc',
     choices: [],
   },
   {
     id: 1,
     skill: 'Proactive',
-    act0VideoUrl: 'https://youtu.be/LBCpY7bI638',
-    choices: [
-      {
-        id: 'choice1', // always the "best" choice — see isBestChoice() in lib/chapterTypes.ts
-        available: true,
-      },
-      {
-        id: 'choice2',
-        available: true,
-      },
-      {
-        id: 'choice3',
-        available: true,
-      },
-      {
-        id: 'choice4',
-        available: true,
-      },
-    ],
+    act0VideoID: 'LBCpY7bI638',
+    choices: [],
   },
   {
     id: 2,
     skill: 'Plan',
-    choices: [
-      {
-        id: 'choice1', // always the "best" choice
-        available: true,
-      },
-      {
-        id: 'choice2',
-        available: true,
-      },
-      {
-        id: 'choice3',
-        available: true,
-      },
-      {
-        id: 'choice4',
-        available: false,
-      },
-    ],
+    choices: [],
   },
   {
     id: 3,
     skill: 'Win4All',
-    act0VideoUrl: 'https://youtu.be/-64kwqW5q6k',
-    choices: [
-      {
-        id: 'choice1', // always the "best" choice
-        imageUrl: 'https://img.youtube.com/vi/7DEPbiuRvuU/hqdefault.jpg',
-        videoUrl: 'https://youtu.be/7DEPbiuRvuU',
-        available: true,
-      },
-      {
-        id: 'choice2',
-        imageUrl: 'https://img.youtube.com/vi/B4bsJHLc7V0/hqdefault.jpg',
-        videoUrl: 'https://youtu.be/B4bsJHLc7V0',
-        available: true,
-      },
-      {
-        id: 'choice3',
-        imageUrl: 'https://img.youtube.com/vi/TP1-nip4GiM/hqdefault.jpg',
-        videoUrl: 'https://youtu.be/TP1-nip4GiM',
-        available: true,
-      },
-      {
-        id: 'choice4',
-        available: false,
-      },
-    ],
+    act0VideoID: '-64kwqW5q6k',
+    choices: ['7DEPbiuRvuU', 'B4bsJHLc7V0', 'TP1-nip4GiM'],
   },
 ];
 
-interface SubtitleCue {
-  start: number;
-  end: number;
-  text: string;
-}
-
-function parseVttToCues(vttText: string): SubtitleCue[] {
-  const parseTime = (t: string): number => {
-    const parts = t.trim().split(':');
-    if (parts.length === 3) {
-      return Number.parseFloat(parts[0]) * 3600 + Number.parseFloat(parts[1]) * 60 + Number.parseFloat(parts[2].replace(',', '.'));
-    } else if (parts.length === 2) {
-      return Number.parseFloat(parts[0]) * 60 + Number.parseFloat(parts[1].replace(',', '.'));
-    }
-    return 0;
-  };
-
-  const regex = /((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})\s*-->\s*((?:\d{1,2}:)?\d{2}:\d{2}[.,]\d{2,3})/g;
-  const cues: SubtitleCue[] = [];
-  const matches: { start: number; end: number; index: number; length: number }[] = [];
-  let match;
-  while ((match = regex.exec(vttText)) !== null) {
-    matches.push({
-      start: parseTime(match[1]),
-      end: parseTime(match[2]),
-      index: match.index,
-      length: match[0].length,
-    });
-  }
-
-  for (let i = 0; i < matches.length; i++) {
-    const current = matches[i];
-    const textStart = current.index + current.length;
-    const textEnd = i + 1 < matches.length ? matches[i + 1].index : vttText.length;
-    let cueText = vttText.substring(textStart, textEnd).trim();
-    cueText = cueText.replace(/\s*\d+$/, '').trim();
-    if (cueText) {
-      cues.push({ start: current.start, end: current.end, text: cueText });
-    }
-  }
-  return cues;
-}
-
-/**
- * Cleanly extracts readable text paragraphs from a WebVTT feedback string
- */
-function extractCleanTextFromVtt(vttContent: string): string[] {
-  const lines = vttContent.split('\n');
-  const paragraphs: string[] = [];
-  let currentPara: string[] = [];
-
-  for (let line of lines) {
-    line = line.trim();
-    if (!line) {
-      if (currentPara.length > 0) {
-        paragraphs.push(currentPara.join(' '));
-        currentPara = [];
-      }
-      continue;
-    }
-    if (
-      line.startsWith('WEBVTT') ||
-      line.startsWith('NOTE') ||
-      /^\d+$/.test(line) ||
-      /^\d{1,2}:\d{2}/.test(line)
-    ) {
-      continue;
-    }
-    const cleanLine = line.replace(/<[^>]+>/g, '').trim();
-    if (cleanLine) {
-      currentPara.push(cleanLine);
-    }
-  }
-  if (currentPara.length > 0) {
-    paragraphs.push(currentPara.join(' '));
-  }
-  return paragraphs.filter((p) => p.length > 0);
-}
-
-/**
- * Builds candidate Supabase Storage URLs for feedback VTT matching the required pattern:
- * ${SUPABASE_BASE_URL}/${world}/${tale}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}.vtt
- * e.g. ${SUPABASE_BASE_URL}/Atlantis/5Ctrystals/chapter1/choice1/choice1.vtt
- */
-function buildFeedbackVttCandidateUrls(
-  tale: Tale | undefined,
-  chapterNumber: number,
-  choiceId: ChoiceId,
-  lang: Language
-): string[] {
-  const choiceNumber = choiceId.replace('choice', '') || '1';
-  const langCode = normalizeLangCode(lang);
-  const { world, taleName } = getTaleWorldAndName(tale);
-
-  return [
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/feedback_${langCode}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/feedback${choiceNumber}_${langCode}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/feedback${choiceNumber}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/feedback_${langCode}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/feedback${choiceNumber}_${langCode}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/feedback${choiceNumber}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/vtt/choice${choiceNumber}_${langCode}.vtt`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${choiceNumber}/choice${choiceNumber}_${langCode}.vtt`,
-  ];
-}
-
 const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT'];
-const vttUrlCache = new Map<string, boolean>();
-
-async function checkVttUrl(url: string): Promise<boolean> {
-  if (vttUrlCache.has(url)) {
-    return vttUrlCache.get(url)!;
-  }
-  // Fetch Priority API (Chrome/Edge): tells the browser these subtitle probes
-  // matter less than the mp3/mp4 already in flight. Ignored where unsupported.
-  const lowPriorityInit: RequestInit = { priority: 'low' } as RequestInit;
-  try {
-    const headRes = await fetch(url, { method: 'HEAD', ...lowPriorityInit });
-    if (headRes.ok && headRes.status === 200) {
-      vttUrlCache.set(url, true);
-      return true;
-    }
-    if (headRes.status === 404) {
-      vttUrlCache.set(url, false);
-      return false;
-    }
-    // Fallback to GET
-    const getRes = await fetch(url, lowPriorityInit);
-    if (getRes.ok && getRes.status === 200) {
-      const text = await getRes.text();
-      const isValid = text.includes('WEBVTT') || text.includes('-->');
-      vttUrlCache.set(url, isValid);
-      return isValid;
-    }
-    vttUrlCache.set(url, false);
-    return false;
-  } catch {
-    vttUrlCache.set(url, false);
-    return false;
-  }
-}
-
-/**
- * Helper to map Language to BCP-47 language tag for Web Speech
- */
-function getSpeechLangTag(lang: Language): string {
-  switch (lang) {
-    case 'ES':
-      return 'es';
-    case 'IT':
-      return 'it';
-    case 'PT':
-      return 'pt';
-    case 'NL':
-      return 'nl';
-    case 'EN':
-    default:
-      return 'en';
-  }
-}
 
 export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   tale,
@@ -409,16 +186,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [currentStep, setCurrentStep] = useState<FlowStep>('act0');
   const [selectedChoiceId, setSelectedChoiceId] = useState<ChoiceId>('choice1');
 
-  // Audio and Subtitle language selectors
+  // Audio & Subtitle language selectors
   const [selectedAudioLang, setSelectedAudioLang] = useState<Language>(currentLang);
-  const [selectedVttLang, setSelectedVttLang] = useState<Language>(currentLang);
-  const [availableVttLangs, setAvailableVttLangs] = useState<Language[]>(ALL_SUPPORTED_LANGUAGES);
-  const [isCheckingVttLangs, setIsCheckingVttLangs] = useState<boolean>(false);
+  const [selectedSubtitleLang, setSelectedSubtitleLang] = useState<Language>(currentLang);
 
-  // Synchronize audio language when parent currentLang prop updates; keep VTT independent
+  // Synchronize audio and subtitle languages when parent currentLang prop updates
   useEffect(() => {
     if (currentLang) {
       setSelectedAudioLang((prev) => (prev !== currentLang ? currentLang : prev));
+      setSelectedSubtitleLang((prev) => (prev !== currentLang ? currentLang : prev));
     }
   }, [currentLang]);
 
@@ -427,7 +203,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const ytMediaRef = useRef<YouTubeAdapter | null>(null);
   const ytCaptionTracksRef = useRef<any[]>([]);
   const ytCurrentTimeRef = useRef<number>(0);
-  const ytInitialVttLangRef = useRef<Language>(selectedVttLang);
   const [ytStartSeconds, setYtStartSeconds] = useState<number>(0);
 
   const sendYtCommand = useCallback((func: string, args: any[] = []) => {
@@ -451,53 +226,86 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const syncYouTubeAudioTrack = useCallback(
     (langOverride?: Language) => {
-      if (!ytIframeRef.current?.contentWindow) return;
       const activeLang = langOverride || selectedAudioLang || 'EN';
       const langCode = normalizeLangCode(activeLang);
       const langName = LANGUAGE_FULL_NAMES[activeLang]?.EN || 'English';
 
-      sendYtCommand('setAudioTrack', [{ id: `${langCode}.4`, languageCode: langCode, name: langName }]);
-      sendYtCommand('setOption', ['audio', 'track', { languageCode: langCode }]);
-      sendYtCommand('setOption', ['audioTrack', 'track', { languageCode: langCode }]);
+      const player = ytMediaRef.current?.engine;
+      if (player) {
+        try {
+          if (typeof player.getAvailableAudioTracks === 'function' && typeof player.setAudioTrack === 'function') {
+            const tracks = player.getAvailableAudioTracks();
+            if (Array.isArray(tracks) && tracks.length > 0) {
+              const matchingTrack = tracks.find(
+                (t: any) =>
+                  t.languageCode === langCode ||
+                  t.languageCode?.toLowerCase() === langCode.toLowerCase() ||
+                  t.id?.includes(langCode)
+              );
+              if (matchingTrack) {
+                player.setAudioTrack(matchingTrack.id);
+              }
+            }
+          }
+          if (typeof player.setOption === 'function') {
+            player.setOption('audioTrack', 'track', { languageCode: langCode });
+            player.setOption('audio', 'track', { languageCode: langCode });
+          }
+        } catch {}
+      }
+
+      if (ytIframeRef.current?.contentWindow) {
+        sendYtCommand('setAudioTrack', [{ id: `${langCode}.4`, languageCode: langCode, name: langName }]);
+        sendYtCommand('setOption', ['audio', 'track', { languageCode: langCode }]);
+        sendYtCommand('setOption', ['audioTrack', 'track', { languageCode: langCode }]);
+      }
     },
     [selectedAudioLang, sendYtCommand]
   );
 
   const syncYouTubeSubtitles = useCallback(
-    (_langOverride?: Language) => {
-      if (!ytIframeRef.current?.contentWindow) return;
-      // Hide YouTube's built-in caption box so only the Gold Style VTT subtitle overlay is shown
-      sendYtCommand('unloadModule', ['captions']);
-      sendYtCommand('unloadModule', ['cc']);
+    (langOverride?: Language) => {
+      const activeLang = langOverride || selectedSubtitleLang || 'EN';
+      const langCode = normalizeLangCode(activeLang);
+
+      const player = ytMediaRef.current?.engine;
+      if (player) {
+        try {
+          if (typeof player.loadModule === 'function') {
+            player.loadModule('captions');
+          }
+          if (typeof player.setOption === 'function') {
+            player.setOption('captions', 'track', { languageCode: langCode });
+            player.setOption('cc', 'track', { languageCode: langCode });
+            player.setOption('captions', 'fontSize', 1);
+          }
+        } catch {}
+      }
+
+      if (ytIframeRef.current?.contentWindow) {
+        sendYtCommand('loadModule', ['captions']);
+        sendYtCommand('setOption', ['captions', 'track', { languageCode: langCode }]);
+        sendYtCommand('setOption', ['cc', 'track', { languageCode: langCode }]);
+      }
     },
-    [sendYtCommand]
+    [selectedSubtitleLang, sendYtCommand]
   );
 
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
+  const isAutoPlay = true;
   const [isYtPlaying, setIsYtPlaying] = useState<boolean>(false);
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
   const [isMediaNotFound, setIsMediaNotFound] = useState<boolean>(false);
   const [candidateVideoIdx, setCandidateVideoIdx] = useState<number>(0);
-  const [candidateAudioIdx, setCandidateAudioIdx] = useState<number>(0);
 
-  // Subtitles & Comments drawer
-  const [subtitles, setSubtitles] = useState<SubtitleCue[]>([]);
-  const [activeSubtitle, setActiveSubtitle] = useState<string>('');
+  // Comments drawer
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
   const canAccessComments = isUserOver16(user);
 
-  // Choice page Star Wars crawl & Read Aloud state
-  const [vttRawText, setVttRawText] = useState<string>('');
+  // Choice page Star Wars crawl state
   const [feedbackParagraphs, setFeedbackParagraphs] = useState<string[]>([]);
   const [isCrawlFinished, setIsCrawlFinished] = useState<boolean>(false);
   const [feedbackFontSize, setFeedbackFontSize] = useState<'normal' | 'large' | 'xlarge'>('large');
-  const [isReadingAloud, setIsReadingAloud] = useState<boolean>(false);
-  const [readTranscript, setReadTranscript] = useState<string>('');
-  const [readAccuracy, setReadAccuracy] = useState<number | null>(null);
-  const [hasClaimedPoints, setHasClaimedPoints] = useState<boolean>(false);
-  const [speechError, setSpeechError] = useState<string | null>(null);
-  const speechRecognitionRef = useRef<any>(null);
   const lastAudioResyncAtRef = useRef<number>(0);
   const crawlContainerRef = useRef<HTMLDivElement | null>(null);
   const crawlSentinelRef = useRef<HTMLDivElement | null>(null);
@@ -520,8 +328,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return Math.max(...chapterConfigs.map((c) => c.id));
   }, [chapterConfigs]);
 
-  // Track read aloud tracking per choice session
-  const hasRecordedReadAloudStatRef = useRef<boolean>(false);
+  const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
 
   // Track celebratory confetti and victory sound for feedback1 (feedback for best choice)
   const hasCelebratedFeedbackRef = useRef<string>('');
@@ -537,34 +344,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   }, [currentStep, selectedChoiceId, currentChapterNumber, currentWorld]);
 
-  const recordReadAloudStat = useCallback(() => {
-    if (hasRecordedReadAloudStatRef.current) return;
-    hasRecordedReadAloudStatRef.current = true;
-
-    const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
-    const activeLanguage: Language = selectedVttLang || currentLang || 'EN';
-
-    if (onReadAloudChoice) {
-      onReadAloudChoice(activeSkill, activeLanguage);
-    } else if (onChooseBestChoice) {
-      onChooseBestChoice(activeSkill, activeLanguage);
-    }
-  }, [currentChapterConfig?.skill, tale?.skill, selectedVttLang, currentLang, onReadAloudChoice, onChooseBestChoice]);
-
   const isFeedbackMode = currentStep === 'choice_feedback';
-  const isFeedbackReadAloud = currentStep === 'choice_feedback' && isCrawlFinished;
   const isVideoStep = currentStep !== 'choices' && currentStep !== 'choice_feedback';
-
-  const activeFeedbackLang = currentLang || selectedVttLang || 'EN';
-
-  const targetLangDisplayName = useMemo(() => {
-    const dict = LANGUAGE_FULL_NAMES[selectedVttLang];
-    return dict?.[activeFeedbackLang] || dict?.[currentLang] || dict?.['EN'] || selectedVttLang;
-  }, [selectedVttLang, activeFeedbackLang, currentLang]);
-
-  const readAloudPromptText = useMemo(() => {
-    return t('readAloudEarnPoints', activeFeedbackLang).replace('{lang}', targetLangDisplayName);
-  }, [activeFeedbackLang, targetLangDisplayName]);
 
   // When crawl is active, automatically show full text as soon as the last line appears in view
   useEffect(() => {
@@ -602,8 +383,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // Available choices in SHUFFLE order
   // "render buttons for each AVAILABLE choice (in shuffle order choice1, choice2, choice3, choice4)"
   // "If a chapter defines only choice1 and choice2 as available, render ONLY 2 buttons - omit unavailable choices."
+  const resolvedChoices = useMemo(() => {
+    return resolveChapterChoices(currentChapterConfig);
+  }, [currentChapterConfig]);
+
   const shuffledAvailableChoices = useMemo(() => {
-    const available = (currentChapterConfig.choices || []).filter((c) => c.available);
+    const available = resolvedChoices.filter((c) => c.available);
     const array = [...available];
     // Deterministic or pseudo-random shuffle
     for (let i = array.length - 1; i > 0; i--) {
@@ -611,7 +396,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
-  }, [currentChapterConfig]);
+  }, [resolvedChoices]);
 
   // Construct current Act definition based on flow step
   const currentActData: Act = useMemo(() => {
@@ -668,7 +453,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const videoCandidates = useMemo(() => {
     if (currentStep === 'choice_act') {
-      const activeChoice = currentChapterConfig?.choices.find((c) => c.id === selectedChoiceId);
+      const activeChoice = resolvedChoices.find((c) => c.id === selectedChoiceId);
       const choiceCandidates = getChoiceMp4CandidateUrls(
         currentWorld,
         currentTaleName,
@@ -681,13 +466,16 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       return choiceCandidates;
     }
     const actCandidates = getActMp4CandidateUrls(currentActData, folderPath);
-    if (currentChapterConfig?.act0VideoUrl && (currentStep === 'act0' || currentActData.act === 'act0') && currentWorld !== 'ElDorado') {
-      if (!actCandidates.includes(currentChapterConfig.act0VideoUrl)) {
-        return [currentChapterConfig.act0VideoUrl, ...actCandidates];
+    const act0VideoUrl = currentChapterConfig?.act0VideoID
+      ? `https://youtu.be/${currentChapterConfig.act0VideoID}`
+      : currentChapterConfig?.act0VideoUrl;
+    if (act0VideoUrl && (currentStep === 'act0' || currentActData.act === 'act0') && currentWorld !== 'ElDorado') {
+      if (!actCandidates.includes(act0VideoUrl)) {
+        return [act0VideoUrl, ...actCandidates];
       }
     }
     return actCandidates;
-  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, currentActData, folderPath, currentChapterConfig]);
+  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, currentActData, folderPath, currentChapterConfig, resolvedChoices]);
 
   const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
   const currentYouTubeId = useMemo(() => {
@@ -695,245 +483,22 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   }, [currentVideoUrl]);
 
   const isComingSoon = isVideoStep && (!currentYouTubeId || isMediaNotFound);
-  const isVideoPlaying = isVideoStep && !isComingSoon && isAutoPlay && !isVideoFinished;
+  const isVideoPlaying = isVideoStep && !isComingSoon && isYtPlaying && !isVideoFinished;
 
 
-
-  // Check available VTT languages for the current act
-  // If a VTT file is not available for an act, remove the language from the dropdown
-  useEffect(() => {
-    if (currentStep === 'choices' || currentStep === 'choice_feedback') return;
-
-    // For Chapter 0 - Act 0 using YouTube subtitles, all languages are supported via YouTube captions
-    if (currentChapterNumber === 0 && (currentStep === 'act0' || currentActData.act === 'act0') && currentYouTubeId) {
-      setAvailableVttLangs(ALL_SUPPORTED_LANGUAGES);
-      setIsCheckingVttLangs(false);
-      return;
-    }
-
-    let isMounted = true;
-    setIsCheckingVttLangs(true);
-
-    async function checkLanguages() {
-      const validLangs: Language[] = [];
-
-      await Promise.all(
-        ALL_SUPPORTED_LANGUAGES.map(async (lang) => {
-          const urls =
-            currentStep === 'choice_act'
-              ? getChoiceVttCandidateUrls(
-                  currentWorld,
-                  currentTaleName,
-                  currentChapterNumber,
-                  selectedChoiceId,
-                  lang
-                )
-              : getActVttCandidateUrls(currentActData, lang, folderPath);
-
-          for (const url of urls) {
-            const ok = await checkVttUrl(url);
-            if (ok) {
-              validLangs.push(lang);
-              return;
-            }
-          }
-        })
-      );
-
-      if (isMounted) {
-        const sorted = ALL_SUPPORTED_LANGUAGES.filter((l) => validLangs.includes(l));
-        setAvailableVttLangs(sorted);
-        setIsCheckingVttLangs(false);
-
-        // If the current selectedVttLang is not available, switch to first available
-        if (sorted.length > 0 && !sorted.includes(selectedVttLang)) {
-          setSelectedVttLang(sorted[0]);
-        }
-      }
-    }
-
-    // Give the mp3/mp4 requests a head start on mobile's limited concurrent
-    // connections before firing off up to 5 languages worth of VTT probes —
-    // otherwise this competes for bandwidth right when audio most needs to
-    // start loading, which reads as the audio "cutting out".
-    const kickoff = setTimeout(() => {
-      void checkLanguages();
-    }, 300);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(kickoff);
-    };
-  }, [
-    currentActData,
-    folderPath,
-    currentStep,
-    currentWorld,
-    currentTaleName,
-    currentChapterNumber,
-    selectedChoiceId,
-  ]);
 
   // Reset media & candidates when step, chapter, or choice changes
   useEffect(() => {
     setCandidateVideoIdx(0);
-    setCandidateAudioIdx(0);
     setIsMediaNotFound(false);
     setIsVideoFinished(false);
-    setIsAutoPlay(true);
     setIsYtPlaying(false);
     setYtStartSeconds(0);
     ytCurrentTimeRef.current = 0;
-    ytInitialVttLangRef.current = selectedVttLang;
-    setActiveSubtitle('');
-    setIsCrawlFinished(false);
-    setReadTranscript('');
-    setReadAccuracy(null);
-    setHasClaimedPoints(false);
-    setSpeechError(null);
   }, [currentChapterNumber, currentStep, selectedChoiceId]);
 
-  // Fetch Subtitles (VTT) for standard act and choice videos
-  useEffect(() => {
-    if (currentStep === 'choices') return;
-    if (currentStep === 'choice_feedback') return;
-
-    let isMounted = true;
-    setActiveSubtitle('');
-
-    const vttCandidates =
-      currentStep === 'choice_act'
-        ? getChoiceVttCandidateUrls(
-            currentWorld,
-            currentTaleName,
-            currentChapterNumber,
-            selectedChoiceId,
-            selectedVttLang
-          )
-        : getActVttCandidateUrls(currentActData, selectedVttLang, folderPath);
-
-    async function loadStandardVtt() {
-      for (const url of vttCandidates) {
-        try {
-          const res = await fetch(url, { priority: 'low' } as RequestInit);
-          if (res.ok) {
-            const text = await res.text();
-            if (isMounted) {
-              const cues = parseVttToCues(text);
-              if (cues.length > 0) {
-                setSubtitles(cues);
-                return;
-              }
-            }
-          }
-        } catch {
-          // Continue to next candidate
-        }
-      }
-      if (isMounted) {
-        setSubtitles([]);
-      }
-    }
-
-    void loadStandardVtt();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [
-    currentActData,
-    folderPath,
-    selectedVttLang,
-    currentStep,
-    currentWorld,
-    currentTaleName,
-    currentChapterNumber,
-    selectedChoiceId,
-  ]);
-
-  // Choice Feedback: Fetch Feedback VTT from Supabase Storage
-  // eg https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter1/choice1/vtt/feedback_en.vtt
-  // If there's no vtt file, skip feedback and go to choices page
-  useEffect(() => {
-    if (currentStep !== 'choice_act' && currentStep !== 'choice_feedback') return;
-
-    let isMounted = true;
-    const candidateUrls = getChoiceFeedbackVttCandidateUrls(
-      currentWorld,
-      currentTaleName,
-      currentChapterNumber,
-      selectedChoiceId,
-      selectedVttLang
-    );
-
-    async function fetchFeedbackVtt() {
-      for (const url of candidateUrls) {
-        try {
-          const res = await fetch(url, { priority: 'low' } as RequestInit);
-          if (res.ok) {
-            const text = await res.text();
-            if (isMounted && text && text.includes('WEBVTT')) {
-              const paras = extractCleanTextFromVtt(text);
-              if (paras.length > 0) {
-                setVttRawText(text);
-                setFeedbackParagraphs(paras);
-                return;
-              }
-            }
-          }
-        } catch {
-          // Continue
-        }
-      }
-
-      // No remote VTT file found: check built-in fallback feedback for this chapter & choice
-      const fallbackParas = getFallbackChoiceFeedback(
-        currentWorld,
-        currentChapterNumber,
-        selectedChoiceId,
-        selectedVttLang
-      );
-
-      if (isMounted) {
-        if (fallbackParas && fallbackParas.length > 0) {
-          setVttRawText(fallbackParas.join('\n\n'));
-          setFeedbackParagraphs(fallbackParas);
-        } else {
-          setVttRawText('');
-          setFeedbackParagraphs([]);
-          if (currentStep === 'choice_feedback') {
-            setCurrentStep('choices');
-          }
-        }
-      }
-    }
-
-    void fetchFeedbackVtt();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [
-    currentStep,
-    currentChapterNumber,
-    selectedChoiceId,
-    selectedVttLang,
-    currentWorld,
-    currentTaleName,
-  ]);
-
-
-
   const handleTimeUpdate = (curr: number) => {
-    if (!subtitles || subtitles.length === 0) {
-      if (activeSubtitle) setActiveSubtitle('');
-      return;
-    }
-    const matchingCue = subtitles.find((c) => curr >= c.start && curr <= c.end);
-    const newText = matchingCue ? matchingCue.text : '';
-    if (newText !== activeSubtitle) {
-      setActiveSubtitle(newText);
-    }
+    ytCurrentTimeRef.current = curr;
   };
 
   const handleVideoError = () => {
@@ -953,9 +518,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   useEffect(() => {
     if (currentYouTubeId) {
-      syncYouTubeSubtitles(selectedVttLang);
+      syncYouTubeSubtitles();
     }
-  }, [selectedVttLang, currentYouTubeId, syncYouTubeSubtitles]);
+  }, [currentYouTubeId, syncYouTubeSubtitles]);
 
   useEffect(() => {
     if (currentYouTubeId) {
@@ -992,8 +557,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   // Replay
   const handleReplay = () => {
     setIsVideoFinished(false);
-    setIsCrawlFinished(false);
-    setIsAutoPlay(true);
     setYtStartSeconds(0);
     ytCurrentTimeRef.current = 0;
     if (currentYouTubeId) {
@@ -1017,19 +580,20 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       sendYtCommand('seekTo', [9999, true]);
     }
     setIsVideoFinished(true);
-    setActiveSubtitle('');
   };
 
-  const advanceChapterOrClose = () => {
+  const advanceChapterOrClose = useCallback(() => {
     const nextChapterId = currentChapterNumber + 1;
     const nextExists = chapterConfigs.some((cfg) => cfg.id === nextChapterId) || nextChapterId <= maxChapterId;
     if (nextExists) {
       setCurrentChapterNumber(nextChapterId);
       setCurrentStep('act0');
+      setIsVideoFinished(false);
+      setIsYtPlaying(false);
     } else {
       if (onClose) onClose();
     }
-  };
+  }, [currentChapterNumber, chapterConfigs, maxChapterId, onClose]);
 
   /**
    * Primary FLOW TRANSITION LOGIC — see lib/chapterFlowMachine.ts for the full
@@ -1056,7 +620,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
         setCurrentStep(outcome.position.step);
         return;
       case 'select-first-choice': {
-        const firstAvail = currentChapterConfig.choices.find((c) => c.available) || currentChapterConfig.choices[0];
+        const firstAvail = resolvedChoices.find((c) => c.available) || resolvedChoices[0];
         if (firstAvail) handleSelectChoice(firstAvail.id);
         return;
       }
@@ -1073,17 +637,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   };
 
   const goToNext = () => {
-    // The choice video/feedback exit paths touch component state (speech
-    // recognition, crawl animation) that the pure machine doesn't own, so
-    // they're handled here before delegating.
-    if (currentStep === 'choice_feedback') {
-      setIsReadingAloud(false);
-      try {
-        speechRecognitionRef.current?.stop();
-      } catch {}
-      setIsCrawlFinished(false);
-    }
-
     const isCurrentBestChoice = isBestChoice(selectedChoiceId);
     const outcome = getNextFlowOutcome(
       { chapterNumber: currentChapterNumber, step: currentStep },
@@ -1107,39 +660,31 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Choice selection handler: plays the chosen act video and audio
   const handleSelectChoice = (choiceId: ChoiceId) => {
-    hasRecordedReadAloudStatRef.current = false;
     hasCelebratedFeedbackRef.current = '';
     setSelectedChoiceId(choiceId);
     setCandidateVideoIdx(0);
     setIsVideoFinished(false);
     setIsMediaNotFound(false);
-    setVttRawText('');
     setFeedbackParagraphs([]);
-    setIsCrawlFinished(false);
-    setReadTranscript('');
-    setReadAccuracy(null);
-    setSpeechError(null);
     setCurrentStep('choice_act');
 
     // Record best choice stat callback
     if (isBestChoice(choiceId)) {
       const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
       if (onChooseBestChoice) {
-        onChooseBestChoice(activeSkill, selectedVttLang || currentLang);
+        onChooseBestChoice(activeSkill, selectedAudioLang || currentLang);
       }
     }
   };
 
-  // Language selectors: audio and subtitles (VTT) are completely independent
+  // Language selectors
   const handleAudioLanguageSelected = (newLang: Language) => {
     if (currentYouTubeId && ytCurrentTimeRef.current > 1 && !isVideoFinished) {
       setYtStartSeconds(Math.floor(ytCurrentTimeRef.current));
     } else {
       setYtStartSeconds(0);
     }
-    ytInitialVttLangRef.current = selectedVttLang;
     setSelectedAudioLang(newLang);
-    setIsAutoPlay(true);
     setIsVideoFinished(false);
     if (currentYouTubeId) {
       syncYouTubeAudioTrack(newLang);
@@ -1147,30 +692,46 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     if (onLanguageChange) onLanguageChange(newLang);
   };
 
-  const handleVttLanguageSelected = (newLang: Language) => {
-    setSelectedVttLang(newLang);
+  const handleSubtitleLanguageSelected = (newLang: Language) => {
+    setSelectedSubtitleLang(newLang);
+    if (currentYouTubeId) {
+      syncYouTubeSubtitles(newLang);
+    }
+  };
+
+  const handlePrevChapterNav = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (currentChapterNumber > 1) {
+      setCurrentChapterNumber(currentChapterNumber - 1);
+      setCurrentStep('act0');
+      setIsVideoFinished(false);
+      setIsYtPlaying(false);
+    } else {
+      goToPrev();
+    }
+  };
+
+  const handleNextChapterNav = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const nextChapterId = currentChapterNumber + 1;
+    const nextExists = chapterConfigs.some((cfg) => cfg.id === nextChapterId) || nextChapterId <= maxChapterId;
+    if (nextExists) {
+      setCurrentChapterNumber(nextChapterId);
+      setCurrentStep('act0');
+      setIsVideoFinished(false);
+      setIsYtPlaying(false);
+    } else {
+      goToNext();
+    }
   };
 
   const handleVideoEnded = useCallback(() => {
     setIsVideoFinished(true);
-    setActiveSubtitle('');
-    if (currentStep === 'choice_act') {
-      // After choice video finishes, display feedback if vtt exists, otherwise return to choices
-      if (isAutoPlay) {
-        setTimeout(() => {
-          if (feedbackParagraphs.length > 0) {
-            setCurrentStep('choice_feedback');
-          } else {
-            setCurrentStep('choices');
-          }
-        }, 1000);
-      }
-    } else if (isAutoPlay) {
-      setTimeout(() => {
-        goToNext();
-      }, 3500);
-    }
-  }, [currentStep, isAutoPlay, feedbackParagraphs.length, goToNext]);
+    setIsYtPlaying(false);
+    setTimeout(() => {
+      advanceChapterOrClose();
+    }, 1000);
+  }, [advanceChapterOrClose]);
 
   // Listen to postMessage events from YouTube Iframe
   useEffect(() => {
@@ -1273,126 +834,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     };
   }, [currentYouTubeId, isAutoPlay, isMuted, handleVideoEnded]);
 
-  // Speech Recognition (Read Aloud) Implementation
-  const startSpeechRecognition = () => {
-    recordReadAloudStat();
-    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRec) {
-      setSpeechError(
-        'Speech recognition is not natively supported in this browser. You can practice reading aloud, then click "Claim Language Points" below!'
-      );
-      setIsReadingAloud(true);
-      return;
-    }
-
-    try {
-      if (speechRecognitionRef.current) {
-        speechRecognitionRef.current.abort();
-      }
-
-      const recognition = new SpeechRec();
-      speechRecognitionRef.current = recognition;
-      recognition.lang = getSpeechLangTag(selectedVttLang);
-      recognition.continuous = false;
-      recognition.interimResults = true;
-
-      recognition.onstart = () => {
-        setIsReadingAloud(true);
-        setSpeechError(null);
-        setReadTranscript('');
-      };
-
-      recognition.onresult = (event: any) => {
-        let interim = '';
-        let final = '';
-        for (let i = 0; i < event.results.length; i++) {
-          const res = event.results[i];
-          if (res.isFinal) {
-            final += res[0].transcript + ' ';
-          } else {
-            interim += res[0].transcript;
-          }
-        }
-        const fullTranscript = (final + interim).trim();
-        setReadTranscript(fullTranscript);
-      };
-
-      recognition.onerror = (event: any) => {
-        setIsReadingAloud(false);
-        if (event.error !== 'no-speech') {
-          setSpeechError(`Microphone notice: ${event.error}. You can still claim points after reading aloud!`);
-        }
-      };
-
-      recognition.onend = () => {
-        setIsReadingAloud(false);
-        evaluateReadAloudAccuracy();
-      };
-
-      recognition.start();
-    } catch (err: any) {
-      setIsReadingAloud(false);
-      setSpeechError('Could not start microphone. Click below to verify reading.');
-    }
-  };
-
-  const stopSpeechRecognition = () => {
-    if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.stop();
-    }
-    setIsReadingAloud(false);
-    evaluateReadAloudAccuracy();
-  };
-
-  const evaluateReadAloudAccuracy = () => {
-    const allText = feedbackParagraphs.join(' ');
-    if (!allText) return;
-
-    const normalize = (str: string) =>
-      str
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N}\s]/gu, '')
-        .split(/\s+/)
-        .filter(Boolean);
-
-    const targetWords = normalize(allText);
-    const spokenWords = normalize(readTranscript);
-
-    if (spokenWords.length === 0) {
-      setReadAccuracy(0);
-      return;
-    }
-
-    let matched = 0;
-    for (const w of spokenWords) {
-      if (targetWords.includes(w)) {
-        matched++;
-      }
-    }
-
-    const score = Math.min(100, Math.round((matched / Math.max(1, Math.min(spokenWords.length, targetWords.length))) * 100));
-    setReadAccuracy(score);
-
-    // If score >= 30%, user successfully read aloud!
-    if (score >= 30 && !hasClaimedPoints) {
-      awardLanguagePoints();
-    }
-  };
-
-  // Award Points
-  const awardLanguagePoints = () => {
-    recordReadAloudStat();
-    setHasClaimedPoints(true);
-    if (onEarnLanguagePoints) {
-      onEarnLanguagePoints(selectedVttLang, 50);
-    }
-    const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
-    if (onEarnSkillPoint) {
-      onEarnSkillPoint(activeSkill);
-    }
-  };
-
   // Clean chapter / act identifier for comments
   const chapterCommentId = useMemo(() => {
     return `${tale?.id || 'atlantis'}-ch${currentChapterNumber}-${currentStep}-${selectedChoiceId}`;
@@ -1435,8 +876,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     setCurrentChapterNumber(cfg.id);
                     setCurrentStep('act0');
                     setIsVideoFinished(false);
-                    setIsReadingAloud(false);
-                    setIsCrawlFinished(false);
                   }}
                   className={`px-2 py-0.5 text-[10px] sm:text-xs font-mono font-bold rounded-md transition-all cursor-pointer ${
                     currentChapterNumber === cfg.id
@@ -1455,28 +894,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           {/* Right: Audio / Voice & Sound Controls */}
           {!isFeedbackMode && (
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Autoplay Toggle */}
-              <button
-                id="act-autoplay-toggle"
-                onClick={() => setIsAutoPlay(!isAutoPlay)}
-                className={`px-2 py-1 text-[11px] sm:text-xs font-bold font-mono tracking-widest transition-all cursor-pointer bg-transparent border-0 rounded-none ${
-                  darkMode
-                    ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]'
-                    : 'drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-                } ${
-                  isAutoPlay
-                    ? darkMode
-                      ? 'text-[#ffe81f] font-black underline decoration-[#d4af37] decoration-2 underline-offset-4'
-                      : 'text-amber-800 font-black underline decoration-amber-600 decoration-2 underline-offset-4'
-                    : darkMode
-                    ? 'text-amber-200/75 hover:text-amber-200'
-                    : 'text-amber-800/75 hover:text-amber-950'
-                }`}
-                title="Toggle Auto Advance"
-              >
-                AUTO
-              </button>
-
               {/* Sound Toggle */}
               <button
                 id="act-sound-toggle"
@@ -1496,16 +913,21 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 )}
               </button>
 
-              {/* Audio Language Selector */}
-              <FlagLanguageDropdown
-                id="act-top-audio-selector"
-                type="language"
-                selectedLang={selectedAudioLang}
-                onSelectLang={handleAudioLanguageSelected}
-                darkMode={darkMode}
-                cinematic={true}
-                tooltip="Audio Voice"
-              />
+              {/* Top Audio Dub Language Selector */}
+              <div className="flex items-center gap-1.5" title="Audio Dub Language">
+                <span className="text-[10px] sm:text-xs font-mono font-bold tracking-wider text-amber-200/90 hidden xs:inline-block">
+                  AUDIO:
+                </span>
+                <FlagLanguageDropdown
+                  id="act-top-audio-selector"
+                  type="audio"
+                  selectedLang={selectedAudioLang}
+                  onSelectLang={handleAudioLanguageSelected}
+                  darkMode={darkMode}
+                  cinematic={true}
+                  tooltip="Audio Dub"
+                />
+              </div>
             </div>
           )}
         </div>
@@ -1558,6 +980,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               {shuffledAvailableChoices.map((choice, idx) => {
                 const choiceImgUrl =
                   choice.imageUrl ||
+                  (choice.videoID ? `https://img.youtube.com/vi/${choice.videoID}/hqdefault.jpg` : '') ||
                   getChoiceImageUrl(
                     currentWorld,
                     currentTaleName,
@@ -1715,110 +1138,20 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     </div>
                   )}
 
-                  {/* Read aloud prompt row: Read aloud button placed directly next to the instruction text */}
-                  <div className="mt-3.5 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
-                    <button
-                      id="choice-read-aloud-btn"
-                      onClick={isReadingAloud ? stopSpeechRecognition : startSpeechRecognition}
-                      type="button"
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 ${
-                        isReadingAloud
-                          ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-400 animate-pulse'
-                          : 'bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 border-amber-300'
-                      } font-bold text-xs sm:text-sm shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0`}
-                      title="Read Aloud"
-                    >
-                      {isReadingAloud ? (
-                        <>
-                          <MicOff className="w-4 h-4" />
-                          <span>Listening...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="w-4 h-4" />
-                          <span>Read Aloud</span>
-                        </>
-                      )}
-                    </button>
-
-                    <p
-                      id="choice-read-aloud-prompt"
-                      className={`text-xs sm:text-sm leading-relaxed font-medium flex-1 ${
-                        darkMode ? 'text-amber-200/90' : 'text-amber-950'
-                      }`}
-                    >
-                      {readAloudPromptText}
-                    </p>
-                  </div>
+                  {/* Read Aloud prompt component */}
+                  <ReadAloudPromptText
+                    key={`${currentChapterNumber}-${selectedChoiceId}-${selectedAudioLang || currentLang}`}
+                    feedbackParagraphs={feedbackParagraphs}
+                    activeSkill={activeSkill}
+                    selectedAudioLang={selectedAudioLang}
+                    currentLang={currentLang}
+                    darkMode={darkMode}
+                    onReadAloudChoice={onReadAloudChoice}
+                    onChooseBestChoice={onChooseBestChoice}
+                    onEarnLanguagePoints={onEarnLanguagePoints}
+                    onEarnSkillPoint={onEarnSkillPoint}
+                  />
                 </div>
-
-                {/* Spoken Transcript Notification */}
-                {readTranscript && (
-                  <div
-                    className={`mb-3 p-3 rounded-xl border text-xs sm:text-sm ${
-                      darkMode
-                        ? 'bg-amber-950/40 border-amber-400/40 text-amber-100'
-                        : 'bg-amber-50 border-amber-300 text-amber-950 font-medium'
-                    }`}
-                  >
-                    <span className={`font-bold ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
-                      Heard you say:{' '}
-                    </span>
-                    <span className={`italic ${darkMode ? 'text-amber-100' : 'text-stone-900'}`}>
-                      "{readTranscript}"
-                    </span>
-                    {readAccuracy !== null && (
-                      <span
-                        className={`ml-2 font-mono font-bold px-2 py-0.5 rounded text-xs ${
-                          darkMode ? 'bg-amber-400/20 text-amber-200' : 'bg-amber-200 text-amber-950'
-                        }`}
-                      >
-                        Match: {readAccuracy}%
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Points Awarded Badge */}
-                {hasClaimedPoints && (
-                  <div
-                    className={`mb-3 p-2.5 rounded-xl border-2 flex items-center justify-between text-xs sm:text-sm font-bold ${
-                      darkMode
-                        ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-200'
-                        : 'bg-emerald-50 border-emerald-600/70 text-emerald-900'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Award className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
-                      <span>Language Mastery Verified! +50 Points Awarded in {targetLangDisplayName}</span>
-                    </div>
-                    <CheckCircle2 className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`} />
-                  </div>
-                )}
-
-                {speechError && (
-                  <div
-                    className={`mb-3 p-2.5 rounded-xl border text-xs flex items-center justify-between gap-3 ${
-                      darkMode
-                        ? 'bg-amber-950/60 border-amber-500/40 text-amber-200'
-                        : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
-                    }`}
-                  >
-                    <span>{speechError}</span>
-                    {!hasClaimedPoints && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          recordReadAloudStat();
-                          awardLanguagePoints();
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#d4af37] to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shrink-0 cursor-pointer shadow-sm transition-all"
-                      >
-                        Claim Points
-                      </button>
-                    )}
-                  </div>
-                )}
 
                 {/* All Feedback Text Displayed Together - NO borders, NO container divs, NO numbers */}
                 <div
@@ -1911,28 +1244,12 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     </button>
                   </div>
 
-                  {/* Bottom Right: Language Selector Dropdown, Back to Choices Button, and Next Action Button */}
+                  {/* Bottom Right: Back to Choices Button, and Next Action Button */}
                   <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                    <FlagLanguageDropdown
-                      id="act-feedback-bottom-vtt-selector"
-                      type="vtt"
-                      selectedLang={selectedVttLang}
-                      onSelectLang={handleVttLanguageSelected}
-                      darkMode={darkMode}
-                      cinematic={true}
-                      availableLangs={availableVttLangs}
-                      tooltip="Subtitles / Reading Language"
-                    />
-
                     {/* Back to Choices Button */}
                     <button
                       id="feedback-back-to-choices-btn"
                       onClick={() => {
-                        setIsReadingAloud(false);
-                        try {
-                          speechRecognitionRef.current?.stop();
-                        } catch {}
-                        setIsCrawlFinished(false);
                         setCurrentStep('choices');
                       }}
                       type="button"
@@ -1993,7 +1310,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 style={{ overflow: 'hidden' }}
               >
                 <div
-                  className={`absolute -top-[100%] left-0 w-full h-[300%] pointer-events-none select-none overflow-hidden transition-opacity duration-200 ${
+                  className={`absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden transition-opacity duration-200 flex items-center justify-center ${
                     isVideoFinished ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
@@ -2002,12 +1319,15 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     ref={ytIframeRef}
                     mediaRef={ytMediaRef}
                     src={currentVideoUrl}
+                    audioLang={selectedAudioLang}
+                    subtitleLang={selectedSubtitleLang}
                     autoplay={true}
                     defaultMuted={false}
                     muted={isMuted}
                     controls={false}
                     playsInline={true}
                     className="w-full h-full border-0 pointer-events-none select-none"
+                    iframeClassName="w-full h-full border-0 pointer-events-none select-none"
                     style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
                     source={{
                       src: currentVideoUrl,
@@ -2016,8 +1336,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                           controls: 0,
                           modestbranding: 1,
                           showinfo: 0,
-                          cc_load_policy: 0,
-                          cc_lang_pref: normalizeLangCode(ytInitialVttLangRef.current),
+                          cc_load_policy: 1,
+                          cc_lang_pref: normalizeLangCode(selectedSubtitleLang),
                           hl: normalizeLangCode(selectedAudioLang),
                           disablekb: 1,
                           fs: 0,
@@ -2032,31 +1352,20 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     onLoadedMetadata={(e) => {
                       e.currentTarget.muted = isMuted;
                       e.currentTarget.volume = 1;
-                      if (isAutoPlay) {
-                        try {
-                          const p = e.currentTarget?.play?.();
-                          if (p && typeof p.catch === 'function') p.catch(() => {});
-                        } catch {}
-                      } else {
-                        e.currentTarget.pause();
-                      }
+                      try {
+                        const p = e.currentTarget?.play?.();
+                        if (p && typeof p.catch === 'function') p.catch(() => {});
+                      } catch {}
                       syncYouTubeAudioTrack();
                       syncYouTubeSubtitles();
                     }}
                     onPlay={() => {
-                      if (!isAutoPlay) {
-                        setIsYtPlaying(false);
-                        ytMediaRef.current?.pause();
-                      } else {
-                        setIsYtPlaying(true);
-                        syncYouTubeAudioTrack();
-                        syncYouTubeSubtitles();
-                      }
+                      setIsYtPlaying(true);
+                      syncYouTubeAudioTrack();
+                      syncYouTubeSubtitles();
                     }}
                     onPlaying={() => {
-                      if (isAutoPlay) {
-                        setIsYtPlaying(true);
-                      }
+                      setIsYtPlaying(true);
                     }}
                     onPause={() => {
                       setIsYtPlaying(false);
@@ -2073,23 +1382,33 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   />
                 </div>
 
+               
                 {/* Seamless overlay that intercepts taps/clicks to toggle play/pause and renders a Gold Circle button when paused */}
                 <div
                   className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
                   role="button"
                   tabIndex={0}
-                  onClick={() => setIsAutoPlay((prev) => !prev)}
+                  onClick={() => {
+                    if (isYtPlaying) {
+                      setIsYtPlaying(false);
+                      ytMediaRef.current?.pause();
+                      sendYtCommand('pauseVideo');
+                    } else {
+                      setIsYtPlaying(true);
+                      try {
+                        const p = ytMediaRef.current?.play();
+                        if (p && typeof p.catch === 'function') p.catch(() => {});
+                      } catch {}
+                      sendYtCommand('playVideo');
+                    }
+                  }}
                 >
-                  {!isVideoPlaying && (
+                  {!isYtPlaying && !isVideoFinished && (
                     <div
                       id="youtube-gold-pause-circle"
                       className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#ffe81f] via-[#d4af37] to-[#9a7209] border-2 border-[#fff6b3] shadow-[0_4px_20px_rgba(0,0,0,0.75),0_0_20px_rgba(212,175,55,0.7),inset_0_1px_4px_rgba(255,255,255,0.65)] flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
                     >
-                      {!isAutoPlay ? (
-                        <Play className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
-                      ) : (
-                        <Pause className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
-                      )}
+                      <Play className="w-6 h-6 sm:w-8 sm:h-8 text-slate-950 fill-slate-950 ml-0.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]" />
                     </div>
                   )}
                 </div>
@@ -2108,57 +1427,39 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 </p>
               </div>
             )}
-
-            {/* Star Wars Intro Style VTT Subtitle Overlay during Video Playback */}
-            {activeSubtitle && !isVideoFinished && (
-              <div
-                id="vtt-starwars-subtitle-overlay"
-                className="absolute inset-x-0 bottom-24 sm:bottom-28 z-20 flex justify-center pointer-events-none px-4 select-none [perspective:420px]"
-              >
-                <motion.div
-                  key={activeSubtitle}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="origin-[50%_100%] [transform:rotateX(22deg)] max-w-2xl text-center font-cinzel font-black text-lg sm:text-2xl md:text-3xl tracking-wider text-[#ffe81f] drop-shadow-[0_0_15px_rgba(255,232,31,0.85)] [text-shadow:_0_2px_8px_rgb(0_0_0_/_95%),_0_0_20px_rgb(255_232_31_/_60%)] leading-snug px-3 py-1.5"
-                >
-                  {activeSubtitle}
-                </motion.div>
-              </div>
-            )}
           </div>
         )}
       </div>
 
-      {/* 3. CENTER LEFT: PREVIOUS `<` BUTTON (Cinematic floating chevron, no round circle, hidden while video is playing) */}
+      {/* 3. CENTER LEFT: PREVIOUS CHAPTER `<` BUTTON (Cinematic floating chevron, visible when paused) */}
       {!isFeedbackMode && !isVideoPlaying && (
         <button
           id="act-prev-button"
-          onClick={goToPrev}
-          aria-label="Previous Act"
+          onClick={handlePrevChapterNav}
+          aria-label="Previous Chapter"
           className={`absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
             darkMode
               ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
               : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
           }`}
-          title="Previous"
+          title="Previous Chapter"
         >
           <ChevronLeft className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:-translate-x-1 stroke-[2.5]" />
         </button>
       )}
 
-      {/* 4. CENTER RIGHT: NEXT `>` BUTTON (Cinematic floating chevron, no round circle, hidden on choices board and while video is playing) */}
+      {/* 4. CENTER RIGHT: NEXT CHAPTER `>` BUTTON (Cinematic floating chevron, visible when paused) */}
       {!isFeedbackMode && currentStep !== 'choices' && !isVideoPlaying && (
         <button
           id="act-next-button"
-          onClick={goToNext}
-          aria-label="Next Act"
+          onClick={handleNextChapterNav}
+          aria-label="Next Chapter"
           className={`absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-3 transition-all hover:scale-125 active:scale-95 flex items-center justify-center cursor-pointer group bg-transparent border-0 rounded-none ${
             darkMode
               ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]'
               : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_3px_rgba(255,255,255,0.8)]'
           }`}
-          title="Next"
+          title="Next Chapter"
         >
           <ChevronRight className="w-8 h-8 sm:w-12 sm:h-12 transition-transform group-hover:translate-x-1 stroke-[2.5]" />
         </button>
@@ -2186,9 +1487,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                 {currentStep === 'choices'
                   ? ''
                   : currentStep === 'choice_act'
-                  ? (isVideoFinished ? 'Choice Finished • Continue to Feedback' : '')
+                  ? (isVideoFinished ? 'Choice Finished' : '')
                   : currentStep === 'choice_feedback'
-                  ? `Language Practice: ${selectedVttLang}`
+                  ? `Language Practice: ${selectedAudioLang || currentLang}`
                   : !currentYouTubeId || isMediaNotFound
                   ? t('comingSoon', selectedAudioLang || currentLang)
                   : isVideoFinished
@@ -2197,103 +1498,67 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               </p>
             </div>
 
-            {/* Bottom Right VTT Subtitle Language Selector (Cinematic, no circle) */}
-            {currentStep !== 'choices' && (
-              <div className="shrink-0 flex items-center">
-                <FlagLanguageDropdown
-                  id="act-bottom-vtt-selector"
-                  type="vtt"
-                  selectedLang={selectedVttLang}
-                  onSelectLang={handleVttLanguageSelected}
-                  darkMode={darkMode}
-                  cinematic={true}
-                  availableLangs={availableVttLangs}
-                  tooltip={availableVttLangs.length === 0 ? 'No Subtitles Available for this Act' : 'Subtitles / Reading Language (VTT)'}
-                />
-              </div>
-            )}
+            <div className="w-8 shrink-0 hidden sm:block" />
           </div>
 
-          {/* Completion Action Bar: completely transparent, no skip button, no text on buttons, no round circles */}
+          {/* Completion Action Bar: completely transparent */}
           <div className="w-full flex items-center justify-between gap-4 pt-2 pb-1 px-2 sm:px-4 bg-transparent border-0">
-            {/* Comment Drawer Button - Only visible if user is > 16 */}
-            {canAccessComments ? (
-              <button
-                id="act-write-comment-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowCommentsDrawer(true);
-                }}
-                className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
-                  darkMode
-                    ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
-                    : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
-                }`}
-                title={t('commentBtn', currentLang)}
-                aria-label={t('commentBtn', currentLang)}
-              >
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
-              </button>
-            ) : (
-              <div className="w-9" />
-            )}
+            {/* Left: Comment Drawer Button - Only visible if user is > 16 */}
+            <div className="flex items-center gap-2">
+              {canAccessComments ? (
+                <button
+                  id="act-write-comment-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCommentsDrawer(true);
+                  }}
+                  className={`p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center bg-transparent border-0 rounded-none ${
+                    darkMode
+                      ? 'text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+                      : 'text-amber-800 hover:text-amber-950 drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]'
+                  }`}
+                  title={t('commentBtn', currentLang)}
+                  aria-label={t('commentBtn', currentLang)}
+                >
+                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
+                </button>
+              ) : (
+                <div className="w-9" />
+              )}
 
-            {/* Back to Choices Button (available during choice video or feedback) */}
-            {(currentStep === 'choice_act' || currentStep === 'choice_feedback') && (
-              <button
-                id="act-back-to-choices-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsReadingAloud(false);
-                  try {
-                    speechRecognitionRef.current?.stop();
-                  } catch {}
-                  setIsCrawlFinished(false);
-                  setCurrentStep('choices');
-                }}
-                className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
-                title={t('backToChoices', currentLang)}
-                aria-label={t('backToChoices', currentLang)}
-              >
-                <Compass className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
-              </button>
-            )}
+              {/* Back to Choices Button (available during choice video or feedback) */}
+              {(currentStep === 'choice_act' || currentStep === 'choice_feedback') && (
+                <button
+                  id="act-back-to-choices-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentStep('choices');
+                  }}
+                  className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
+                  title={t('backToChoices', currentLang)}
+                  aria-label={t('backToChoices', currentLang)}
+                >
+                  <Compass className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
+                </button>
+              )}
+            </div>
 
-            {/* Replay Button */}
-            <button
-              id="act-replay-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleReplay();
-              }}
-              className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
-              title={t('replayBtn', currentLang)}
-              aria-label={t('replayBtn', currentLang)}
-            >
-              <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37] hover:text-[#ffe81f] transition-colors" />
-            </button>
-
-            {/* Next Step / Continue Button (hidden on choices board) */}
-            {currentStep !== 'choices' && (
-              <button
-                id="act-next-completion-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToNext();
-                }}
-                className="p-2 transition-all hover:scale-125 active:scale-95 cursor-pointer flex items-center justify-center text-[#d4af37] hover:text-[#ffe81f] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-transparent border-0 rounded-none"
-                title={
-                  currentStep === 'choice_act'
-                    ? (feedbackParagraphs.length > 0 ? 'View Feedback' : 'Choices')
-                    : currentStep === 'choice_feedback'
-                    ? (isBestChoice(selectedChoiceId) ? t('nextChapter', currentLang) : t('backToChoices', currentLang))
-                    : t('nextAct', currentLang)
-                }
-                aria-label="Next Step"
-              >
-                <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#d4af37] hover:text-[#ffe81f] transition-colors stroke-[2.5]" />
-              </button>
-            )}
+            {/* Right: Bottom Subtitles Language Selector replacing next arrow */}
+            <div className="flex items-center gap-1.5 ml-auto" title="Subtitles Language">
+              <span className="text-[10px] sm:text-xs font-mono font-bold tracking-wider text-amber-200/90 hidden xs:inline-block">
+                SUBTITLES:
+              </span>
+              <FlagLanguageDropdown
+                id="act-bottom-subtitle-selector"
+                type="language"
+                direction="up"
+                selectedLang={selectedSubtitleLang}
+                onSelectLang={handleSubtitleLanguageSelected}
+                darkMode={darkMode}
+                cinematic={true}
+                tooltip="Subtitles Language"
+              />
+            </div>
           </div>
         </div>
       )}

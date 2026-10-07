@@ -12,27 +12,7 @@
  * resolution for a chapter that isn't the current one, so it's pulled out
  * here as a plain function both call sites can share.
  */
-import { ChapterChoiceConfig, ChapterConfig } from './chapterTypes';
-
-const ELDORADO_TORCH_CHAPTER0_CHOICES: ChapterChoiceConfig[] = [
-  {
-    id: 'choice1',
-    available: true,
-  },
-  {
-    id: 'choice2',
-    available: true,
-  },
-  { id: 'choice3', available: false },
-  { id: 'choice4', available: false },
-];
-
-const DEFAULT_FOUR_CHOICES: ChapterChoiceConfig[] = [
-  { id: 'choice1', available: true },
-  { id: 'choice2', available: true },
-  { id: 'choice3', available: true },
-  { id: 'choice4', available: true },
-];
+import { ChapterConfig } from './chapterTypes';
 
 export function isElDoradoTorchTale(world: string, taleName: string): boolean {
   return world === 'ElDorado' && taleName === 'the_torch';
@@ -48,9 +28,8 @@ export function resolveChapterConfig(
   const custom = chapterConfigs.find((cfg) => cfg.id === chapterNumber);
 
   if (custom) {
-    const customHasNoChoices = !custom.choices || custom.choices.length === 0;
-    if (isElDoradoTorch && chapterNumber === 0 && customHasNoChoices) {
-      return { ...custom, hasGenderActs: false, choices: ELDORADO_TORCH_CHAPTER0_CHOICES };
+    if (isElDoradoTorch && chapterNumber === 0 && (!custom.choices || custom.choices.length === 0)) {
+      return { ...custom, hasGenderActs: false, choices: [] };
     }
     return custom;
   }
@@ -59,19 +38,19 @@ export function resolveChapterConfig(
     return {
       id: chapterNumber,
       hasGenderActs: false,
-      choices: chapterNumber === 0 ? ELDORADO_TORCH_CHAPTER0_CHOICES : [],
+      choices: [],
     };
   }
 
   return {
     id: chapterNumber,
     hasGenderActs: chapterNumber === 0,
-    choices: chapterNumber === 0 ? [] : DEFAULT_FOUR_CHOICES,
+    choices: [],
   };
 }
 
 export function chapterHasAvailableChoices(config: ChapterConfig): boolean {
-  return Boolean(config.choices && config.choices.some((c) => c.available));
+  return Boolean(config.choices && config.choices.some((c) => typeof c === 'string' && c.trim().length > 0));
 }
 
 /** hasGenderActs / hasChoices for the flow machine, for an arbitrary chapter number. */

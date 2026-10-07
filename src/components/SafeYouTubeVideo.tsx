@@ -1,6 +1,6 @@
 import React, { Component, forwardRef, useEffect, useRef, useMemo } from 'react';
 import YouTube, { type YouTubeProps, type YouTubeEvent, type YouTubePlayer } from 'react-youtube';
-import { extractYouTubeVideoId } from '../lib/assetRegistry';
+import { extractYouTubeVideoId, normalizeLangCode } from '../lib/assetRegistry';
 
 export interface YouTubeAdapter {
   play: () => Promise<any>;
@@ -61,6 +61,8 @@ export type SafeYouTubeVideoProps = {
   videoId?: string;
   src?: string;
   mediaRef?: React.RefObject<YouTubeAdapter | null>;
+  audioLang?: string;
+  subtitleLang?: string;
   autoplay?: boolean;
   defaultMuted?: boolean;
   muted?: boolean;
@@ -85,6 +87,8 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
       videoId: propVideoId,
       src,
       mediaRef,
+      audioLang,
+      subtitleLang,
       autoplay = true,
       defaultMuted = true,
       muted = false,
@@ -109,7 +113,11 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
 
     const engineParams = source?.engine?.youtube || {};
     const startSeconds = engineParams.start || 0;
-    const hlLang = engineParams.hl || undefined;
+    const hlLang = audioLang ? normalizeLangCode(audioLang as any) : (engineParams.hl || undefined);
+    const ccLang = subtitleLang
+      ? normalizeLangCode(subtitleLang as any)
+      : (engineParams.cc_lang_pref || engineParams.ccLang || hlLang || undefined);
+    const ccLoadPolicy = engineParams.cc_load_policy !== undefined ? engineParams.cc_load_policy : 1;
 
     const opts: YouTubeProps['opts'] = useMemo(() => {
       return {
@@ -124,15 +132,16 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
           iv_load_policy: 3,
           disablekb: 1,
           fs: 0,
-          cc_load_policy: 0,
+          cc_load_policy: ccLoadPolicy,
           playsinline: 1,
           origin: typeof window !== 'undefined' ? window.location.origin : undefined,
           widget_referrer: typeof window !== 'undefined' ? window.location.origin : undefined,
           ...(startSeconds > 0 ? { start: startSeconds } : {}),
           ...(hlLang ? { hl: hlLang } : {}),
+          ...(ccLang ? { cc_lang_pref: ccLang } : {}),
         },
       };
-    }, [autoplay, startSeconds, hlLang]);
+    }, [autoplay, startSeconds, hlLang, ccLang, ccLoadPolicy]);
 
     const stopTicker = () => {
       if (tickerRef.current) {
@@ -288,6 +297,38 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
 
       try {
         if (player) {
+          if (typeof player.loadModule === 'function') {
+            player.loadModule('captions');
+          }
+          if (ccLang && typeof player.setOption === 'function') {
+            player.setOption('captions', 'track', { languageCode: ccLang });
+            player.setOption('cc', 'track', { languageCode: ccLang });
+          }
+          if (hlLang) {
+            if (typeof player.setOption === 'function') {
+              player.setOption('audioTrack', 'track', { languageCode: hlLang });
+              player.setOption('audio', 'track', { languageCode: hlLang });
+            }
+            if (typeof player.getAvailableAudioTracks === 'function' && typeof player.setAudioTrack === 'function') {
+              const tracks = player.getAvailableAudioTracks();
+              if (Array.isArray(tracks) && tracks.length > 0) {
+                const matchingTrack = tracks.find(
+                  (t: any) =>
+                    t.languageCode === hlLang ||
+                    t.languageCode?.toLowerCase() === hlLang.toLowerCase() ||
+                    t.id?.includes(hlLang)
+                );
+                if (matchingTrack) {
+                  player.setAudioTrack(matchingTrack.id);
+                }
+              }
+            }
+          }
+        }
+      } catch {}
+
+      try {
+        if (player) {
           if (muted || defaultMuted) {
             if (typeof player.mute === 'function') player.mute();
           } else {
@@ -306,6 +347,41 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
         onLoadedMetadata?.({ currentTarget: adapter });
       } catch {}
     };
+
+    // Synchronize subtitles and audio track whenever language changes
+    useEffect(() => {
+      if (!playerRef.current) return;
+      const player = playerRef.current;
+      try {
+        if (typeof player.loadModule === 'function') {
+          player.loadModule('captions');
+        }
+        if (ccLang && typeof player.setOption === 'function') {
+          player.setOption('captions', 'track', { languageCode: ccLang });
+          player.setOption('cc', 'track', { languageCode: ccLang });
+        }
+        if (hlLang) {
+          if (typeof player.setOption === 'function') {
+            player.setOption('audioTrack', 'track', { languageCode: hlLang });
+            player.setOption('audio', 'track', { languageCode: hlLang });
+          }
+          if (typeof player.getAvailableAudioTracks === 'function' && typeof player.setAudioTrack === 'function') {
+            const tracks = player.getAvailableAudioTracks();
+            if (Array.isArray(tracks) && tracks.length > 0) {
+              const matchingTrack = tracks.find(
+                (t: any) =>
+                  t.languageCode === hlLang ||
+                  t.languageCode?.toLowerCase() === hlLang.toLowerCase() ||
+                  t.id?.includes(hlLang)
+              );
+              if (matchingTrack) {
+                player.setAudioTrack(matchingTrack.id);
+              }
+            }
+          }
+        }
+      } catch {}
+    }, [hlLang, ccLang]);
 
     const handlePlay = (event: YouTubeEvent<number>) => {
       if (event.target) {

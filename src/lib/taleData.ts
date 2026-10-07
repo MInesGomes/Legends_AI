@@ -4,7 +4,6 @@ import {
   ATLANTIS_STORY_ACTS,
   SUPABASE_BASE_URL,
   getActMp4Url,
-  getActVttUrl,
   realmAtlantisJpg,
 } from './assetRegistry';
 
@@ -17,12 +16,6 @@ export interface ActItem {
   subtitle: string;
   actTitle: string;
   mp4: string;
-  vtt?: string;
-  vtt_en?: string;
-  vtt_es?: string;
-  vtt_nl?: string;
-  vtt_it?: string;
-  vtt_pt?: string;
   posterImage: string;
   text?: string;
   characterName?: string;
@@ -39,9 +32,9 @@ export function getTaleFolderPath(taleId: string, realmId?: string): string {
     case 'tale-5-crystals':
       return `${SUPABASE_BASE_URL}/Atlantis/5crystals/chapter`;
     case 'tale-startup-winner':
-      return `${SUPABASE_BASE_URL}/Work/startup_winner/chapter`;
+      return `${SUPABASE_BASE_URL}/Leader/startup_winner/chapter`;
     case 'tale-job-quest':
-      return `${SUPABASE_BASE_URL}/Work/job_quest/chapter`;
+      return `${SUPABASE_BASE_URL}/Leader/job_quest/chapter`;
     case 'tale-pride-prejudice':
       return `${SUPABASE_BASE_URL}/Marriage/pride_prejudice/chapter`;
     case 'tale-one-hart':
@@ -59,7 +52,7 @@ export function getTaleFolderPath(taleId: string, realmId?: string): string {
     case 'tale-ai-horizon':
       return `${SUPABASE_BASE_URL}/FutureLand/ai_horizon/chapter`;
     default:
-      if (realmId === 'realm-work') return `${SUPABASE_BASE_URL}/Work/${taleId}/chapter`;
+      if (realmId === 'realm-work') return `${SUPABASE_BASE_URL}/Leader/${taleId}/chapter`;
       if (realmId === 'realm-marriage') return `${SUPABASE_BASE_URL}/Marriage/${taleId}/chapter`;
       if (realmId === 'realm-dad-mom') return `${SUPABASE_BASE_URL}/DadMom/${taleId}/chapter`;
       if (realmId === 'realm-eldorado' || realmId === 'realm-el-dorado' || realmId?.includes('dorado')) return `${SUPABASE_BASE_URL}/ElDorado/the_torch/chapter`;
@@ -131,7 +124,6 @@ export function getTaleActItems(
   return acts.map((actDef, idx) => {
     const actId = `${tale.id}-ch${actDef.chapter}-${actDef.act}-${idx}`;
     const mp4Url = getActMp4Url(actDef, folderPath);
-    const vttUrl = getActVttUrl(actDef, lang, folderPath);
 
     return {
       id: actId,
@@ -142,12 +134,6 @@ export function getTaleActItems(
       subtitle: '',
       actTitle: '',
       mp4: mp4Url,
-      vtt: vttUrl,
-      vtt_en: getActVttUrl(actDef, 'EN', folderPath),
-      vtt_es: getActVttUrl(actDef, 'ES', folderPath),
-      vtt_nl: getActVttUrl(actDef, 'NL', folderPath),
-      vtt_it: getActVttUrl(actDef, 'IT', folderPath),
-      vtt_pt: getActVttUrl(actDef, 'PT', folderPath),
       posterImage: poster,
       characterName: actDef.characterName,
       gender: actDef.gender,
@@ -158,14 +144,13 @@ export function getTaleActItems(
 }
 
 export function getAtlantisActItems(
-  lang: Language = 'EN',
-  userGender: 'female' | 'male' | string = 'female',
+  _lang: Language = 'EN',
+  _userGender: 'female' | 'male' | string = 'female',
   customActs: Act[] = ATLANTIS_STORY_ACTS
 ): ActItem[] {
   return customActs.map((actDef, idx) => {
     const actId = `atlantis-ch${actDef.chapter}-${actDef.act}-${idx}`;
     const mp4Url = getActMp4Url(actDef);
-    const vttUrl = getActVttUrl(actDef, lang);
 
     return {
       id: actId,
@@ -176,12 +161,6 @@ export function getAtlantisActItems(
       subtitle: '',
       actTitle: '',
       mp4: mp4Url,
-      vtt: vttUrl,
-      vtt_en: getActVttUrl(actDef, 'EN'),
-      vtt_es: getActVttUrl(actDef, 'ES'),
-      vtt_nl: getActVttUrl(actDef, 'NL'),
-      vtt_it: getActVttUrl(actDef, 'IT'),
-      vtt_pt: getActVttUrl(actDef, 'PT'),
       posterImage: realmAtlantisJpg,
       characterName: actDef.characterName,
       gender: actDef.gender,

@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Language } from '../types';
-import { ChevronDown, Check, Volume2, Subtitles, Globe } from 'lucide-react';
+import { ChevronDown, Check, Volume2, Globe } from 'lucide-react';
 
 export interface FlagDropdownProps {
   id?: string;
   selectedLang: Language;
   onSelectLang: (lang: Language) => void;
-  type?: 'audio' | 'mp3' | 'vtt' | 'language';
+  type?: 'audio' | 'mp3' | 'language';
   darkMode?: boolean;
   availableLangs?: Language[];
   tooltip?: string;
   cinematic?: boolean;
+  direction?: 'down' | 'up';
 }
 
 export const LANGUAGE_METADATA: {
@@ -181,6 +182,7 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
   availableLangs,
   tooltip,
   cinematic = false,
+  direction = 'down',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -219,12 +221,10 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
   }, [availableLangs, selectedLang, onSelectLang, displayedOptions]);
 
   const defaultTooltip = isAvailableEmpty
-    ? 'No Subtitles Available for this Act'
+    ? 'No Options Available'
     : tooltip ||
       (type === 'mp3' || type === 'audio'
         ? `Audio Voice: ${currentMeta.label}`
-        : type === 'vtt'
-        ? `Subtitles: ${currentMeta.label}`
         : `Language: ${currentMeta.label}`);
 
   return (
@@ -290,8 +290,8 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
       {/* Dropdown Menu Popup */}
       {isOpen && (
         <div
-          className={`absolute ${
-            type === 'vtt' ? 'right-0 bottom-full mb-2 sm:mb-3' : 'right-0 top-full mt-2'
+          className={`absolute right-0 ${
+            direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'
           } z-[100] min-w-[180px] sm:min-w-[205px] rounded-2xl border-2 border-[#d4af37] backdrop-blur-2xl p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-150 ${
             darkMode ? 'bg-slate-950/98 text-slate-100' : 'bg-[#fffdfa]/98 text-slate-900'
           }`}
@@ -306,16 +306,12 @@ export const FlagLanguageDropdown: React.FC<FlagDropdownProps> = ({
             <div className="flex items-center gap-1.5">
               {type === 'mp3' || type === 'audio' ? (
                 <Volume2 className="w-3.5 h-3.5 text-[#d4af37]" />
-              ) : type === 'vtt' ? (
-                <Subtitles className="w-3.5 h-3.5 text-[#d4af37]" />
               ) : (
                 <Globe className="w-3.5 h-3.5 text-[#d4af37]" />
               )}
               <span>
                 {type === 'mp3' || type === 'audio'
                   ? 'Audio'
-                  : type === 'vtt'
-                  ? 'Subtitles (VTT)'
                   : 'Language'}
               </span>
             </div>

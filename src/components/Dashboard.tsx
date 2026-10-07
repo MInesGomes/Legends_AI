@@ -187,13 +187,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Filter realms:
   // If user is less than 13 years old, ONLY show El Dorado world!
-  // If user is under 18, hide adult-only realms (Work, Marriage, Dad & Mom)
+  // If user is under 18, hide adult-only realms (Leader, Marriage, Dad & Mom)
   const visibleRealms = REALMS.filter((realm) => {
     if (userAge < 13) {
       return realm.id === 'realm-el-dorado';
     }
     if (isUnder18 && realm.isAdultOnly) {
-      return false; // Hide Work, Marriage, Dad & Mom for under 18!
+      return false; // Hide Leader, Marriage, Dad & Mom for under 18!
     }
     return true;
   });
@@ -206,7 +206,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return (
           <svg className="w-7 h-7 sm:w-8 sm:h-8 filter drop-shadow-[0_2px_3px_rgba(150,90,10,0.4)]" viewBox="0 0 24 24" fill="none">
             <defs>
-              <linearGradient id="goldWorkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id="goldLeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#fff2af" />
                 <stop offset="50%" stopColor="#d49413" />
                 <stop offset="100%" stopColor="#8c5804" />
@@ -214,7 +214,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </defs>
             <path
               d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"
-              fill="url(#goldWorkGrad)"
+              fill="url(#goldLeaderGrad)"
             />
           </svg>
         );

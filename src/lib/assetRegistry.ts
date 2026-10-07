@@ -17,13 +17,48 @@ export const ATLANTIS_5CRYSTALS_FOLDER_PATH = `${SUPABASE_BASE_URL}/Atlantis/5cr
 
 // Core Avatars and Realm Images
 export const realmAtlantisJpg = `${SUPABASE_BASE_URL}/Atlantis/realm_atlantis.jpg`;
-export const realmWorkJpg = `${SUPABASE_BASE_URL}/Work/realm_work.jpg`;
+export const realmLeaderJpg = `${SUPABASE_BASE_URL}/Leader/realm_work.jpg`;
+export const realmWorkJpg = realmLeaderJpg;
 export const realmElDoradoJpg = `${SUPABASE_BASE_URL}/ElDorado/realm_eldorado.jpg`;
 export const realmDadMomJpg = `${SUPABASE_BASE_URL}/DadMom/realm_dadmom.jpg`;
 export const realmMarriageJpg = `${SUPABASE_BASE_URL}/Marriage/realm_marriage.jpg`;
 export const realmFutureLandJpg = `${SUPABASE_BASE_URL}/FutureLand/realm_futureland.jpg`;
 
-export const fiveCrystalsJpg = `${SUPABASE_BASE_URL}/Atlantis/5crystals.jpg`;
+/** Helper to convert YouTube video ID to full URL */
+export function getYouTubeVideoUrl(id?: string | null): string | undefined {
+  if (!id) return undefined;
+  const trimmed = id.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return `https://youtu.be/${trimmed}`;
+}
+
+/** Helper to convert YouTube video ID to thumbnail URL */
+export function getYouTubeImageUrl(id?: string | null): string | undefined {
+  if (!id) return undefined;
+  const trimmed = id.trim();
+  if (!trimmed) return undefined;
+  return `https://img.youtube.com/vi/${trimmed}/hqdefault.jpg`;
+}
+
+/** Atlantis video IDs keyed by `${chapter}:${act}`. */
+export const ATLANTIS_VIDEO_IDS: Record<string, string> = {
+  '0:act0': '-B_vlZaUDDc',
+  '0:male_act': '9Ozmoyei2-A',
+  '1:act0': 'LBCpY7bI638',
+  '3:act0': '-64kwqW5q6k',
+  '3:choice1': '7DEPbiuRvuU',
+  '3:choice2': 'B4bsJHLc7V0',
+  '3:choice3': 'TP1-nip4GiM',
+};
+
+/** Full YouTube URLs dynamically generated from IDs when necessary */
+export const ATLANTIS_VIDEO_URLS: Record<string, string> = Object.fromEntries(
+  Object.entries(ATLANTIS_VIDEO_IDS).map(([actKey, videoId]) => [actKey, `https://youtu.be/${videoId}`])
+);
+
+/** 5 Crystals Tale Card image loaded from youtube act0 '0:act0': '-B_vlZaUDDc' */
+export const fiveCrystalsJpg = getYouTubeImageUrl(ATLANTIS_VIDEO_IDS['0:act0']) || 'https://img.youtube.com/vi/-B_vlZaUDDc/hqdefault.jpg';
 
 // Tales Cover Images
 export const taleBabyJpg = `${SUPABASE_BASE_URL}/DadMom/tale_baby.jpg`;
@@ -31,8 +66,8 @@ export const taleChildJpg = `${SUPABASE_BASE_URL}/DadMom/tale_child.jpg`;
 export const taleTeensJpg = `${SUPABASE_BASE_URL}/DadMom/tale_teens.jpg`;
 export const talePridePrejudiceJpg = `${SUPABASE_BASE_URL}/Marriage/tale_pride_prejudice.jpg`;
 export const taleOneHartJpg = `${SUPABASE_BASE_URL}/Marriage/tale_one_hart.jpg`;
-export const taleStartupWinnerJpg = `${SUPABASE_BASE_URL}/Work/tale_startup_winner.jpg`;
-export const taleJobQuestJpg = `${SUPABASE_BASE_URL}/Work/tale_job_quest.jpg`;
+export const taleStartupWinnerJpg = `${SUPABASE_BASE_URL}/Leader/tale_startup_winner.jpg`;
+export const taleJobQuestJpg = `${SUPABASE_BASE_URL}/Leader/tale_job_quest.jpg`;
 
 //TODO: DELETE
 export const elenaAvatar = `${SUPABASE_AVATAR}/female.jpg`;
@@ -40,6 +75,7 @@ export const danielAvatar = `${SUPABASE_AVATAR}/male.jpg`;
 
 export const ASSETS = {
   realmAtlantisJpg,
+  realmLeaderJpg,
   realmWorkJpg,
   realmElDoradoJpg,
   realmDadMomJpg,
@@ -76,20 +112,16 @@ function getActName(act: Act): string {
 /* YouTube sources (single source of truth)                                   */
 /* -------------------------------------------------------------------------- */
 
-/** Atlantis videos keyed by `${chapter}:${act}`. */
-export const ATLANTIS_VIDEO_URLS: Record<string, string> = {
-  '0:act0': 'https://youtu.be/-B_vlZaUDDc',
-  '0:male_act': 'https://youtu.be/9Ozmoyei2-A',
-  '1:act0': 'https://youtu.be/LBCpY7bI638',
-  '3:act0': 'https://youtu.be/-64kwqW5q6k',
-  '3:choice1': 'https://youtu.be/7DEPbiuRvuU',
-  '3:choice2': 'https://youtu.be/B4bsJHLc7V0',
-  '3:choice3': 'https://youtu.be/TP1-nip4GiM',
-};
-
 /**
  * Loaded Video Sources for Chapter 3
  */
+export const CHAPTER_3_MEDIA_IDS = {
+  act0: ATLANTIS_VIDEO_IDS['3:act0'],
+  choice1: ATLANTIS_VIDEO_IDS['3:choice1'],
+  choice2: ATLANTIS_VIDEO_IDS['3:choice2'],
+  choice3: ATLANTIS_VIDEO_IDS['3:choice3'],
+};
+
 export const CHAPTER_3_MEDIA_URLS = {
   act0: ATLANTIS_VIDEO_URLS['3:act0'],
   choice1: ATLANTIS_VIDEO_URLS['3:choice1'],
@@ -216,56 +248,6 @@ export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[
 }
 
 /**
- * Constructs VTT subtitle URL for an Act and Language.
- * e.g. folderPath + chapter + "/" + act + "/" + act + "_" + langCode + ".vtt"
- * or for ElDorado: folderPath + chapter + "/vtt/" + act + "_" + langCode + ".vtt"
- */
-export function getActVttUrl(act: Act, lang: Language | string = 'EN', customFolder?: string): string {
-  return getActVttCandidateUrls(act, lang, customFolder)[0];
-}
-
-/**
- * Candidate VTT URLs for subtitle fetching resilience
- * (checks direct chapter/vtt/, chapter root, act/vtt/, and act root).
- */
-export function getActVttCandidateUrls(act: Act, lang: Language | string = 'EN', customFolder?: string): string[] {
-  const folder = stripTrailingSlashes(customFolder || ATLANTIS_5CRYSTALS_FOLDER_PATH);
-  const chapterFolder = `${folder}${act.chapter}`;
-  const actName = getActName(act);
-  const langCode = normalizeLangCode(lang);
-  const isElDorado = folder.toLowerCase().includes('eldorado');
-
-  const actFolder = `${chapterFolder}/${actName}`;
-  const file = `${actName}_${langCode}.vtt`;
-
-  const candidates: string[] = isElDorado
-    ? [
-        `${chapterFolder}/vtt/${file}`,
-        `${chapterFolder}/${file}`,
-        `${chapterFolder}/vvt/${file}`,
-        `${actFolder}/vtt/${file}`,
-        `${actFolder}/${file}`,
-        `${chapterFolder}/vtt/${actName}.vtt`,
-        `${chapterFolder}/${actName}.vtt`,
-      ]
-    : [
-        `${actFolder}/${file}`,
-        `${actFolder}/vtt/${file}`,
-        `${actFolder}/vvt/${file}`,
-        `${chapterFolder}/vtt/${file}`,
-        `${chapterFolder}/vvt/${file}`,
-        `${chapterFolder}/${file}`,
-      ];
-
-  const ytId = extractYouTubeVideoId(act.videoUrl);
-  if (ytId) {
-    candidates.push(`/api/youtube/vtt?videoId=${encodeURIComponent(ytId)}&lang=${encodeURIComponent(langCode)}`);
-  }
-
-  return Array.from(new Set(candidates));
-}
-
-/**
  * Default list of Atlantis story acts
  */
 export const ATLANTIS_STORY_ACTS: Act[] = [
@@ -296,9 +278,7 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
 
 /* -------------------------------------------------------------------------- */
 /* Choice media helpers                                                       */
-/* URL Pattern for choice assets (thumbnails, images, VTT subtitles).         */
-/* Feedback VTTs e.g.                                                         */
-/* .../Atlantis/5crystals/chapter1/choice1/vtt/feedback_en.vtt                */
+/* URL Pattern for choice assets (thumbnails, images, audio).                 */
 /* -------------------------------------------------------------------------- */
 
 function getChoiceNumber(choiceId: string): string {
@@ -349,20 +329,9 @@ export function getChoiceImageCandidateUrls(
   const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
   const altBase = getChoiceAltBaseFolder(world, chapterNumber, choiceId);
 
-  // For Atlantis Chapter 3 choices, include the YouTube video thumbnail first
+  // For All Chapter choices, include the YouTube video thumbnail first
   const ytId = extractYouTubeVideoId(getChoiceVideoUrl(world, chapterNumber, choiceId));
   const candidates: string[] = ytId ? [`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`] : [];
-
-  candidates.push(
-    `${base}/${cName}.jpg`,
-    `${base}/${cName}.png`,
-    `${base}/${cName}.webp`,
-    `${base}.jpg`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}/${cName}.jpg`,
-    `${SUPABASE_BASE_URL}/${world}/${taleName}.jpg`,
-    `${SUPABASE_BASE_URL}/${world}/realm_${world.toLowerCase()}.jpg`,
-    `${altBase}/${cName}.jpg`
-  );
 
   return Array.from(new Set(candidates));
 }
@@ -385,72 +354,4 @@ export function getChoiceMp3CandidateUrls(
   _lang: Language | string = 'EN'
 ): string[] {
   return [];
-}
-
-export function getChoiceVttCandidateUrls(
-  world = 'Atlantis',
-  taleName = '5crystals',
-  chapterNumber = 1,
-  choiceId = 'choice1',
-  lang: Language | string = 'EN'
-): string[] {
-  const cName = `choice${getChoiceNumber(choiceId)}`;
-  const langCode = normalizeLangCode(lang);
-  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
-  const altBase = getChoiceAltBaseFolder(world, chapterNumber, choiceId);
-
-  return Array.from(
-    new Set([
-      `${base}/vtt/${cName}.vtt`,
-      `${base}/vtt/${cName}_${langCode}.vtt`,
-      `${base}/${cName}_${langCode}.vtt`,
-      `${base}/${cName}.vtt`,
-      `${base}/vvt/${cName}.vtt`,
-      `${altBase}/vtt/${cName}.vtt`,
-    ])
-  );
-}
-
-export function getChoiceFeedbackVttCandidateUrls(
-  world = 'Atlantis',
-  taleName = '5crystals',
-  chapterNumber = 1,
-  choiceId = 'choice1',
-  lang: Language | string = 'EN'
-): string[] {
-  const choiceNum = getChoiceNumber(choiceId);
-  const langCode = normalizeLangCode(lang);
-  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
-  const altBase = getChoiceAltBaseFolder(world, chapterNumber, choiceId);
-
-  const candidates: string[] = [
-    `${base}/vtt/feedback_${langCode}.vtt`,
-    `${base}/vtt/feedback${choiceNum}_${langCode}.vtt`,
-    `${base}/vtt/feedback${choiceNum}.vtt`,
-    `${base}/vtt/feedback.vtt`,
-    `${base}/feedback_${langCode}.vtt`,
-    `${base}/feedback${choiceNum}_${langCode}.vtt`,
-    `${base}/feedback${choiceNum}.vtt`,
-    `${base}/feedback.vtt`,
-    `${base}/vvt/feedback_${langCode}.vtt`,
-    `${base}/vvt/feedback${choiceNum}_${langCode}.vtt`,
-    `${altBase}/vtt/feedback_${langCode}.vtt`,
-    `${altBase}/vtt/feedback${choiceNum}_${langCode}.vtt`,
-    `${altBase}/vtt/feedback${choiceNum}.vtt`,
-    `${altBase}/vtt/feedback.vtt`,
-  ];
-
-  // Fall back to English feedback when another language is requested
-  if (langCode !== 'en') {
-    candidates.push(
-      `${base}/vtt/feedback_en.vtt`,
-      `${base}/vtt/feedback${choiceNum}_en.vtt`,
-      `${base}/feedback_en.vtt`,
-      `${base}/feedback${choiceNum}_en.vtt`,
-      `${altBase}/vtt/feedback_en.vtt`,
-      `${altBase}/vtt/feedback${choiceNum}_en.vtt`
-    );
-  }
-
-  return Array.from(new Set(candidates));
 }
