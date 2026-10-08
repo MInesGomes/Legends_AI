@@ -11,7 +11,6 @@ import {
   ChapterComment,
   Tale,
 } from '../types';
-import { ActItem, getTaleActItems, getAtlantisActItems, getTaleFolderPath } from '../lib/taleData';
 import { ChoiceId, ChapterChoiceConfig, ChapterConfig, resolveChapterChoices } from '../lib/chapterTypes';
 import { resolveChapterConfig, resolveChapterMeta } from '../lib/chapterConfigResolver';
 import {
@@ -21,14 +20,14 @@ import {
 import { FlowStep, ChapterMeta, getNextFlowOutcome, getPrevFlowOutcome } from '../lib/chapterFlowMachine';
 import {
   Act,
-  SUPABASE_BASE_URL,
-  getActMp4CandidateUrls,
-  getChoiceImageUrl,
-  getChoiceMp4CandidateUrls,
+  ATLANTIS_VIDEO_IDS,
+  ATLANTIS_VIDEO_URLS,
   normalizeLangCode,
   realmAtlantisJpg,
   extractYouTubeVideoId,
+  getYouTubeImageUrl,
 } from '../lib/assetRegistry';
+import { applyAudioTrack } from '../lib/youtubeAudioTrack';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
 import { ReadAloudPromptText } from './ReadAloudPromptText';
@@ -121,19 +120,19 @@ export interface ChapterFlowProps {
   initialChapterId?: number;
 }
 
-// Default narrative configuration
+// Default narrative configuration - single source of truth from ATLANTIS_VIDEO_IDS
 export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
     skill: 'Win4All',
-    act0VideoID: '-B_vlZaUDDc',
+    act0VideoID: ATLANTIS_VIDEO_IDS['0:act0'],
     choices: [],
   },
   {
     id: 1,
     skill: 'Proactive',
-    act0VideoID: 'LBCpY7bI638',
-    choices: [],
+    act0VideoID: ATLANTIS_VIDEO_IDS['1:act0'],
+    choices: [ATLANTIS_VIDEO_IDS['1:choice1'], ATLANTIS_VIDEO_IDS['1:choice2']],
   },
   {
     id: 2,
@@ -143,8 +142,12 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 3,
     skill: 'Win4All',
-    act0VideoID: '-64kwqW5q6k',
-    choices: ['7DEPbiuRvuU', 'B4bsJHLc7V0', 'TP1-nip4GiM'],
+    act0VideoID: ATLANTIS_VIDEO_IDS['3:act0'],
+    choices: [
+      ATLANTIS_VIDEO_IDS['3:choice1'],
+      ATLANTIS_VIDEO_IDS['3:choice2'],
+      ATLANTIS_VIDEO_IDS['3:choice3'],
+    ],
   },
 ];
 
@@ -226,41 +229,11 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const syncYouTubeAudioTrack = useCallback(
     (langOverride?: Language) => {
-      const activeLang = langOverride || selectedAudioLang || 'EN';
-      const langCode = normalizeLangCode(activeLang);
-      const langName = LANGUAGE_FULL_NAMES[activeLang]?.EN || 'English';
-
       const player = ytMediaRef.current?.engine;
-      if (player) {
-        try {
-          if (typeof player.getAvailableAudioTracks === 'function' && typeof player.setAudioTrack === 'function') {
-            const tracks = player.getAvailableAudioTracks();
-            if (Array.isArray(tracks) && tracks.length > 0) {
-              const matchingTrack = tracks.find(
-                (t: any) =>
-                  t.languageCode === langCode ||
-                  t.languageCode?.toLowerCase() === langCode.toLowerCase() ||
-                  t.id?.includes(langCode)
-              );
-              if (matchingTrack) {
-                player.setAudioTrack(matchingTrack.id);
-              }
-            }
-          }
-          if (typeof player.setOption === 'function') {
-            player.setOption('audioTrack', 'track', { languageCode: langCode });
-            player.setOption('audio', 'track', { languageCode: langCode });
-          }
-        } catch {}
-      }
-
-      if (ytIframeRef.current?.contentWindow) {
-        sendYtCommand('setAudioTrack', [{ id: `${langCode}.4`, languageCode: langCode, name: langName }]);
-        sendYtCommand('setOption', ['audio', 'track', { languageCode: langCode }]);
-        sendYtCommand('setOption', ['audioTrack', 'track', { languageCode: langCode }]);
-      }
+      if (!player) return;
+      void applyAudioTrack(player, normalizeLangCode(langOverride || selectedAudioLang || 'EN'));
     },
-    [selectedAudioLang, sendYtCommand]
+    [selectedAudioLang]
   );
 
   const syncYouTubeSubtitles = useCallback(
@@ -296,7 +269,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const [isYtPlaying, setIsYtPlaying] = useState<boolean>(false);
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
   const [isMediaNotFound, setIsMediaNotFound] = useState<boolean>(false);
-  const [candidateVideoIdx, setCandidateVideoIdx] = useState<number>(0);
 
   // Comments drawer
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
@@ -415,7 +387,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           characterName: 'Elion',
           gender: 'male',
           type: 'character',
-          videoUrl: currentWorld !== 'ElDorado' ? 'https://youtu.be/9Ozmoyei2-A' : undefined,
+          videoUrl: currentWorld !== 'ElDorado' ? ATLANTIS_VIDEO_URLS['0:male_act'] : undefined,
         };
       }
       if (currentStep === 'female_act') {
@@ -446,38 +418,29 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     };
   }, [currentChapterNumber, currentStep, effectiveGender, currentChapterConfig, selectedChoiceId, currentLang]);
 
-  // Construct URLs for the current act media
-  const folderPath = useMemo(() => {
-    return getTaleFolderPath(tale?.id || 'tale-5-crystals', tale?.realmId);
-  }, [tale]);
-
-  const videoCandidates = useMemo(() => {
+  // Resolve active YouTube video URL directly from single source of truth
+  const currentVideoUrl = useMemo(() => {
     if (currentStep === 'choice_act') {
       const activeChoice = resolvedChoices.find((c) => c.id === selectedChoiceId);
-      const choiceCandidates = getChoiceMp4CandidateUrls(
-        currentWorld,
-        currentTaleName,
-        currentChapterNumber,
-        selectedChoiceId
+      return (
+        activeChoice?.videoUrl ||
+        (activeChoice?.videoID ? `https://youtu.be/${activeChoice.videoID}` : undefined) ||
+        ATLANTIS_VIDEO_URLS[`${currentChapterNumber}:${selectedChoiceId}`] ||
+        ''
       );
-      if (activeChoice?.videoUrl && !choiceCandidates.includes(activeChoice.videoUrl)) {
-        return [activeChoice.videoUrl, ...choiceCandidates];
-      }
-      return choiceCandidates;
     }
-    const actCandidates = getActMp4CandidateUrls(currentActData, folderPath);
-    const act0VideoUrl = currentChapterConfig?.act0VideoID
-      ? `https://youtu.be/${currentChapterConfig.act0VideoID}`
-      : currentChapterConfig?.act0VideoUrl;
-    if (act0VideoUrl && (currentStep === 'act0' || currentActData.act === 'act0') && currentWorld !== 'ElDorado') {
-      if (!actCandidates.includes(act0VideoUrl)) {
-        return [act0VideoUrl, ...actCandidates];
-      }
+    if (currentStep === 'act0' || currentActData.act === 'act0') {
+      return (
+        (currentChapterConfig?.act0VideoID ? `https://youtu.be/${currentChapterConfig.act0VideoID}` : undefined) ||
+        currentChapterConfig?.act0VideoUrl ||
+        currentActData.videoUrl ||
+        ATLANTIS_VIDEO_URLS[`${currentChapterNumber}:act0`] ||
+        ''
+      );
     }
-    return actCandidates;
-  }, [currentStep, currentWorld, currentTaleName, currentChapterNumber, selectedChoiceId, currentActData, folderPath, currentChapterConfig, resolvedChoices]);
+    return currentActData.videoUrl || ATLANTIS_VIDEO_URLS[`${currentChapterNumber}:${currentActData.act}`] || '';
+  }, [currentStep, resolvedChoices, selectedChoiceId, currentChapterNumber, currentChapterConfig, currentActData]);
 
-  const currentVideoUrl = videoCandidates[candidateVideoIdx] || videoCandidates[0];
   const currentYouTubeId = useMemo(() => {
     return extractYouTubeVideoId(currentVideoUrl);
   }, [currentVideoUrl]);
@@ -485,11 +448,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const isComingSoon = isVideoStep && (!currentYouTubeId || isMediaNotFound);
   const isVideoPlaying = isVideoStep && !isComingSoon && isYtPlaying && !isVideoFinished;
 
-
-
-  // Reset media & candidates when step, chapter, or choice changes
+  // Reset media when step, chapter, or choice changes
   useEffect(() => {
-    setCandidateVideoIdx(0);
     setIsMediaNotFound(false);
     setIsVideoFinished(false);
     setIsYtPlaying(false);
@@ -502,12 +462,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   };
 
   const handleVideoError = () => {
-    if (currentYouTubeId) return;
-    if (candidateVideoIdx + 1 < videoCandidates.length) {
-      setCandidateVideoIdx((prev) => prev + 1);
-    } else {
-      setIsMediaNotFound(true);
-    }
+    setIsMediaNotFound(true);
   };
 
   // Synchronize YouTube video autoplay, play/pause, mute/volume, and subtitles
@@ -662,7 +617,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const handleSelectChoice = (choiceId: ChoiceId) => {
     hasCelebratedFeedbackRef.current = '';
     setSelectedChoiceId(choiceId);
-    setCandidateVideoIdx(0);
     setIsVideoFinished(false);
     setIsMediaNotFound(false);
     setFeedbackParagraphs([]);
@@ -679,15 +633,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   // Language selectors
   const handleAudioLanguageSelected = (newLang: Language) => {
-    if (currentYouTubeId && ytCurrentTimeRef.current > 1 && !isVideoFinished) {
-      setYtStartSeconds(Math.floor(ytCurrentTimeRef.current));
-    } else {
-      setYtStartSeconds(0);
-    }
     setSelectedAudioLang(newLang);
-    setIsVideoFinished(false);
-    if (currentYouTubeId) {
-      syncYouTubeAudioTrack(newLang);
+    const player = ytMediaRef.current?.engine;
+    if (player) {
+      void applyAudioTrack(player, normalizeLangCode(newLang), { force: true });
     }
     if (onLanguageChange) onLanguageChange(newLang);
   };
@@ -980,13 +929,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
               {shuffledAvailableChoices.map((choice, idx) => {
                 const choiceImgUrl =
                   choice.imageUrl ||
-                  (choice.videoID ? `https://img.youtube.com/vi/${choice.videoID}/hqdefault.jpg` : '') ||
-                  getChoiceImageUrl(
-                    currentWorld,
-                    currentTaleName,
-                    currentChapterNumber,
-                    choice.id
-                  );
+                  (choice.videoID ? getYouTubeImageUrl(choice.videoID) : '') ||
+                  realmAtlantisJpg;
 
                 return (
                   <button

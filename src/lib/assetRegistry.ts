@@ -45,7 +45,9 @@ export function getYouTubeImageUrl(id?: string | null): string | undefined {
 export const ATLANTIS_VIDEO_IDS: Record<string, string> = {
   '0:act0': '-B_vlZaUDDc',
   '0:male_act': '9Ozmoyei2-A',
-  '1:act0': 'LBCpY7bI638',
+  '1:act0': 'X1O57PjE7MY',
+  '1:choice1': 'f5-jQw-id5w',
+  '1:choice2': 'oflXgBK4LDs',
   '3:act0': '-64kwqW5q6k',
   '3:choice1': '7DEPbiuRvuU',
   '3:choice2': 'B4bsJHLc7V0',
@@ -58,7 +60,7 @@ export const ATLANTIS_VIDEO_URLS: Record<string, string> = Object.fromEntries(
 );
 
 /** 5 Crystals Tale Card image loaded from youtube act0 '0:act0': '-B_vlZaUDDc' */
-export const fiveCrystalsJpg = getYouTubeImageUrl(ATLANTIS_VIDEO_IDS['0:act0']) || 'https://img.youtube.com/vi/-B_vlZaUDDc/hqdefault.jpg';
+export const fiveCrystalsJpg = getYouTubeImageUrl(ATLANTIS_VIDEO_IDS['0:act0']) || '';
 
 // Tales Cover Images
 export const taleBabyJpg = `${SUPABASE_BASE_URL}/DadMom/tale_baby.jpg`;
@@ -109,25 +111,8 @@ function getActName(act: Act): string {
 }
 
 /* -------------------------------------------------------------------------- */
-/* YouTube sources (single source of truth)                                   */
+/* YouTube sources (single source of truth: ATLANTIS_VIDEO_IDS)              */
 /* -------------------------------------------------------------------------- */
-
-/**
- * Loaded Video Sources for Chapter 3
- */
-export const CHAPTER_3_MEDIA_IDS = {
-  act0: ATLANTIS_VIDEO_IDS['3:act0'],
-  choice1: ATLANTIS_VIDEO_IDS['3:choice1'],
-  choice2: ATLANTIS_VIDEO_IDS['3:choice2'],
-  choice3: ATLANTIS_VIDEO_IDS['3:choice3'],
-};
-
-export const CHAPTER_3_MEDIA_URLS = {
-  act0: ATLANTIS_VIDEO_URLS['3:act0'],
-  choice1: ATLANTIS_VIDEO_URLS['3:choice1'],
-  choice2: ATLANTIS_VIDEO_URLS['3:choice2'],
-  choice3: ATLANTIS_VIDEO_URLS['3:choice3'],
-};
 
 const YOUTUBE_ID_PATTERN = /^[\w-]{11}$/;
 const YOUTUBE_HOSTS = new Set(['youtube.com', 'm.youtube.com', 'youtube-nocookie.com']);
@@ -201,50 +186,21 @@ export function getYouTubeAudioLangCode(lang: Language | string = 'EN'): string 
 
 /**
  * Constructs the base folder path for an Act.
- * e.g. folderPath + chapter + "/" + act
- * => "https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/Atlantis/5crystals/chapter0/female_act"
  */
 export function getActBaseFolder(act: Act, customFolder: string = ATLANTIS_5CRYSTALS_FOLDER_PATH): string {
   return `${stripTrailingSlashes(customFolder)}${act.chapter}/${trimSlashes(act.act)}`;
 }
 
 /**
- * Constructs MP3 URL for an Act and Language.
- * (Supabase MP3 retrieval removed - only YouTube audio is used).
+ * Constructs MP4 video URL for an Act using the single source of truth (ATLANTIS_VIDEO_URLS).
  */
-export function getActMp3Url(_act: Act, _lang: Language | string = 'EN', _customFolder?: string): string {
-  return '';
+export function getActMp4Url(act: Act, _customFolder?: string): string {
+  return act.videoUrl || ATLANTIS_VIDEO_URLS[`${act.chapter}:${getActName(act)}`] || '';
 }
 
-/**
- * Candidate MP3 URLs for act voiceover.
- * (Supabase MP3 retrieval removed - only YouTube audio is used).
- */
-export function getActMp3CandidateUrls(_act: Act, _lang: Language | string = 'EN', _customFolder?: string): string[] {
-  return [];
-}
-
-/**
- * Constructs MP4 video URL for an Act. Only returns YouTube video URLs.
- */
-export function getActMp4Url(act: Act, customFolder?: string): string {
-  return getActMp4CandidateUrls(act, customFolder)[0] || '';
-}
-
-/**
- * Candidate video URLs for playback. ONLY returns valid YouTube video URLs.
- * If no YouTube video exists, returns an empty array.
- */
-export function getActMp4CandidateUrls(act: Act, customFolder?: string): string[] {
-  const folder = (customFolder || '').toLowerCase();
-  const useAtlantisVideos = !folder.includes('eldorado') || folder.includes('atlantis');
-
-  return uniqueYouTubeUrls([
-    // Custom video URL configured on the act
-    act.videoUrl,
-    // Built-in Atlantis sources (chapters 0, 1 and 3)
-    useAtlantisVideos ? getAtlantisVideoUrl(act.chapter, getActName(act)) : undefined,
-  ]);
+export function getActMp4CandidateUrls(act: Act, _customFolder?: string): string[] {
+  const url = getActMp4Url(act);
+  return url ? [url] : [];
 }
 
 /**
@@ -262,8 +218,8 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
     videoUrl: ATLANTIS_VIDEO_URLS['0:male_act'],
   },
   { chapter: 1, act: 'act0', type: 'dialogue', videoUrl: ATLANTIS_VIDEO_URLS['1:act0'] },
-  { chapter: 1, act: 'choice1', type: 'choice' },
-  { chapter: 1, act: 'choice2', type: 'choice' },
+  { chapter: 1, act: 'choice1', type: 'choice', videoUrl: ATLANTIS_VIDEO_URLS['1:choice1'] },
+  { chapter: 1, act: 'choice2', type: 'choice', videoUrl: ATLANTIS_VIDEO_URLS['1:choice2'] },
   { chapter: 1, act: 'choice3', type: 'choice' },
   { chapter: 1, act: 'choice4', type: 'choice' },
   { chapter: 2, act: 'act0', type: 'narrative' },
@@ -278,80 +234,32 @@ export const ATLANTIS_STORY_ACTS: Act[] = [
 
 /* -------------------------------------------------------------------------- */
 /* Choice media helpers                                                       */
-/* URL Pattern for choice assets (thumbnails, images, audio).                 */
 /* -------------------------------------------------------------------------- */
 
-function getChoiceNumber(choiceId: string): string {
-  return choiceId.replace('choice', '') || '1';
-}
-
-export function getChoiceBaseFolder(
-  world = 'Atlantis',
-  taleName = '5crystals',
-  chapterNumber = 1,
-  choiceId = 'choice1'
-): string {
-  return `${SUPABASE_BASE_URL}/${world}/${taleName}/chapter${chapterNumber}/choice${getChoiceNumber(choiceId)}`;
-}
-
-/** Alternate (legacy, misspelled) folder used as a fallback. */
-function getChoiceAltBaseFolder(world: string, chapterNumber: number, choiceId: string): string {
-  return `${SUPABASE_BASE_URL}/${world}/5Ctrystals/chapter${chapterNumber}/choice${getChoiceNumber(choiceId)}`;
-}
-
-/** Built-in YouTube video for an Atlantis chapter 3 choice, if any. */
-function getChoiceVideoUrl(world: string, chapterNumber: number, choiceId: string): string | undefined {
-  if (chapterNumber !== 3 || !isAtlantisWorld(world)) return undefined;
-  return getAtlantisVideoUrl(chapterNumber, `choice${getChoiceNumber(choiceId)}`);
+/** Built-in YouTube video for an Atlantis choice. */
+export function getChoiceVideoUrl(_world: string | number, chapterNumber: number, choiceId: string): string | undefined {
+  return ATLANTIS_VIDEO_URLS[`${chapterNumber}:${choiceId}`];
 }
 
 /**
- * Constructs the primary image URL for a choice button,
- * e.g. .../Atlantis/5crystals/chapter1/choice1/choice1.jpg
+ * Constructs the primary image URL for a choice button using its YouTube thumbnail.
  */
 export function getChoiceImageUrl(
-  world = 'Atlantis',
-  taleName = '5crystals',
+  _world = 'Atlantis',
+  _taleName = '5crystals',
   chapterNumber = 1,
   choiceId = 'choice1'
 ): string {
-  const cName = `choice${getChoiceNumber(choiceId)}`;
-  return `${getChoiceBaseFolder(world, taleName, chapterNumber, choiceId)}/${cName}.jpg`;
-}
-
-export function getChoiceImageCandidateUrls(
-  world = 'Atlantis',
-  taleName = '5crystals',
-  chapterNumber = 1,
-  choiceId = 'choice1'
-): string[] {
-  const cName = `choice${getChoiceNumber(choiceId)}`;
-  const base = getChoiceBaseFolder(world, taleName, chapterNumber, choiceId);
-  const altBase = getChoiceAltBaseFolder(world, chapterNumber, choiceId);
-
-  // For All Chapter choices, include the YouTube video thumbnail first
-  const ytId = extractYouTubeVideoId(getChoiceVideoUrl(world, chapterNumber, choiceId));
-  const candidates: string[] = ytId ? [`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`] : [];
-
-  return Array.from(new Set(candidates));
+  const ytId = ATLANTIS_VIDEO_IDS[`${chapterNumber}:${choiceId}`];
+  return ytId ? getYouTubeImageUrl(ytId) || realmAtlantisJpg : realmAtlantisJpg;
 }
 
 export function getChoiceMp4CandidateUrls(
-  world = 'Atlantis',
+  _world = 'Atlantis',
   _taleName = '5crystals',
   chapterNumber = 1,
   choiceId = 'choice1'
 ): string[] {
-  // Only valid YouTube video URLs
-  return uniqueYouTubeUrls([getChoiceVideoUrl(world, chapterNumber, choiceId)]);
-}
-
-export function getChoiceMp3CandidateUrls(
-  _world = 'Atlantis',
-  _taleName = '5crystals',
-  _chapterNumber = 1,
-  _choiceId = 'choice1',
-  _lang: Language | string = 'EN'
-): string[] {
-  return [];
+  const url = ATLANTIS_VIDEO_URLS[`${chapterNumber}:${choiceId}`];
+  return url ? [url] : [];
 }

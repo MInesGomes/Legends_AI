@@ -1,6 +1,7 @@
 import React, { Component, forwardRef, useEffect, useRef, useMemo } from 'react';
 import YouTube, { type YouTubeProps, type YouTubeEvent, type YouTubePlayer } from 'react-youtube';
 import { extractYouTubeVideoId, normalizeLangCode } from '../lib/assetRegistry';
+import { applyAudioTrack } from '../lib/youtubeAudioTrack';
 
 export interface YouTubeAdapter {
   play: () => Promise<any>;
@@ -10,6 +11,8 @@ export interface YouTubeAdapter {
   volume: number;
   engine: YouTubePlayer | null;
   getIframe: () => HTMLIFrameElement | null;
+  setAudioTrack: (langOrId: string) => void;
+  getAvailableAudioTracks: () => any[];
 }
 
 interface BoundaryProps {
@@ -119,7 +122,15 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
       : (engineParams.cc_lang_pref || engineParams.ccLang || hlLang || undefined);
     const ccLoadPolicy = engineParams.cc_load_policy !== undefined ? engineParams.cc_load_policy : 1;
 
+    const initialRef = useRef({ hl: hlLang, cc: ccLang, start: startSeconds });
+    const lastVideoRef = useRef(effectiveVideoId);
+    if (lastVideoRef.current !== effectiveVideoId) {
+      lastVideoRef.current = effectiveVideoId;
+      initialRef.current = { hl: hlLang, cc: ccLang, start: startSeconds };
+    }
+
     const opts: YouTubeProps['opts'] = useMemo(() => {
+      const init = initialRef.current;
       return {
         width: '100%',
         height: '100%',
@@ -136,12 +147,12 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
           playsinline: 1,
           origin: typeof window !== 'undefined' ? window.location.origin : undefined,
           widget_referrer: typeof window !== 'undefined' ? window.location.origin : undefined,
-          ...(startSeconds > 0 ? { start: startSeconds } : {}),
-          ...(hlLang ? { hl: hlLang } : {}),
-          ...(ccLang ? { cc_lang_pref: ccLang } : {}),
+          ...(init.start > 0 ? { start: init.start } : {}),
+          ...(init.hl ? { hl: init.hl } : {}),
+          ...(init.cc ? { cc_lang_pref: init.cc } : {}),
         },
       };
-    }, [autoplay, startSeconds, hlLang, ccLang, ccLoadPolicy]);
+    }, [autoplay, effectiveVideoId, ccLoadPolicy]); // NOT the language
 
     const stopTicker = () => {
       if (tickerRef.current) {
@@ -188,6 +199,8 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
           set volume(_vol: number) {},
           engine: null,
           getIframe: () => iframeRef.current,
+          setAudioTrack: (_langOrId: string) => {},
+          getAvailableAudioTracks: () => [],
         };
       }
     }, [mediaRef, muted]);
@@ -289,6 +302,17 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
         },
         engine: player,
         getIframe: () => iframeRef.current,
+        setAudioTrack: (langOrId: string) => {
+          void applyAudioTrack(player, langOrId, { force: true });
+        },
+        getAvailableAudioTracks: () => {
+          try {
+            if (player && typeof player.getAvailableAudioTracks === 'function') {
+              return player.getAvailableAudioTracks() || [];
+            }
+          } catch {}
+          return [];
+        },
       };
 
       if (mediaRef) {
@@ -304,26 +328,7 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
             player.setOption('captions', 'track', { languageCode: ccLang });
             player.setOption('cc', 'track', { languageCode: ccLang });
           }
-          if (hlLang) {
-            if (typeof player.setOption === 'function') {
-              player.setOption('audioTrack', 'track', { languageCode: hlLang });
-              player.setOption('audio', 'track', { languageCode: hlLang });
-            }
-            if (typeof player.getAvailableAudioTracks === 'function' && typeof player.setAudioTrack === 'function') {
-              const tracks = player.getAvailableAudioTracks();
-              if (Array.isArray(tracks) && tracks.length > 0) {
-                const matchingTrack = tracks.find(
-                  (t: any) =>
-                    t.languageCode === hlLang ||
-                    t.languageCode?.toLowerCase() === hlLang.toLowerCase() ||
-                    t.id?.includes(hlLang)
-                );
-                if (matchingTrack) {
-                  player.setAudioTrack(matchingTrack.id);
-                }
-              }
-            }
-          }
+          if (hlLang) void applyAudioTrack(player, hlLang);
         }
       } catch {}
 
@@ -350,42 +355,22 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
 
     // Synchronize subtitles and audio track whenever language changes
     useEffect(() => {
-      if (!playerRef.current) return;
       const player = playerRef.current;
+      if (!player) return;
       try {
-        if (typeof player.loadModule === 'function') {
-          player.loadModule('captions');
-        }
+        if (typeof player.loadModule === 'function') player.loadModule('captions');
         if (ccLang && typeof player.setOption === 'function') {
           player.setOption('captions', 'track', { languageCode: ccLang });
           player.setOption('cc', 'track', { languageCode: ccLang });
         }
-        if (hlLang) {
-          if (typeof player.setOption === 'function') {
-            player.setOption('audioTrack', 'track', { languageCode: hlLang });
-            player.setOption('audio', 'track', { languageCode: hlLang });
-          }
-          if (typeof player.getAvailableAudioTracks === 'function' && typeof player.setAudioTrack === 'function') {
-            const tracks = player.getAvailableAudioTracks();
-            if (Array.isArray(tracks) && tracks.length > 0) {
-              const matchingTrack = tracks.find(
-                (t: any) =>
-                  t.languageCode === hlLang ||
-                  t.languageCode?.toLowerCase() === hlLang.toLowerCase() ||
-                  t.id?.includes(hlLang)
-              );
-              if (matchingTrack) {
-                player.setAudioTrack(matchingTrack.id);
-              }
-            }
-          }
-        }
       } catch {}
+      if (hlLang) void applyAudioTrack(player, hlLang);
     }, [hlLang, ccLang]);
 
     const handlePlay = (event: YouTubeEvent<number>) => {
       if (event.target) {
         startTicker(event.target);
+        if (hlLang) void applyAudioTrack(event.target, hlLang);
       }
       onPlay?.(event);
       onPlaying?.(event);
