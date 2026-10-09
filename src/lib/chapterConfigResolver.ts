@@ -1,47 +1,55 @@
 /**
  * chapterConfigResolver.ts
  *
- * Resolves the effective ChapterConfig (choices, hasGenderActs) for a given
- * chapter number, world and tale — including the built-in defaults for
- * "ElDorado / the_torch" and the generic four-choice fallback used by every
- * other tale that doesn't define its own chapterConfigs.
- *
- * This used to be inlined as a `useMemo` inside ChapterFlow.tsx and only
- * ever looked at the *current* chapter. Navigating to a neighbouring chapter
- * (e.g. going "back" from Chapter 1 into Chapter 0) needs the exact same
- * resolution for a chapter that isn't the current one, so it's pulled out
- * here as a plain function both call sites can share.
+ * Generic chapter configuration resolver for every world and story.
+ * Single source of truth for narrative chapter configurations backed by VIDEO_IDS.
  */
 import { ChapterConfig } from './chapterTypes';
+import { VIDEO_IDS } from './assetRegistry';
 
-export function isElDoradoTorchTale(world: string, taleName: string): boolean {
-  return world === 'ElDorado' && taleName === 'the_torch';
+export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
+  {
+    id: 0,
+    skill: 'Win4All',
+    hasGenderActs: true,
+    act0VideoID: VIDEO_IDS['0:act0'],
+    choices: [],
+  },
+  {
+    id: 1,
+    skill: 'Proactive',
+    act0VideoID: VIDEO_IDS['1:act0'],
+    choices: [VIDEO_IDS['1:choice1'], VIDEO_IDS['1:choice2']],
+  },
+  {
+    id: 2,
+    skill: 'Plan',
+    choices: [],
+  },
+  {
+    id: 3,
+    skill: 'Win4All',
+    act0VideoID: VIDEO_IDS['3:act0'],
+    choices: [
+      VIDEO_IDS['3:choice1'],
+      VIDEO_IDS['3:choice2'],
+      VIDEO_IDS['3:choice3'],
+    ],
+  },
+];
+
+export function chapterHasAvailableChoices(config: ChapterConfig): boolean {
+  return Boolean(config.choices && config.choices.some((c) => typeof c === 'string' && c.trim().length > 0));
 }
 
 export function resolveChapterConfig(
   chapterNumber: number,
-  chapterConfigs: ChapterConfig[],
-  world: string,
-  taleName: string
+  chapterConfigs: ChapterConfig[] = DEFAULT_CHAPTER_CONFIGS
 ): ChapterConfig {
-  const isElDoradoTorch = isElDoradoTorchTale(world, taleName);
   const custom = chapterConfigs.find((cfg) => cfg.id === chapterNumber);
-
   if (custom) {
-    if (isElDoradoTorch && chapterNumber === 0 && (!custom.choices || custom.choices.length === 0)) {
-      return { ...custom, hasGenderActs: false, choices: [] };
-    }
     return custom;
   }
-
-  if (isElDoradoTorch) {
-    return {
-      id: chapterNumber,
-      hasGenderActs: false,
-      choices: [],
-    };
-  }
-
   return {
     id: chapterNumber,
     hasGenderActs: chapterNumber === 0,
@@ -49,21 +57,15 @@ export function resolveChapterConfig(
   };
 }
 
-export function chapterHasAvailableChoices(config: ChapterConfig): boolean {
-  return Boolean(config.choices && config.choices.some((c) => typeof c === 'string' && c.trim().length > 0));
-}
-
 /** hasGenderActs / hasChoices for the flow machine, for an arbitrary chapter number. */
 export function resolveChapterMeta(
   chapterNumber: number,
-  chapterConfigs: ChapterConfig[],
-  world: string,
-  taleName: string
+  chapterConfigs: ChapterConfig[] = DEFAULT_CHAPTER_CONFIGS
 ): { hasGenderActs: boolean; hasChoices: boolean } {
-  const config = resolveChapterConfig(chapterNumber, chapterConfigs, world, taleName);
-  const isElDorado = world === 'ElDorado';
+  const config = resolveChapterConfig(chapterNumber, chapterConfigs);
   return {
-    hasGenderActs: config.hasGenderActs ?? (chapterNumber === 0 && !isElDorado),
+    hasGenderActs: config.hasGenderActs ?? (chapterNumber === 0),
     hasChoices: chapterHasAvailableChoices(config),
   };
 }
+

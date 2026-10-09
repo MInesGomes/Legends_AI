@@ -142,7 +142,10 @@ export function getNextFlowOutcome(
   isBestChoice = false
 ): FlowOutcome {
   if (position.step === 'choice_act') {
-    return goto(position.chapterNumber, hasFeedback ? 'choice_feedback' : 'choices');
+    if (hasFeedback) {
+      return goto(position.chapterNumber, 'choice_feedback');
+    }
+    return isBestChoice ? { kind: 'advance-chapter' } : goto(position.chapterNumber, 'choices');
   }
   if (position.step === 'choice_feedback') {
     // When the user completed the best choice (choice1), advance to the next chapter;

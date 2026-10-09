@@ -223,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
               {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-500 fill-amber-400" />}
             </button>
 
-            {/* Language Switcher matching ActPage Language button and dropdown */}
+            {/* Language Switcher dropdown */}
             <FlagLanguageDropdown
               id="header-language-dropdown"
               type="language"

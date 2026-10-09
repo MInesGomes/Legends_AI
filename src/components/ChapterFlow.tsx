@@ -12,7 +12,11 @@ import {
   Tale,
 } from '../types';
 import { ChoiceId, ChapterChoiceConfig, ChapterConfig, resolveChapterChoices } from '../lib/chapterTypes';
-import { resolveChapterConfig, resolveChapterMeta } from '../lib/chapterConfigResolver';
+import {
+  DEFAULT_CHAPTER_CONFIGS,
+  resolveChapterConfig,
+  resolveChapterMeta,
+} from '../lib/chapterConfigResolver';
 import {
   getChoiceLocalizedTitle,
   getChoiceLocalizedSubtitle,
@@ -20,12 +24,12 @@ import {
 import { FlowStep, ChapterMeta, getNextFlowOutcome, getPrevFlowOutcome } from '../lib/chapterFlowMachine';
 import {
   Act,
-  ATLANTIS_VIDEO_IDS,
-  ATLANTIS_VIDEO_URLS,
+  VIDEO_IDS,
+  getCachedYouTubeTitle,
   normalizeLangCode,
   realmAtlantisJpg,
-  extractYouTubeVideoId,
   getYouTubeImageUrl,
+  getYouTubeVideoUrl,
 } from '../lib/assetRegistry';
 import { applyAudioTrack } from '../lib/youtubeAudioTrack';
 import { CommentsDrawer } from './CommentsDrawer';
@@ -59,37 +63,6 @@ export const LANGUAGE_FULL_NAMES: Record<string, Record<Language, string>> = {
   NL: { EN: 'Dutch', ES: 'Holandés', IT: 'Olandese', PT: 'Holandês', NL: 'Nederlands' },
 };
 
-export function getTaleWorldAndName(tale: Tale | undefined): { world: string; taleName: string } {
-  if (!tale) return { world: 'Atlantis', taleName: '5crystals' };
-  const realmId = tale.realmId || '';
-  const taleId = tale.id || '';
-  const taleTitle = (tale.title || '').toLowerCase();
-
-  if (realmId === 'realm-work') {
-    return { world: 'Leader', taleName: taleId === 'tale-job-quest' ? 'job_quest' : 'startup_winner' };
-  }
-  if (realmId === 'realm-marriage') {
-    return { world: 'Marriage', taleName: taleId === 'tale-one-hart' ? 'one_hart' : 'pride_prejudice' };
-  }
-  if (realmId === 'realm-dad-mom') {
-    return { world: 'DadMom', taleName: taleId === 'tale-baby' ? 'baby' : taleId === 'tale-teens' ? 'teens' : 'child' };
-  }
-  if (
-    realmId === 'realm-eldorado' ||
-    realmId === 'realm-el-dorado' ||
-    realmId.includes('dorado') ||
-    taleId === 'tale-the-torch' ||
-    taleId === 'tale-golden-city' ||
-    taleTitle.includes('torch')
-  ) {
-    return { world: 'ElDorado', taleName: 'the_torch' };
-  }
-  if (realmId === 'realm-futureland' || realmId === 'realm-future-land') {
-    return { world: 'FutureLand', taleName: 'ai_horizon' };
-  }
-  return { world: 'Atlantis', taleName: '5crystals' };
-}
-
 // ChoiceId / ChapterChoiceConfig / ChapterConfig now live in lib/chapterTypes.ts;
 // re-exported here so existing imports of `from './components/ChapterFlow'` keep working.
 export type { ChoiceId, ChapterChoiceConfig, ChapterConfig };
@@ -120,36 +93,8 @@ export interface ChapterFlowProps {
   initialChapterId?: number;
 }
 
-// Default narrative configuration - single source of truth from ATLANTIS_VIDEO_IDS
-export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
-  {
-    id: 0,
-    skill: 'Win4All',
-    act0VideoID: ATLANTIS_VIDEO_IDS['0:act0'],
-    choices: [],
-  },
-  {
-    id: 1,
-    skill: 'Proactive',
-    act0VideoID: ATLANTIS_VIDEO_IDS['1:act0'],
-    choices: [ATLANTIS_VIDEO_IDS['1:choice1'], ATLANTIS_VIDEO_IDS['1:choice2']],
-  },
-  {
-    id: 2,
-    skill: 'Plan',
-    choices: [],
-  },
-  {
-    id: 3,
-    skill: 'Win4All',
-    act0VideoID: ATLANTIS_VIDEO_IDS['3:act0'],
-    choices: [
-      ATLANTIS_VIDEO_IDS['3:choice1'],
-      ATLANTIS_VIDEO_IDS['3:choice2'],
-      ATLANTIS_VIDEO_IDS['3:choice3'],
-    ],
-  },
-];
+// Re-export single source of truth for narrative chapter configurations
+export { DEFAULT_CHAPTER_CONFIGS };
 
 const ALL_SUPPORTED_LANGUAGES: Language[] = ['EN', 'ES', 'NL', 'IT', 'PT'];
 
@@ -165,7 +110,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   onEarnLanguagePoints,
   onChooseBestChoice,
   onReadAloudChoice,
-  onRecordView,
   commentsMap,
   onAddComment,
   onEditComment,
@@ -282,18 +226,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   const crawlContainerRef = useRef<HTMLDivElement | null>(null);
   const crawlSentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // Derive world and tale name for Supabase storage paths
-  const { world: currentWorld, taleName: currentTaleName } = useMemo(() => {
-    return getTaleWorldAndName(tale);
-  }, [tale]);
-
-  // Find the active chapter configuration (ElDorado defaults, generic 4-choice
-  // fallback, etc. all live in lib/chapterConfigResolver.ts so the same rules
-  // apply whether we're resolving the *current* chapter or a neighbouring one
-  // during back/forward navigation).
+  // Find the active chapter configuration for this chapter
   const currentChapterConfig = useMemo(() => {
-    return resolveChapterConfig(currentChapterNumber, chapterConfigs, currentWorld, currentTaleName);
-  }, [chapterConfigs, currentChapterNumber, currentWorld, currentTaleName]);
+    return resolveChapterConfig(currentChapterNumber, chapterConfigs);
+  }, [chapterConfigs, currentChapterNumber]);
 
   const maxChapterId = useMemo(() => {
     if (!chapterConfigs || chapterConfigs.length === 0) return 1;
@@ -307,14 +243,14 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   useEffect(() => {
     if (currentStep === 'choice_feedback' && isBestChoice(selectedChoiceId)) {
-      const celebrationKey = `${currentWorld}-${currentChapterNumber}-${selectedChoiceId}`;
+      const celebrationKey = `${tale?.id || 'tale'}-${currentChapterNumber}-${selectedChoiceId}`;
       if (hasCelebratedFeedbackRef.current !== celebrationKey) {
         hasCelebratedFeedbackRef.current = celebrationKey;
         fireVictoryConfetti();
         playVictorySound();
       }
     }
-  }, [currentStep, selectedChoiceId, currentChapterNumber, currentWorld]);
+  }, [currentStep, selectedChoiceId, currentChapterNumber, tale]);
 
   const isFeedbackMode = currentStep === 'choice_feedback';
   const isVideoStep = currentStep !== 'choices' && currentStep !== 'choice_feedback';
@@ -353,8 +289,6 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   }, [currentStep, isCrawlFinished]);
 
   // Available choices in SHUFFLE order
-  // "render buttons for each AVAILABLE choice (in shuffle order choice1, choice2, choice3, choice4)"
-  // "If a chapter defines only choice1 and choice2 as available, render ONLY 2 buttons - omit unavailable choices."
   const resolvedChoices = useMemo(() => {
     return resolveChapterChoices(currentChapterConfig);
   }, [currentChapterConfig]);
@@ -376,36 +310,29 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       if (currentStep === 'act0') {
         return {
           chapter: 0,
-          act: 'act0',
-          type: 'narrative',
+          id: 'narrative',
         };
       }
       if (currentStep === 'male_act') {
         return {
           chapter: 0,
-          act: 'male_act',
-          characterName: 'Elion',
-          gender: 'male',
-          type: 'character',
-          videoUrl: currentWorld !== 'ElDorado' ? ATLANTIS_VIDEO_URLS['0:male_act'] : undefined,
+          type: 'male',
+          videoUrl: getYouTubeVideoUrl(VIDEO_IDS['0:male_act']),
         };
       }
       if (currentStep === 'female_act') {
         return {
           chapter: 0,
-          act: 'female_act',
-          characterName: 'Alethea',
-          gender: 'female',
-          type: 'character',
+          type: 'female',
+          videoUrl: getYouTubeVideoUrl(VIDEO_IDS['0:female_act']),
         };
       }
     }
 
     if (currentStep === 'choice_act' || currentStep === 'choice_feedback') {
-      const choiceNum = selectedChoiceId.replace('choice', '') || '1';
       return {
         chapter: currentChapterNumber,
-        act: `choice${choiceNum}`,
+        act: selectedChoiceId,
         type: 'choice',
       };
     }
@@ -416,40 +343,41 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       act: 'act0',
       type: 'dialogue',
     };
-  }, [currentChapterNumber, currentStep, effectiveGender, currentChapterConfig, selectedChoiceId, currentLang]);
+  }, [currentChapterNumber, currentStep, selectedChoiceId]);
 
   // Resolve active YouTube video URL directly from single source of truth
   const currentVideoUrl = useMemo(() => {
     if (currentStep === 'choice_act') {
       const activeChoice = resolvedChoices.find((c) => c.id === selectedChoiceId);
-      return (
-        activeChoice?.videoUrl ||
-        (activeChoice?.videoID ? `https://youtu.be/${activeChoice.videoID}` : undefined) ||
-        ATLANTIS_VIDEO_URLS[`${currentChapterNumber}:${selectedChoiceId}`] ||
-        ''
-      );
+      if (activeChoice?.videoUrl) return activeChoice.videoUrl;
+      if (activeChoice?.videoID) return getYouTubeVideoUrl(activeChoice.videoID) || '';
+      return '';
     }
-    if (currentStep === 'act0' || currentActData.act === 'act0') {
-      return (
-        (currentChapterConfig?.act0VideoID ? `https://youtu.be/${currentChapterConfig.act0VideoID}` : undefined) ||
-        currentChapterConfig?.act0VideoUrl ||
-        currentActData.videoUrl ||
-        ATLANTIS_VIDEO_URLS[`${currentChapterNumber}:act0`] ||
-        ''
-      );
+    if (currentStep === 'male_act' || currentStep === 'female_act') {
+      return currentActData.videoID || '';
     }
-    return currentActData.videoUrl || ATLANTIS_VIDEO_URLS[`${currentChapterNumber}:${currentActData.act}`] || '';
-  }, [currentStep, resolvedChoices, selectedChoiceId, currentChapterNumber, currentChapterConfig, currentActData]);
+    if (currentStep === 'act0' || !currentActData) {
+      if (currentChapterConfig?.act0VideoID) {
+        return getYouTubeVideoUrl(currentChapterConfig.act0VideoID) || '';
+      }
+      if (currentChapterConfig?.act0VideoUrl) {
+        return currentChapterConfig.act0VideoUrl;
+      }
+      return '';
+    }
+    return currentActData.videoID || '';
+  }, [currentStep, resolvedChoices, selectedChoiceId, currentChapterConfig, currentActData]);
 
-  const currentYouTubeId = useMemo(() => {
-    return extractYouTubeVideoId(currentVideoUrl);
-  }, [currentVideoUrl]);
 
+  const currentYouTubeId =  currentActData.videoID
   const isComingSoon = isVideoStep && (!currentYouTubeId || isMediaNotFound);
   const isVideoPlaying = isVideoStep && !isComingSoon && isYtPlaying && !isVideoFinished;
 
+  const hasHandledVideoEndRef = useRef<boolean>(false);
+
   // Reset media when step, chapter, or choice changes
   useEffect(() => {
+    hasHandledVideoEndRef.current = false;
     setIsMediaNotFound(false);
     setIsVideoFinished(false);
     setIsYtPlaying(false);
@@ -553,22 +481,38 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
   /**
    * Primary FLOW TRANSITION LOGIC — see lib/chapterFlowMachine.ts for the full
    * state diagram and lib/chapterConfigResolver.ts for how hasGenderActs /
-   * hasChoices are resolved per chapter. Neither of those files knows
-   * anything about i18n or component state; this is just the glue that
-   * applies their pure outcomes to React state.
+   * hasChoices are resolved per chapter.
    */
   const currentChapterMeta: ChapterMeta = useMemo(
-    () => resolveChapterMeta(currentChapterNumber, chapterConfigs, currentWorld, currentTaleName),
-    [chapterConfigs, currentChapterNumber, currentWorld, currentTaleName]
+    () => resolveChapterMeta(currentChapterNumber, chapterConfigs),
+    [chapterConfigs, currentChapterNumber]
   );
 
   const getChapterMeta = useCallback(
     (chapterNumber: number): ChapterMeta =>
-      resolveChapterMeta(chapterNumber, chapterConfigs, currentWorld, currentTaleName),
-    [chapterConfigs, currentWorld, currentTaleName]
+      resolveChapterMeta(chapterNumber, chapterConfigs),
+    [chapterConfigs]
   );
 
-  const applyFlowOutcome = (outcome: ReturnType<typeof getNextFlowOutcome>) => {
+  // Choice selection handler: plays the chosen act video and audio
+  const handleSelectChoice = useCallback((choiceId: ChoiceId) => {
+    hasCelebratedFeedbackRef.current = '';
+    setSelectedChoiceId(choiceId);
+    setIsVideoFinished(false);
+    setIsMediaNotFound(false);
+    setFeedbackParagraphs([]);
+    setCurrentStep('choice_act');
+
+    // Record best choice stat callback
+    if (isBestChoice(choiceId)) {
+      const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
+      if (onChooseBestChoice) {
+        onChooseBestChoice(activeSkill, selectedAudioLang || currentLang);
+      }
+    }
+  }, [currentChapterConfig, tale, onChooseBestChoice, selectedAudioLang, currentLang]);
+
+  const applyFlowOutcome = useCallback((outcome: ReturnType<typeof getNextFlowOutcome>) => {
     switch (outcome.kind) {
       case 'goto':
         setCurrentChapterNumber(outcome.position.chapterNumber);
@@ -589,9 +533,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       default:
         return;
     }
-  };
+  }, [resolvedChoices, handleSelectChoice, advanceChapterOrClose, onClose]);
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     const isCurrentBestChoice = isBestChoice(selectedChoiceId);
     const outcome = getNextFlowOutcome(
       { chapterNumber: currentChapterNumber, step: currentStep },
@@ -601,9 +545,9 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       isCurrentBestChoice
     );
     applyFlowOutcome(outcome);
-  };
+  }, [selectedChoiceId, currentChapterNumber, currentStep, effectiveGender, currentChapterMeta, feedbackParagraphs, applyFlowOutcome]);
 
-  const goToPrev = () => {
+  const goToPrev = useCallback(() => {
     const outcome = getPrevFlowOutcome(
       { chapterNumber: currentChapterNumber, step: currentStep },
       effectiveGender,
@@ -611,25 +555,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       getChapterMeta
     );
     applyFlowOutcome(outcome);
-  };
-
-  // Choice selection handler: plays the chosen act video and audio
-  const handleSelectChoice = (choiceId: ChoiceId) => {
-    hasCelebratedFeedbackRef.current = '';
-    setSelectedChoiceId(choiceId);
-    setIsVideoFinished(false);
-    setIsMediaNotFound(false);
-    setFeedbackParagraphs([]);
-    setCurrentStep('choice_act');
-
-    // Record best choice stat callback
-    if (isBestChoice(choiceId)) {
-      const activeSkill: SkillType = currentChapterConfig?.skill || tale?.skill || 'Plan';
-      if (onChooseBestChoice) {
-        onChooseBestChoice(activeSkill, selectedAudioLang || currentLang);
-      }
-    }
-  };
+  }, [currentChapterNumber, currentStep, effectiveGender, currentChapterMeta, getChapterMeta, applyFlowOutcome]);
 
   // Language selectors
   const handleAudioLanguageSelected = (newLang: Language) => {
@@ -648,39 +574,26 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
   };
 
+  const goToNextRef = useRef(goToNext);
+  goToNextRef.current = goToNext;
+
   const handlePrevChapterNav = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (currentChapterNumber > 1) {
-      setCurrentChapterNumber(currentChapterNumber - 1);
-      setCurrentStep('act0');
-      setIsVideoFinished(false);
-      setIsYtPlaying(false);
-    } else {
-      goToPrev();
-    }
+    goToPrev();
   };
 
   const handleNextChapterNav = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    const nextChapterId = currentChapterNumber + 1;
-    const nextExists = chapterConfigs.some((cfg) => cfg.id === nextChapterId) || nextChapterId <= maxChapterId;
-    if (nextExists) {
-      setCurrentChapterNumber(nextChapterId);
-      setCurrentStep('act0');
-      setIsVideoFinished(false);
-      setIsYtPlaying(false);
-    } else {
-      goToNext();
-    }
+    goToNext();
   };
 
   const handleVideoEnded = useCallback(() => {
+    if (hasHandledVideoEndRef.current) return;
+    hasHandledVideoEndRef.current = true;
     setIsVideoFinished(true);
     setIsYtPlaying(false);
-    setTimeout(() => {
-      advanceChapterOrClose();
-    }, 1000);
-  }, [advanceChapterOrClose]);
+    goToNextRef.current();
+  }, []);
 
   // Listen to postMessage events from YouTube Iframe
   useEffect(() => {
@@ -688,7 +601,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
     const handleMessage = (event: MessageEvent) => {
       if (
-        event.origin !== 'https://www.youtube.com' &&
+        event.origin !== 'https://youtu.be' &&
         event.origin !== 'https://www.youtube-nocookie.com'
       ) {
         return;
@@ -769,7 +682,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
       if (ytIframeRef.current?.contentWindow) {
         const targetOrigin = ytIframeRef.current.src
           ? new URL(ytIframeRef.current.src).origin
-          : 'https://www.youtube.com';
+          : 'https://youtu.be';
         ytIframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'listening' }),
           targetOrigin
@@ -932,6 +845,10 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   (choice.videoID ? getYouTubeImageUrl(choice.videoID) : '') ||
                   realmAtlantisJpg;
 
+                const choiceTitle =
+                  (choice.videoID && (ytTitles[choice.videoID] || getCachedYouTubeTitle(choice.videoID))) ||
+                  (choice.id === 'choice1' ? 'When It Matters' : choice.id === 'choice2' ? 'Step Back' : `Choice ${idx + 1}`);
+
                 return (
                   <button
                     key={choice.id}
@@ -944,7 +861,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     <div className="relative w-full aspect-video overflow-hidden rounded-xl bg-slate-950">
                       <img
                         src={choiceImgUrl}
-                        alt={`Choice ${idx + 1}`}
+                        alt={choiceTitle}
                         crossOrigin="anonymous"
                         loading="eager"
                         className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 ${
@@ -971,7 +888,13 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                         } via-transparent to-transparent pointer-events-none`}
                       />
 
-                      {/* Top Bar: Action Arrow Indicator */}
+                      {/* Top Bar: YouTube Video Title & Action Arrow Indicator */}
+                      <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 right-12 z-10 pointer-events-none">
+                        <span className="inline-block max-w-full truncate px-2.5 sm:px-3 py-1 rounded-md bg-black/85 border border-[#d4af37]/80 text-[#ffe81f] font-cinzel font-bold text-xs sm:text-sm tracking-wide shadow-md">
+                          {choiceTitle}
+                        </span>
+                      </div>
+
                       <div className="absolute top-2.5 sm:top-3 right-2.5 sm:right-3 flex items-center justify-end z-10 pointer-events-none">
                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/60 border border-[#d4af37]/80 text-[#ffe81f] flex items-center justify-center backdrop-blur-md group-hover:bg-[#d4af37] group-hover:text-black transition-colors shadow-md">
                           <span className="text-xs sm:text-sm font-bold group-hover:translate-x-0.5 transition-transform">
@@ -1262,6 +1185,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     instanceKey={`yt-${currentYouTubeId}`}
                     ref={ytIframeRef}
                     mediaRef={ytMediaRef}
+                    videoId={currentYouTubeId || undefined}
                     src={currentVideoUrl}
                     audioLang={selectedAudioLang}
                     subtitleLang={selectedSubtitleLang}

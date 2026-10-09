@@ -1,6 +1,6 @@
 import React, { Component, forwardRef, useEffect, useRef, useMemo } from 'react';
 import YouTube, { type YouTubeProps, type YouTubeEvent, type YouTubePlayer } from 'react-youtube';
-import { extractYouTubeVideoId, normalizeLangCode } from '../lib/assetRegistry';
+import { normalizeLangCode } from '../lib/assetRegistry';
 import { applyAudioTrack } from '../lib/youtubeAudioTrack';
 
 export interface YouTubeAdapter {
@@ -108,7 +108,7 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
     },
     ref
   ) {
-    const effectiveVideoId = propVideoId || extractYouTubeVideoId(src) || '';
+
     const playerRef = useRef<YouTubePlayer | null>(null);
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
     const tickerRef = useRef<number | null>(null);
@@ -137,6 +137,7 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
         playerVars: {
           autoplay: autoplay ? 1 : 0,
           controls: 0,
+          enablejsapi: 1,
           modestbranding: 1,
           showinfo: 0,
           rel: 0,
@@ -171,6 +172,13 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
             if (typeof time === 'number' && !Number.isNaN(time)) {
               lastKnownTimeRef.current = time;
               onTimeUpdate?.({ currentTarget: { currentTime: time } });
+            }
+
+            const state = typeof player.getPlayerState === 'function' ? await player.getPlayerState() : -1;
+            const duration = typeof player.getDuration === 'function' ? await player.getDuration() : 0;
+            if (state === 0 || (duration > 1 && typeof time === 'number' && time >= duration - 0.4)) {
+              stopTicker();
+              onEnded?.();
             }
           } catch {}
         })();
@@ -379,6 +387,18 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
     const handlePause = (event: YouTubeEvent<number>) => {
       stopTicker();
       onPause?.(event);
+      void (async () => {
+        try {
+          const player = event.target;
+          if (player) {
+            const time = typeof player.getCurrentTime === 'function' ? await player.getCurrentTime() : 0;
+            const duration = typeof player.getDuration === 'function' ? await player.getDuration() : 0;
+            if (duration > 1 && typeof time === 'number' && time >= duration - 0.4) {
+              onEnded?.(event);
+            }
+          }
+        } catch {}
+      })();
     };
 
     const handleEnd = (event: YouTubeEvent<number>) => {
