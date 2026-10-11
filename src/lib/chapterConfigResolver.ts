@@ -19,12 +19,21 @@ export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
     id: 1,
     skill: 'Proactive',
     act0VideoID: VIDEO_IDS['1:act0'],
-    choices: [VIDEO_IDS['1:choice1'], VIDEO_IDS['1:choice2']],
+    choices: [
+      VIDEO_IDS['1:choice1'],
+      VIDEO_IDS['1:choice2'],
+      VIDEO_IDS['1:choice3'],
+    ],
   },
   {
     id: 2,
     skill: 'Plan',
-    choices: [],
+    act0VideoID: VIDEO_IDS['2:act0'],
+    choices: [
+      VIDEO_IDS['2:choice1'],
+      VIDEO_IDS['2:choice2'],
+      VIDEO_IDS['2:choice3'],
+    ],
   },
   {
     id: 3,

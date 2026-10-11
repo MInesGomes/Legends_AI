@@ -24,13 +24,14 @@ import {
 import { FlowStep, ChapterMeta, getNextFlowOutcome, getPrevFlowOutcome } from '../lib/chapterFlowMachine';
 import {
   Act,
+  ATLANTIS_VIDEO_IDS,
   VIDEO_IDS,
-  getCachedYouTubeTitle,
   normalizeLangCode,
   realmAtlantisJpg,
   getYouTubeImageUrl,
   getYouTubeVideoUrl,
 } from '../lib/assetRegistry';
+import { ATLANTIS_CHOICE_TITLES } from '../i118/Atlantis';
 import { applyAudioTrack } from '../lib/youtubeAudioTrack';
 import { CommentsDrawer } from './CommentsDrawer';
 import { FlagLanguageDropdown } from './FlagLanguageDropdown';
@@ -304,86 +305,89 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     return array;
   }, [resolvedChoices]);
 
-  // Construct current Act definition based on flow step
+  // Construct current Act definition based on flow step and type logic:
+  // - No type: normal act (act0)
+  // - type === 'choice': card choices (step === 'choices') or active choice video (step === 'choice_act')
+  // - type === 'male' | 'female': character acts played according to avatar 1st
   const currentActData: Act = useMemo(() => {
-    if (currentChapterNumber === 0) {
-      if (currentStep === 'act0') {
-        return {
-          chapter: 0,
-          id: 'narrative',
-        };
-      }
-      if (currentStep === 'male_act') {
-        return {
-          chapter: 0,
-          type: 'male',
-          videoUrl: getYouTubeVideoUrl(VIDEO_IDS['0:male_act']),
-        };
-      }
-      if (currentStep === 'female_act') {
-        return {
-          chapter: 0,
-          type: 'female',
-          videoUrl: getYouTubeVideoUrl(VIDEO_IDS['0:female_act']),
-        };
-      }
-    }
-
-    if (currentStep === 'choice_act' || currentStep === 'choice_feedback') {
+    if (currentStep === 'choices') {
       return {
         chapter: currentChapterNumber,
-        act: selectedChoiceId,
         type: 'choice',
+        isChoice: true,
       };
     }
 
-    // Standard acts (act0) for Chapter 1..N
+    if (currentStep === 'choice_act' || currentStep === 'choice_feedback') {
+      const vid =
+        ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:${selectedChoiceId}`] ||
+        resolvedChoices.find((c) => c.id === selectedChoiceId)?.videoID;
+      return {
+        chapter: currentChapterNumber,
+        type: 'choice',
+        isChoice: true,
+        videoID: vid,
+      };
+    }
+
+    if (currentStep === 'male_act') {
+      const vid =
+        ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:male_act`] ||
+        ATLANTIS_VIDEO_IDS['0:male_act'];
+      return {
+        chapter: currentChapterNumber,
+        type: 'male',
+        isChoice: false,
+        videoID: vid,
+      };
+    }
+
+    if (currentStep === 'female_act') {
+      const vid =
+        ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:female_act`] ||
+        ATLANTIS_VIDEO_IDS['0:female_act'];
+      return {
+        chapter: currentChapterNumber,
+        type: 'female',
+        isChoice: false,
+        videoID: vid,
+      };
+    }
+
+    // Normal act: no type!
+    const normalVid =
+      ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:`] ||
+      ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:act0`] ||
+      currentChapterConfig?.act0VideoID;
+
     return {
       chapter: currentChapterNumber,
-      act: 'act0',
-      type: 'dialogue',
+      type: undefined,
+      isChoice: false,
+      videoID: normalVid,
     };
-  }, [currentChapterNumber, currentStep, selectedChoiceId]);
+  }, [currentChapterNumber, currentStep, selectedChoiceId, resolvedChoices, currentChapterConfig]);
 
-  // Resolve active YouTube video URL directly from single source of truth
-  const currentVideoUrl = useMemo(() => {
-    if (currentStep === 'choice_act') {
-      const activeChoice = resolvedChoices.find((c) => c.id === selectedChoiceId);
-      if (activeChoice?.videoUrl) return activeChoice.videoUrl;
-      if (activeChoice?.videoID) return getYouTubeVideoUrl(activeChoice.videoID) || '';
-      return '';
-    }
-    if (currentStep === 'male_act' || currentStep === 'female_act') {
-      return currentActData.videoID || '';
-    }
-    if (currentStep === 'act0' || !currentActData) {
-      if (currentChapterConfig?.act0VideoID) {
-        return getYouTubeVideoUrl(currentChapterConfig.act0VideoID) || '';
-      }
-      if (currentChapterConfig?.act0VideoUrl) {
-        return currentChapterConfig.act0VideoUrl;
-      }
-      return '';
-    }
-    return currentActData.videoID || '';
-  }, [currentStep, resolvedChoices, selectedChoiceId, currentChapterConfig, currentActData]);
+  const currentYouTubeId = currentActData.videoID || '';
+  const currentVideoUrl = currentYouTubeId
+    ? getYouTubeVideoUrl(currentYouTubeId) || `https://youtu.be/${currentYouTubeId}`
+    : '';
 
-
-  const currentYouTubeId =  currentActData.videoID
   const isComingSoon = isVideoStep && (!currentYouTubeId || isMediaNotFound);
   const isVideoPlaying = isVideoStep && !isComingSoon && isYtPlaying && !isVideoFinished;
 
   const hasHandledVideoEndRef = useRef<boolean>(false);
 
-  // Reset media when step, chapter, or choice changes
+  // Reset media when step, chapter, or choice changes; update isMediaNotFound = true if not in VIDEO_IDS[act]
   useEffect(() => {
     hasHandledVideoEndRef.current = false;
-    setIsMediaNotFound(false);
+    const hasVid = Boolean(currentActData.videoID && currentActData.videoID.trim().length > 0);
+    setIsMediaNotFound(isVideoStep ? !hasVid : false);
     setIsVideoFinished(false);
     setIsYtPlaying(false);
     setYtStartSeconds(0);
     ytCurrentTimeRef.current = 0;
-  }, [currentChapterNumber, currentStep, selectedChoiceId]);
+  }, [currentChapterNumber, currentStep, selectedChoiceId, currentActData.videoID, isVideoStep]);
 
   const handleTimeUpdate = (curr: number) => {
     ytCurrentTimeRef.current = curr;
@@ -846,7 +850,8 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   realmAtlantisJpg;
 
                 const choiceTitle =
-                  (choice.videoID && (ytTitles[choice.videoID] || getCachedYouTubeTitle(choice.videoID))) ||
+                  ATLANTIS_CHOICE_TITLES[`${currentChapterNumber}:${choice.id}`] ||
+                  (choice.videoID ? ATLANTIS_CHOICE_TITLES[choice.videoID] : undefined) ||
                   (choice.id === 'choice1' ? 'When It Matters' : choice.id === 'choice2' ? 'Step Back' : `Choice ${idx + 1}`);
 
                 return (
@@ -1291,7 +1296,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   {t('comingSoon', selectedAudioLang || currentLang)}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-300 max-w-sm leading-relaxed mt-1 font-sans">
-                  {t('comingSoonDesc', selectedAudioLang || currentLang, { title: currentActData.characterName || currentChapterConfig?.title || `Chapter ${currentChapterNumber}` })}
+                  {t('comingSoonDesc', selectedAudioLang || currentLang, { title: currentChapterConfig?.title || `Chapter ${currentChapterNumber}` })}
                 </p>
               </div>
             )}

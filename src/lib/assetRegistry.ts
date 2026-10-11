@@ -43,45 +43,33 @@ export function getYouTubeImageUrl(id?: string | null): string | undefined {
  */
 export const ATLANTIS_VIDEO_IDS: Record<string, string> = {
   '0:': '-B_vlZaUDDc',
+  '0:act0': '-B_vlZaUDDc',
   '0:male_act': '-xAxX2RIFYI',
   '0:female_act': 'Z8Znh2LUwus',
   '1:': 'X1O57PjE7MY',
+  '1:act0': 'X1O57PjE7MY',
   '1:choice1': 'f5-jQw-id5w',
   '1:choice2': 'oflXgBK4LDs',
   '1:choice3': 'mWvBf77_3KA',
   '2:': '6FuKHVh3uGo',
+  '2:act0': '6FuKHVh3uGo',
   '2:choice1': 'f5-jQw-id5w',
   '2:choice2': 'oflXgBK4LDs',
   '2:choice3': 'mWvBf77_3KA',
   '3:': '-64kwqW5q6k',
+  '3:act0': '-64kwqW5q6k',
   '3:choice1': '7DEPbiuRvuU',
   '3:choice2': 'B4bsJHLc7V0',
   '3:choice3': 'TP1-nip4GiM',
 };
 
-/** Known video titles cache for instant display */
-export const YOUTUBE_VIDEO_TITLES ATLANTIS_CHOICE_TITLES: Record<string, string> = {
-  'f5-jQw-id5w': 'When It Matters',
-  'oflXgBK4LDs': 'Step Back',
-  'mWvBf77_3KA': ' Set Things Right',
-  'X1O57PjE7MY': 'A New Hope',
-  '-B_vlZaUDDc': 'The Legend Begins',
-  '9Ozmoyei2-A': 'The Call of Atlantis',
-  '-64kwqW5q6k': 'The Sacred Chamber',
-  '7DEPbiuRvuU': 'Seek The Light',
-  'B4bsJHLc7V0': 'Stand Together',
-  'TP1-nip4GiM': 'Find Another Way',
-};
+// Aliased for backwards compatibility
+export const VIDEO_IDS = ATLANTIS_VIDEO_IDS;
 
-const titleCache = new Map<string, string>(Object.entries(YOUTUBE_VIDEO_TITLES));
+export { ATLANTIS_CHOICE_TITLES } from '../i118/Atlantis';
 
-export function getCachedYouTubeTitle(videoId?: string | null): string | undefined {
-  if (!videoId) return undefined;
-  return titleCache.get(videoId) || YOUTUBE_VIDEO_TITLES[videoId];
-}
-
-/** 5 Crystals Tale Card image loaded from youtube act0 '0:act0' */
-export const fiveCrystalsJpg = getYouTubeImageUrl(VIDEO_IDS['0:act0']) || '';
+/** 5 Crystals Tale Card image loaded from youtube act0 */
+export const fiveCrystalsJpg = getYouTubeImageUrl(ATLANTIS_VIDEO_IDS['0:']) || '';
 
 /**
  * Normalizes Language code ('EN' | 'ES' | 'IT' | 'PT' | 'NL') to lowercase string ('en', 'es', 'it', 'pt', 'nl')
@@ -97,7 +85,7 @@ export function normalizeLangCode(lang: Language | string = 'EN'): string {
 
 export interface Act {
   chapter: number;
-  type?: 'female' | 'male'| 'choice';
+  type?: 'female' | 'male' | 'choice';
   isChoice: boolean;
   videoID?: string;
 }

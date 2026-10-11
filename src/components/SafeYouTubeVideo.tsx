@@ -108,7 +108,11 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
     },
     ref
   ) {
-
+    const effectiveVideoId = (
+      propVideoId ||
+      (src ? src.replace(/^.*youtu\.be\//, '').replace(/^.*\/embed\//, '').replace(/^.*v=/, '').split(/[?#&]/)[0] : '') ||
+      ''
+    ).trim();
     const playerRef = useRef<YouTubePlayer | null>(null);
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
     const tickerRef = useRef<number | null>(null);
