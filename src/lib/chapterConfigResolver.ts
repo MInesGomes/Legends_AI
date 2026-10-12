@@ -5,44 +5,44 @@
  * Single source of truth for narrative chapter configurations backed by VIDEO_IDS.
  */
 import { ChapterConfig } from './chapterTypes';
-import { VIDEO_IDS } from './assetRegistry';
+import { ATLANTIS_VIDEO_IDS } from './assetRegistry';
 
 export const DEFAULT_CHAPTER_CONFIGS: ChapterConfig[] = [
   {
     id: 0,
     skill: 'Win4All',
     hasGenderActs: true,
-    act0VideoID: VIDEO_IDS['0:act0'],
+    act0VideoID: ATLANTIS_VIDEO_IDS['0:'],
     choices: [],
   },
   {
     id: 1,
     skill: 'Proactive',
-    act0VideoID: VIDEO_IDS['1:act0'],
+    act0VideoID: ATLANTIS_VIDEO_IDS['1:'],
     choices: [
-      VIDEO_IDS['1:choice1'],
-      VIDEO_IDS['1:choice2'],
-      VIDEO_IDS['1:choice3'],
+      ATLANTIS_VIDEO_IDS['1:choice1'],
+      ATLANTIS_VIDEO_IDS['1:choice2'],
+      ATLANTIS_VIDEO_IDS['1:choice3'],
     ],
   },
   {
     id: 2,
     skill: 'Plan',
-    act0VideoID: VIDEO_IDS['2:act0'],
+    act0VideoID: ATLANTIS_VIDEO_IDS['2:'],
     choices: [
-      VIDEO_IDS['2:choice1'],
-      VIDEO_IDS['2:choice2'],
-      VIDEO_IDS['2:choice3'],
+      ATLANTIS_VIDEO_IDS['2:choice1'],
+      ATLANTIS_VIDEO_IDS['2:choice2'],
+      ATLANTIS_VIDEO_IDS['2:choice3'],
     ],
   },
   {
     id: 3,
     skill: 'Win4All',
-    act0VideoID: VIDEO_IDS['3:act0'],
+    act0VideoID: ATLANTIS_VIDEO_IDS['3:'],
     choices: [
-      VIDEO_IDS['3:choice1'],
-      VIDEO_IDS['3:choice2'],
-      VIDEO_IDS['3:choice3'],
+      ATLANTIS_VIDEO_IDS['3:choice1'],
+      ATLANTIS_VIDEO_IDS['3:choice2'],
+      ATLANTIS_VIDEO_IDS['3:choice3'],
     ],
   },
 ];

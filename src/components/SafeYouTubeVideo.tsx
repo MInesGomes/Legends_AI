@@ -356,8 +356,32 @@ export const SafeYouTubeVideo = forwardRef<HTMLIFrameElement, SafeYouTubeVideoPr
 
       if (autoplay && player && typeof player.playVideo === 'function') {
         try {
-          player.playVideo();
-        } catch {}
+          const res = player.playVideo();
+          if (res && typeof res.catch === 'function') {
+            res.catch(() => {
+              try {
+                if (typeof player.mute === 'function') player.mute();
+                player.playVideo();
+              } catch {}
+            });
+          }
+        } catch {
+          try {
+            if (typeof player.mute === 'function') player.mute();
+            player.playVideo();
+          } catch {}
+        }
+
+        // Guarantee playback begins immediately without user having to click
+        setTimeout(() => {
+          try {
+            const state = typeof player.getPlayerState === 'function' ? player.getPlayerState() : -1;
+            if (state !== 1 && state !== 3) {
+              if (typeof player.mute === 'function') player.mute();
+              player.playVideo();
+            }
+          } catch {}
+        }, 150);
       }
 
       try {

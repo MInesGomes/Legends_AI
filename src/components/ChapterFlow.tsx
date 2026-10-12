@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import YouTube, { type YouTubeProps, type YouTubeEvent } from 'react-youtube';
 import {
-  SafeYouTubeVideo,
   type YouTubeAdapter,
 } from './SafeYouTubeVideo';
 import {
@@ -25,7 +25,6 @@ import { FlowStep, ChapterMeta, getNextFlowOutcome, getPrevFlowOutcome } from '.
 import {
   Act,
   ATLANTIS_VIDEO_IDS,
-  VIDEO_IDS,
   normalizeLangCode,
   realmAtlantisJpg,
   getYouTubeImageUrl,
@@ -211,9 +210,43 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
 
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const isAutoPlay = true;
-  const [isYtPlaying, setIsYtPlaying] = useState<boolean>(false);
+  const [isYtPlaying, setIsYtPlaying] = useState<boolean>(true);
+  const [isUserPaused, setIsUserPaused] = useState<boolean>(false);
   const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
   const [isMediaNotFound, setIsMediaNotFound] = useState<boolean>(false);
+
+  // react-youtube player and multi-language audio track states
+  const [player, setPlayer] = useState<any>(null);
+  const [audioTracks, setAudioTracks] = useState<any[]>([]);
+  const [currentTrackId, setCurrentTrackId] = useState<string>('');
+
+  // Handle changing the language dropdown
+  const handleLanguageChange = useCallback((e: React.ChangeEvent<HTMLSelectElement> | string) => {
+    const trackId = typeof e === 'string' ? e : e.target.value;
+    setCurrentTrackId(trackId);
+    if (player && typeof player.setAudioTrack === 'function') {
+      player.setAudioTrack(trackId);
+    }
+  }, [player]);
+
+  // Play/Pause handlers since controls are hidden
+  const togglePlay = useCallback(() => {
+    if (!player) return;
+    if (isYtPlaying) {
+      if (typeof player.pauseVideo === 'function') {
+        player.pauseVideo();
+      }
+      setIsYtPlaying(false);
+    } else {
+      if (typeof player.playVideo === 'function') {
+        try {
+          const p = player.playVideo();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch {}
+      }
+      setIsYtPlaying(true);
+    }
+  }, [player, isYtPlaying]);
 
   // Comments drawer
   const [showCommentsDrawer, setShowCommentsDrawer] = useState<boolean>(false);
@@ -355,10 +388,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
     }
 
     // Normal act: no type!
-    const normalVid =
-      ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:`] ||
-      ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:act0`] ||
-      currentChapterConfig?.act0VideoID;
+    const normalVid = ATLANTIS_VIDEO_IDS[`${currentChapterNumber}:`];
 
     return {
       chapter: currentChapterNumber,
@@ -794,6 +824,28 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   tooltip="Audio Dub"
                 />
               </div>
+
+              {/* YouTube Multi-Language Audio Track Selector if video provides multiple tracks */}
+              {audioTracks.length > 0 && (
+                <div className="flex items-center gap-1.5" title="Audio Track">
+                  <label htmlFor="audio-lang" className="text-[10px] sm:text-xs font-mono font-bold tracking-wider text-amber-200/90 hidden xs:inline-block">
+                    TRACK:
+                  </label>
+                  <select
+                    id="audio-lang"
+                    value={currentTrackId}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                    disabled={audioTracks.length === 0}
+                    className="px-2 py-1 text-xs rounded bg-slate-900/90 border border-amber-500/50 text-amber-200 font-cinzel cursor-pointer shadow-lg outline-none focus:border-amber-400"
+                  >
+                    {audioTracks.map((track: any) => (
+                      <option key={track.id} value={track.id} className="bg-slate-950 text-amber-100">
+                        {track.displayName || track.language || `Track ${track.id}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1173,7 +1225,7 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
           </div>
         )}
 
-        {/* C. ACT VIDEO MEDIA (Only YouTube videos; if none exists, Coming Soon) */}
+        {/* C. ACT VIDEO MEDIA (Only YouTube videos with react-youtube; if none exists, Coming Soon) */}
         {currentStep !== 'choices' && currentStep !== 'choice_feedback' && (
           <div className="relative w-full h-full flex items-start sm:items-center justify-center overflow-hidden bg-black">
             {currentYouTubeId && !isMediaNotFound ? (
@@ -1186,76 +1238,91 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                     isVideoFinished ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
-                  <SafeYouTubeVideo
-                    instanceKey={`yt-${currentYouTubeId}`}
-                    ref={ytIframeRef}
-                    mediaRef={ytMediaRef}
-                    videoId={currentYouTubeId || undefined}
-                    src={currentVideoUrl}
-                    audioLang={selectedAudioLang}
-                    subtitleLang={selectedSubtitleLang}
-                    autoplay={true}
-                    defaultMuted={false}
-                    muted={isMuted}
-                    controls={false}
-                    playsInline={true}
-                    className="w-full h-full border-0 pointer-events-none select-none"
-                    iframeClassName="w-full h-full border-0 pointer-events-none select-none"
-                    style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-                    source={{
-                      src: currentVideoUrl,
-                      engine: {
-                        youtube: {
-                          controls: 0,
-                          modestbranding: 1,
-                          showinfo: 0,
-                          cc_load_policy: 1,
-                          cc_lang_pref: normalizeLangCode(selectedSubtitleLang),
-                          hl: normalizeLangCode(selectedAudioLang),
-                          disablekb: 1,
-                          fs: 0,
-                          rel: 0,
-                          iv_load_policy: 3,
-                          ...(ytStartSeconds > 0 ? { start: ytStartSeconds } : {}),
-                          origin: typeof window !== 'undefined' ? window.location.origin : undefined,
-                          widget_referrer: typeof window !== 'undefined' ? window.location.origin : undefined,
-                        },
+                  <YouTube
+                    key={`yt-${currentYouTubeId}`}
+                    videoId={currentYouTubeId}
+                    opts={{
+                      height: '100%',
+                      width: '100%',
+                      playerVars: {
+                        autoplay: 1,
+                        controls: 0,
+                        modestbranding: 1,
+                        rel: 0,
+                        enablejsapi: 1,
+                        iv_load_policy: 3,
+                        disablekb: 1,
+                        fs: 0,
+                        cc_load_policy: 1,
+                        playsinline: 1,
+                        origin: typeof window !== 'undefined' ? window.location.origin : undefined,
+                        widget_referrer: typeof window !== 'undefined' ? window.location.origin : undefined,
+                        hl: normalizeLangCode(selectedAudioLang),
+                        cc_lang_pref: normalizeLangCode(selectedSubtitleLang),
                       },
                     }}
-                    onLoadedMetadata={(e) => {
-                      e.currentTarget.muted = isMuted;
-                      e.currentTarget.volume = 1;
+                    onReady={(event: YouTubeEvent) => {
+                      const ytPlayer = event.target;
+                      setPlayer(ytPlayer);
+
+                      // Retrieve available audio tracks via YouTube Player API
+                      if (typeof ytPlayer.getAvailableAudioTracks === 'function') {
+                        const tracks = ytPlayer.getAvailableAudioTracks();
+                        if (Array.isArray(tracks) && tracks.length > 0) {
+                          setAudioTracks(tracks);
+                        }
+                      }
+                      if (typeof ytPlayer.getAudioTrack === 'function') {
+                        const currentTrack = ytPlayer.getAudioTrack();
+                        setCurrentTrackId(currentTrack?.id || '');
+                      }
+
+                      // Mute state
                       try {
-                        const p = e.currentTarget?.play?.();
+                        if (isMuted) {
+                          if (typeof ytPlayer.mute === 'function') ytPlayer.mute();
+                        } else {
+                          if (typeof ytPlayer.unMute === 'function') ytPlayer.unMute();
+                        }
+                      } catch {}
+
+                      // Sync audio & subtitles
+                      if (selectedAudioLang) {
+                        void applyAudioTrack(ytPlayer, normalizeLangCode(selectedAudioLang));
+                      }
+                      try {
+                        if (typeof ytPlayer.loadModule === 'function') ytPlayer.loadModule('captions');
+                        if (typeof ytPlayer.setOption === 'function') {
+                          ytPlayer.setOption('captions', 'track', { languageCode: normalizeLangCode(selectedSubtitleLang) });
+                          ytPlayer.setOption('cc', 'track', { languageCode: normalizeLangCode(selectedSubtitleLang) });
+                        }
+                      } catch {}
+
+                      // Start film immediately
+                      try {
+                        const p = ytPlayer.playVideo();
                         if (p && typeof p.catch === 'function') p.catch(() => {});
                       } catch {}
-                      syncYouTubeAudioTrack();
-                      syncYouTubeSubtitles();
                     }}
                     onPlay={() => {
-                      setIsYtPlaying(true);
-                      syncYouTubeAudioTrack();
-                      syncYouTubeSubtitles();
-                    }}
-                    onPlaying={() => {
                       setIsYtPlaying(true);
                     }}
                     onPause={() => {
                       setIsYtPlaying(false);
                     }}
-                    onTimeUpdate={(e) => {
-                      const curr = e.currentTarget.currentTime;
-                      ytCurrentTimeRef.current = curr;
-                      handleTimeUpdate(curr);
-                    }}
-                    onEnded={() => {
+                    onEnd={() => {
                       setIsYtPlaying(false);
                       handleVideoEnded();
                     }}
+                    onError={() => {
+                      handleVideoError();
+                    }}
+                    className="w-full h-full pointer-events-none select-none"
+                    iframeClassName="w-full h-full border-0 pointer-events-none select-none"
+                    style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
                   />
                 </div>
 
-               
                 {/* Seamless overlay that intercepts taps/clicks to toggle play/pause and renders a Gold Circle button when paused */}
                 <div
                   className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center"
@@ -1264,15 +1331,17 @@ export const ChapterFlow: React.FC<ChapterFlowProps> = ({
                   onClick={() => {
                     if (isYtPlaying) {
                       setIsYtPlaying(false);
-                      ytMediaRef.current?.pause();
-                      sendYtCommand('pauseVideo');
+                      if (player && typeof player.pauseVideo === 'function') {
+                        player.pauseVideo();
+                      }
                     } else {
                       setIsYtPlaying(true);
-                      try {
-                        const p = ytMediaRef.current?.play();
-                        if (p && typeof p.catch === 'function') p.catch(() => {});
-                      } catch {}
-                      sendYtCommand('playVideo');
+                      if (player && typeof player.playVideo === 'function') {
+                        try {
+                          const p = player.playVideo();
+                          if (p && typeof p.catch === 'function') p.catch(() => {});
+                        } catch {}
+                      }
                     }
                   }}
                 >
