@@ -163,6 +163,7 @@ export const TalesPage: React.FC<TalesPageProps> = ({
             {realmTales.map((tale) => {
             const alreadyReadToday = todayTalesList.includes(tale.id);
             const isApprovedCustomTale = Boolean(tale.isCustomUserTale && tale.isApproved);
+            const coverImg = (tale.coverImage || '').replace('/hqdefault.jpg', '/mqdefault.jpg');
 
             return (
               <div
@@ -179,39 +180,40 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                 className="group relative cursor-pointer p-[3px] rounded-[18px] transition-all duration-300 transform hover:-translate-y-1 active:scale-[0.99] bg-gradient-to-b from-[#f3e5ab] via-[#d4af37] to-[#8a5d12] shadow-xl hover:shadow-2xl hover:shadow-[#d4af37]/30"
               >
                 {/* Inner Card Box without background color */}
-                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden text-left flex flex-col justify-between bg-transparent">
+                <div className="relative h-72 sm:h-80 rounded-[15px] overflow-hidden text-left flex flex-col justify-between bg-black/40">
                   
-                  {/* Background Image */}
+                  {/* Background Image - Absolute full-bleed, no black letterbox bars */}
                   <img
-                    src={tale.coverImage}
+                    src={coverImg}
                     alt={tale.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter brightness-[0.98] group-hover:brightness-100"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter brightness-[0.98] group-hover:brightness-100"
                     referrerPolicy="no-referrer"
                   />
 
-                  {/* Custom Tale Moderation Status Badges */}
-                  {isApprovedCustomTale && (
-                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
-                      <span className="px-2.5 py-1 rounded-full bg-[#182130]/90 border border-[#d4af37]/80 text-[10px] font-bold text-[#fce0a2] uppercase tracking-wider shadow-lg flex items-center gap-1 backdrop-blur-sm">
+                  {/* Gradient overlays: top vignette and deep bottom vignette for high-contrast legible title on any screen */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 via-45% to-transparent pointer-events-none" />
+
+                  {/* Top Read Today / Moderation Badges */}
+                  <div className="relative z-10 p-3 flex items-center justify-between pointer-events-none">
+                    {isApprovedCustomTale ? (
+                      <span className="px-2.5 py-1 rounded-full bg-[#182130]/90 border border-[#d4af37]/80 text-[10px] font-bold text-[#fce0a2] uppercase tracking-wider shadow-lg flex items-center gap-1 backdrop-blur-sm pointer-events-auto">
                         <Sparkles className="w-3 h-3 text-[#d4af37]" />
                         {t('approvedTale', effectiveLang)}
                       </span>
-                    </div>
-                  )}
+                    ) : <span />}
 
-                  {/* Top Read Today Indicator without blur */}
-                  {!tale.isComingSoon && alreadyReadToday && (
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/60 text-[10px] font-bold text-emerald-300 uppercase tracking-wider shadow-md">
+                    {!tale.isComingSoon && alreadyReadToday && (
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-950 border border-emerald-500/60 text-[10px] font-bold text-emerald-300 uppercase tracking-wider shadow-md pointer-events-auto">
                         {t('unlockedToday', effectiveLang)}
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Coming Soon Badge (Smaller, elegant, no dark overlay covering the card) */}
                   {tale.isComingSoon && (
                     <div className="absolute inset-0 z-20 flex items-center justify-center p-3 pointer-events-none">
-                      <div className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/65 border border-[#d4af37]/80 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_10px_rgba(212,175,55,0.3)] backdrop-blur-sm">
+                      <div className="px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-black/75 border border-[#d4af37]/80 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_10px_rgba(212,175,55,0.3)] backdrop-blur-sm">
                         <span className="block text-xs sm:text-sm font-cinzel font-bold tracking-[0.2em] text-[#fce0a2] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                           {t('comingSoon', effectiveLang)}
                         </span>
@@ -219,27 +221,27 @@ export const TalesPage: React.FC<TalesPageProps> = ({
                     </div>
                   )}
 
-                  {/* Bottom Gold Title Banner with clear high-contrast text */}
-                  <div className="relative z-10 px-4 pt-2 pb-5 sm:pb-6 text-center flex flex-col items-center justify-end">
-                    <h3 className="text-2xl sm:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  {/* Bottom Gold Title Banner - Always visible independent of screen size */}
+                  <div className="relative z-10 px-3 sm:px-4 pt-2 pb-4 sm:pb-5 text-center flex flex-col items-center justify-end w-full">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold font-cinzel text-[#fce0a2] tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] line-clamp-2">
                       {tale.title}
                     </h3>
                     
                     {/* Decorative Gold Filigree Divider with Diamond */}
-                    <div className="w-full max-w-[80%] flex items-center justify-center my-1.5 text-[#d4af37] filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                    <div className="w-full max-w-[80%] flex items-center justify-center my-1 sm:my-1.5 text-[#d4af37] filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                       <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
                       <span className="px-2 text-xs font-serif">❖</span>
                       <div className="h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent flex-1" />
                     </div>
 
                     {tale.subtitle && (
-                      <p className="text-sm text-slate-100 font-serif-display italic line-clamp-1 mb-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] font-medium">
+                      <p className="text-xs sm:text-sm text-slate-100 font-serif-display italic line-clamp-1 mb-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)] font-medium">
                         {tale.subtitle}
                       </p>
                     )}
 
                     {/* Social Stats */}
-                    <div className="flex items-center justify-center gap-4 text-xs text-[#fce0a2] mt-1 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                    <div className="flex items-center justify-center gap-3 sm:gap-4 text-xs text-[#fce0a2] mt-0.5 font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
                       <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.viewsCount}</span>
                       <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-[#fce0a2]" /> {tale.likesCount}</span>
                       {canViewComments && (

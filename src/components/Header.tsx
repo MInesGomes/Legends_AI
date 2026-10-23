@@ -125,21 +125,21 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors duration-300 px-4 py-2.5 shadow-sm ${
+      <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors duration-300 px-2.5 sm:px-4 py-1.5 sm:py-2.5 shadow-sm ${
         darkMode 
           ? 'bg-[#121824]/90 text-slate-100' 
           : 'bg-[#fefdfa]/95 text-slate-900'
       }`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           
           {/* Left: User Avatar Profile Trigger */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={onOpenProfile}
               className="group relative p-0.5 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#fce0a2] to-[#996515] transition-transform active:scale-95 hover:scale-105 shadow-md"
               title={t('profileProgress', currentLang)}
             >
-              <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ${
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center border-2 ${
                 darkMode ? 'bg-[#121824] border-[#121824]' : 'bg-white border-white'
               }`}>
                 {user?.avatar_url ? (
@@ -150,10 +150,10 @@ export const Header: React.FC<HeaderProps> = ({
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <User className="w-5 h-5 text-[#d4af37]" />
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4af37]" />
                 )}
               </div>
-              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#d4af37] border-2 ${
+              <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#d4af37] border-2 ${
                 darkMode ? 'border-[#121824]' : 'border-white'
               }`} />
             </button>
@@ -168,15 +168,15 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Center: Brand Title & Icon */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
             <img
               src="https://fygcrtlqrsjzjocckkhe.supabase.co/storage/v1/object/public/LegPub/favicons/android-chrome-192x192.png"
               alt="Legends"
-              className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain shrink-0 filter drop-shadow-[0_2px_4px_rgba(140,85,10,0.45)]"
+              className="w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain shrink-0 filter drop-shadow-[0_2px_4px_rgba(140,85,10,0.45)]"
               referrerPolicy="no-referrer"
             />
             <h1
-              className="font-serif-display text-xl sm:text-2xl md:text-3xl lg:text-[34px] font-bold tracking-normal select-none"
+              className="font-serif-display text-xs xs:text-sm sm:text-2xl md:text-3xl lg:text-[34px] font-bold tracking-tight sm:tracking-normal select-none leading-tight truncate"
               style={{
                 background: 'linear-gradient(180deg, #f7e098 0%, #e0aa37 38%, #b97c14 72%, #7f4b02 100%)',
                 WebkitBackgroundClip: 'text',
@@ -184,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({
                 filter: 'drop-shadow(0 1.5px 2px rgba(110, 68, 8, 0.45))',
               }}
             >
-              <span className="inline sm:hidden">Legends</span>
+              <span className="inline sm:hidden">Learn with Legends</span>
               <span className="hidden sm:inline">Learn with Legends</span>
             </h1>
           </div>

@@ -21,8 +21,7 @@ export interface ChapterConfig {
 
 /**
  * Which choice is "the best" one is a fixed rule rather than per-choice
- * config: choice1 (choices[0]) always is. Call this instead of reading a `choice.isBest`
- * flag so there's exactly one place that rule lives.
+ * config: choice1 (choices[0]) always is. Choice 1 is the best.
  */
 export function isBestChoice(choiceId: ChoiceId): boolean {
   return choiceId === 'choice1';
@@ -31,10 +30,8 @@ export function isBestChoice(choiceId: ChoiceId): boolean {
 /**
  * Resolves an array of choice video IDs into ChapterChoiceConfig objects.
  * choices[0] is choice1 (the best choice), choices[1] is choice2, etc.
- * imageUrl: https://img.youtube.com/vi/${choice[n]}/hqdefault.jpg
- * videoUrl: https://youtu.be/${choice[n]}
- * where n is the number of the choice 0..n.
- * A choice is available if the videoID is non-empty.
+ * When there is no YouTube link, url is "" and the UI shows "Coming Soon".
+ * YouTube URL is obtained via "https://youtu.be/" + url.
  */
 export function resolveChapterChoices(config?: ChapterConfig | null): ChapterChoiceConfig[] {
   if (!config || !config.choices) return [];
@@ -44,25 +41,24 @@ export function resolveChapterChoices(config?: ChapterConfig | null): ChapterCho
     const choiceId = (choiceIds[index] || `choice${index + 1}`) as ChoiceId;
     if (typeof choiceEntry === 'string') {
       const videoID = choiceEntry.trim();
-      const available = videoID.length > 0;
+      const hasUrl = videoID.length > 0;
       return {
         id: choiceId,
-        available,
-        videoID: available ? videoID : undefined,
-        imageUrl: available ? `https://img.youtube.com/vi/${videoID}/hqdefault.jpg` : undefined,
-        videoUrl: available ? `https://youtu.be/${videoID}` : undefined,
+        available: true,
+        videoID: videoID,
+        imageUrl: hasUrl ? `https://img.youtube.com/vi/${videoID}/hqdefault.jpg` : '',
+        videoUrl: hasUrl ? `https://youtu.be/${videoID}` : '',
       };
     }
     const obj = choiceEntry as any;
     const rawVideoId = String(obj.videoID || (obj.videoUrl ? obj.videoUrl.split('/').pop() : '') || '').trim();
-    const available = Boolean(obj.available ?? (rawVideoId.length > 0));
+    const hasUrl = rawVideoId.length > 0;
     return {
       id: obj.id || choiceId,
-      available,
-      videoID: rawVideoId || undefined,
-      imageUrl: obj.imageUrl || (rawVideoId ? `https://img.youtube.com/vi/${rawVideoId}/hqdefault.jpg` : undefined),
-      videoUrl: obj.videoUrl || (rawVideoId ? `https://youtu.be/${rawVideoId}` : undefined),
+      available: true,
+      videoID: rawVideoId,
+      imageUrl: obj.imageUrl || (hasUrl ? `https://img.youtube.com/vi/${rawVideoId}/hqdefault.jpg` : ''),
+      videoUrl: obj.videoUrl || (hasUrl ? `https://youtu.be/${rawVideoId}` : ''),
     };
   });
 }
-
